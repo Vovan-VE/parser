@@ -1,9 +1,10 @@
 <?php
 namespace VovanVE\parser\lexer;
 
+use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\Token;
 
-class Lexer
+class Lexer extends BaseObject
 {
     /** @var array */
     public $defines = [];

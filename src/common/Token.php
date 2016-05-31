@@ -1,7 +1,7 @@
 <?php
 namespace VovanVE\parser\common;
 
-class Token
+class Token extends BaseObject
 {
     /** @var string */
     public $type;
