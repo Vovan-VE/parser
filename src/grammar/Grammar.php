@@ -59,6 +59,31 @@ class Grammar extends BaseObject
     }
 
     /**
+     * @return Rule
+     */
+    public function getMainRule()
+    {
+        return $this->rules[0];
+    }
+
+    /**
+     * @param Symbol $subject
+     * @return Rule[]
+     */
+    public function getRulesFor($subject)
+    {
+        $rules = [];
+        if (!$subject->isTerminal) {
+            foreach ($this->rules as $rule) {
+                if (0 === Symbol::compare($rule->subject, $subject)) {
+                    $rules[] = $rule;
+                }
+            }
+        }
+        return $rules;
+    }
+
+    /**
      * @return string
      */
     public function __toString()

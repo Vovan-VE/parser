@@ -33,7 +33,7 @@ class Symbol extends BaseObject
                 return 1;
             }
             // $a[$i] <=> $b[$i]
-            $result = $symbol->compare($b[$i]);
+            $result = static::compare($symbol, $b[$i]);
             if ($result) {
                 //# $a[$i] <> $b[$i]
                 return $result;
