@@ -9,6 +9,8 @@ class ItemSet extends BaseObject
 {
     /** @var Item[] */
     public $items;
+    /** @var Item[] */
+    protected $initialItems;
 
     /**
      * @param Item[] $items
@@ -56,18 +58,29 @@ class ItemSet extends BaseObject
             }
         }
 
-        return new static($final_items);
+        return new static($final_items, $items);
     }
 
     /**
      * @param Item[] $items
+     * @param Item[]|null $initialItems
      * @uses Item::compare()
      */
-    public function __construct(array $items)
+    public function __construct(array $items, array $initialItems = null)
     {
         $items_list = array_values($items);
         usort($items_list, [Item::className(), 'compare']);
         $this->items = $items_list;
+
+        $this->initialItems = array_values((null !== $initialItems) ? $initialItems : $items);
+    }
+
+    /**
+     * @return Item[]
+     */
+    public function getInitialItems()
+    {
+        return $this->initialItems;
     }
 
     /**
@@ -99,10 +112,39 @@ class ItemSet extends BaseObject
         }
 
         $sets = [];
-        foreach ($next_map as $items) {
-            $sets[] = static::createFromItems($items, $grammar);
+        foreach ($next_map as $name => $items) {
+            $sets[$name] = static::createFromItems($items, $grammar);
         }
         return $sets;
+    }
+
+    /**
+     * @param Item $item
+     * @param bool $initialOnly
+     * @return bool
+     */
+    public function hasItem($item, $initialOnly = true)
+    {
+        $list = ($initialOnly) ? $this->initialItems : $this->items;
+        foreach ($list as $my_item) {
+            if (0 === Item::compare($my_item, $item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasFinalItem()
+    {
+        foreach ($this->items as $item) {
+            if ($item->eof && !$item->futher) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -130,6 +172,23 @@ class ItemSet extends BaseObject
      */
     public function __toString()
     {
-        return self::DUMP_PREFIX_MAIN . join(PHP_EOL . self::DUMP_PREFIX_SUB, $this->items);
+        $expanded_items = [];
+        foreach ($this->items as $item) {
+            foreach ($this->initialItems as $initial_item) {
+                if (0 !== Item::compare($item, $initial_item)) {
+                    $expanded_items[] = $item;
+                }
+            }
+        }
+
+        $out = [];
+        foreach ([$this->initialItems, $expanded_items] as $ex => $items) {
+            $prefix = ($ex) ? self::DUMP_PREFIX_SUB : self::DUMP_PREFIX_MAIN;
+            foreach ($items as $item) {
+                $out[] = $prefix . $item;
+            }
+        }
+
+        return join(PHP_EOL, $out);
     }
 }

@@ -8,6 +8,10 @@ class Grammar extends BaseObject
 {
     /** @var Rule[] */
     public $rules;
+    /** @var Rule */
+    protected $mainRule;
+    /** @var Symbol[] */
+    protected $symbols;
 
     /**
      * @param string $text
@@ -56,6 +60,27 @@ class Grammar extends BaseObject
     public function __construct(array $rules)
     {
         $this->rules = $rules;
+        $symbols = [];
+
+        foreach ($rules as $rule) {
+            if ($rule->eof) {
+                if ($this->mainRule) {
+                    throw new GrammarException('Only one rule must to allow EOF');
+                } else {
+                    $this->mainRule = $rule;
+                }
+            }
+            foreach (array_merge([$rule->subject], $rule->definition) as $symbol) {
+                $symbol_name = $symbol->name;
+                if (!isset($symbols[$symbol_name])) {
+                    $symbols[$symbol_name] = $symbol;
+                }
+            }
+        }
+        if (!$this->mainRule) {
+            throw new GrammarException('Exactly one rule must to allow EOF - it will be main rule');
+        }
+        $this->symbols = $symbols;
     }
 
     /**
@@ -63,7 +88,16 @@ class Grammar extends BaseObject
      */
     public function getMainRule()
     {
-        return $this->rules[0];
+        return $this->mainRule;
+    }
+
+    /**
+     * @param string $name
+     * @return Symbol
+     */
+    public function getSymbol($name)
+    {
+        return isset($this->symbols[$name]) ? $this->symbols[$name] : null;
     }
 
     /**

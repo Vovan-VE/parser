@@ -71,6 +71,14 @@ class Item extends BaseRule
         return new static($this->subject, $passed, $futher, $this->eof);
     }
 
+    /**
+     * @return Rule
+     */
+    public function getAsRule()
+    {
+        return new Rule($this->subject, array_merge($this->passed, $this->futher), $this->eof);
+    }
+
     const DUMP_MARKER = '.';
 
     /**

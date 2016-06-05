@@ -10,6 +10,18 @@ class Rule extends BaseRule
     public $definition;
 
     /**
+     * @param self $a
+     * @param self $b
+     * @return integer
+     */
+    public static function compare(self $a, self $b)
+    {
+        return Symbol::compare($a->subject, $b->subject)
+            ?: Symbol::compareList($a->definition, $b->definition)
+            ?: ($b->eof - $a->eof);
+    }
+
+    /**
      * @param Symbol $subject
      * @param Symbol[] $definition
      */
