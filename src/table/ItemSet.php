@@ -58,21 +58,23 @@ class ItemSet extends BaseObject
             }
         }
 
-        return new static($final_items, $items);
+        return new static($final_items, $items, $grammar);
     }
 
     /**
      * @param Item[] $items
-     * @param Item[]|null $initialItems
+     * @param Item[] $initialItems
+     * @param Grammar $grammar
      * @uses Item::compare()
      */
-    public function __construct(array $items, array $initialItems = null)
+    public function __construct(array $items, array $initialItems, $grammar)
     {
         $items_list = array_values($items);
         usort($items_list, [Item::className(), 'compare']);
         $this->items = $items_list;
+        $this->initialItems = array_values($initialItems);
 
-        $this->initialItems = array_values((null !== $initialItems) ? $initialItems : $items);
+        $this->validateDeterministic($grammar);
     }
 
     /**
@@ -175,10 +177,14 @@ class ItemSet extends BaseObject
         $expanded_items = [];
         foreach ($this->items as $item) {
             foreach ($this->initialItems as $initial_item) {
-                if (0 !== Item::compare($item, $initial_item)) {
-                    $expanded_items[] = $item;
+                if (0 === Item::compare($item, $initial_item)) {
+                    goto NEXT_ITEM;
                 }
             }
+
+            $expanded_items[] = $item;
+
+            NEXT_ITEM:
         }
 
         $out = [];
@@ -190,5 +196,58 @@ class ItemSet extends BaseObject
         }
 
         return join(PHP_EOL, $out);
+    }
+
+    /**
+     * @param Grammar $grammar
+     */
+    private function validateDeterministic($grammar)
+    {
+        /** @var Item[] */
+        $finit = [];
+        $terminals = [];
+        $non_terminals = [];
+        foreach ($this->items as $item) {
+            $next_symbol = $item->getExpected();
+            if (!$next_symbol) {
+                $finit[] = $item;
+            } elseif ($next_symbol->isTerminal) {
+                $terminals[] = $item;
+            } else {
+                $non_terminals[] = $item;
+            }
+        }
+
+        $this->validateDeterministicShiftReduce($finit, $terminals, $non_terminals, $grammar);
+        $this->validateDeterministicReduceReduce($finit);
+    }
+
+    /**
+     * @param Item[] $finit
+     * @param Item[] $terminals
+     * @param Item[] $nonTerminals
+     * @param Grammar $grammar
+     */
+    private function validateDeterministicShiftReduce($finit, $terminals, $nonTerminals, $grammar)
+    {
+        if ($finit && $terminals) {
+            $left_terminals = $grammar->getTerminals();
+            foreach ($terminals as $item) {
+                unset($left_terminals[$item->getExpected()->name]);
+            }
+            if (!$left_terminals) {
+                throw new ConflictShiftReduceException(array_merge($finit, $terminals, $nonTerminals));
+            }
+        }
+    }
+
+    /**
+     * @param Item[] $finit
+     */
+    private function validateDeterministicReduceReduce($finit)
+    {
+        if (count($finit) > 1) {
+            throw new ConflictReduceReduceException($finit);
+        }
     }
 }

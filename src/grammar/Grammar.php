@@ -12,6 +12,10 @@ class Grammar extends BaseObject
     protected $mainRule;
     /** @var Symbol[] */
     protected $symbols;
+    /** @var Symbol[] */
+    protected $terminals;
+    /** @var Symbol[] */
+    protected $nonTerminals;
 
     /**
      * @param string $text
@@ -61,6 +65,8 @@ class Grammar extends BaseObject
     {
         $this->rules = $rules;
         $symbols = [];
+        $terminals = [];
+        $non_terminals = [];
 
         foreach ($rules as $rule) {
             if ($rule->eof) {
@@ -74,13 +80,23 @@ class Grammar extends BaseObject
                 $symbol_name = $symbol->name;
                 if (!isset($symbols[$symbol_name])) {
                     $symbols[$symbol_name] = $symbol;
+                    if ($symbol->isTerminal) {
+                        $terminals[$symbol_name] = $symbol;
+                    } else {
+                        $non_terminals[$symbol_name] = $symbol;
+                    }
                 }
             }
         }
         if (!$this->mainRule) {
             throw new GrammarException('Exactly one rule must to allow EOF - it will be main rule');
         }
+        if (!$non_terminals) {
+            throw new GrammarException('No terminals');
+        }
         $this->symbols = $symbols;
+        $this->terminals = $terminals;
+        $this->nonTerminals = $non_terminals;
     }
 
     /**
@@ -89,6 +105,22 @@ class Grammar extends BaseObject
     public function getMainRule()
     {
         return $this->mainRule;
+    }
+
+    /**
+     * @return Symbol[]
+     */
+    public function getTerminals()
+    {
+        return $this->terminals;
+    }
+
+    /**
+     * @return Symbol[]
+     */
+    public function getNonTerminals()
+    {
+        return $this->terminals;
     }
 
     /**

@@ -28,7 +28,10 @@ class Table extends BaseObject
         $out = '';
         foreach ($this->rows as $index => $row) {
             $out .= 'State #' . $index . PHP_EOL;
-            $out .= join(PHP_EOL, $this->states[$index]->getInitialItems()) . PHP_EOL;
+
+            //$out .= join(PHP_EOL, $this->states[$index]->getInitialItems()) . PHP_EOL; /*
+            $out .= $this->states[$index] . PHP_EOL; // */
+
             $out .= '| ' . $row . PHP_EOL;
             $out .= '--------------------' . PHP_EOL;
         }

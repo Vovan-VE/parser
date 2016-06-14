@@ -1,6 +1,6 @@
 <?php
-namespace VovanVE\parsep\common;
+namespace VovanVE\parser\common;
 
-class DevException extends \LogicException
+class DevException extends \RuntimeException
 {
 }
