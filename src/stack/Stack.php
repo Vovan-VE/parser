@@ -93,11 +93,11 @@ class Stack extends BaseObject
         $new_node->name = $new_symbol_name;
         $new_node->children = $nodes;
 
-        $gotos = $base_state_row->gotoSwitches;
-        if (!isset($gotos[$new_symbol_name])) {
+        $goto = $base_state_row->gotoSwitches;
+        if (!isset($goto[$new_symbol_name])) {
             throw new InternalException('No required state in GOTO table');
         }
-        $next_state = $gotos[$new_symbol_name];
+        $next_state = $goto[$new_symbol_name];
 
         array_splice($this->items, -$reduce_count);
         $this->shift($new_node, $next_state);

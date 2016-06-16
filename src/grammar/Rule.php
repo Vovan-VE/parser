@@ -10,20 +10,21 @@ class Rule extends BaseRule
     public $definition;
 
     /**
-     * @param self $a
-     * @param self $b
+     * @param Rule $a
+     * @param Rule $b
      * @return integer
      */
-    public static function compare(self $a, self $b)
+    public static function compare($a, $b)
     {
         return Symbol::compare($a->subject, $b->subject)
             ?: Symbol::compareList($a->definition, $b->definition)
-            ?: ($b->eof - $a->eof);
+                ?: ($b->eof - $a->eof);
     }
 
     /**
      * @param Symbol $subject
      * @param Symbol[] $definition
+     * @param bool $eof
      */
     public function __construct($subject, array $definition, $eof = false)
     {

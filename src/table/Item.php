@@ -10,19 +10,19 @@ class Item extends BaseRule
     /** @var Symbol[] */
     public $passed;
     /** @var Symbol[] */
-    public $futher;
+    public $further;
 
     /**
-     * @param self $a
-     * @param self $b
+     * @param Item $a
+     * @param Item $b
      * @return integer
      */
-    public static function compare(self $a, self $b)
+    public static function compare($a, $b)
     {
         return Symbol::compare($a->subject, $b->subject)
             ?: Symbol::compareList($a->passed, $b->passed)
-            ?: Symbol::compareList($a->futher, $b->futher)
-            ?: ($b->eof - $a->eof);
+                ?: Symbol::compareList($a->further, $b->further)
+                    ?: ($b->eof - $a->eof);
     }
 
     /**
@@ -37,15 +37,15 @@ class Item extends BaseRule
     /**
      * @param Symbol $subject
      * @param Symbol[] $passed
-     * @param Symbol[] $futher
+     * @param Symbol[] $further
      * @param bool $eof
      */
-    public function __construct($subject, $passed = [], $futher = [], $eof = false)
+    public function __construct($subject, $passed = [], $further = [], $eof = false)
     {
         parent::__construct($subject, $eof);
 
         $this->passed = array_values($passed);
-        $this->futher = array_values($futher);
+        $this->further = array_values($further);
     }
 
     /**
@@ -53,7 +53,7 @@ class Item extends BaseRule
      */
     public function getExpected()
     {
-        return ($this->futher) ? $this->futher[0] : null;
+        return ($this->further) ? $this->further[0] : null;
     }
 
     /**
@@ -61,14 +61,14 @@ class Item extends BaseRule
      */
     public function shift()
     {
-        $futher = $this->futher;
-        if (!$futher) {
+        $further = $this->further;
+        if (!$further) {
             return null;
         }
         $passed = $this->passed;
 
-        $passed[] = array_shift($futher);
-        return new static($this->subject, $passed, $futher, $this->eof);
+        $passed[] = array_shift($further);
+        return new static($this->subject, $passed, $further, $this->eof);
     }
 
     /**
@@ -76,7 +76,7 @@ class Item extends BaseRule
      */
     public function getAsRule()
     {
-        return new Rule($this->subject, array_merge($this->passed, $this->futher), $this->eof);
+        return new Rule($this->subject, array_merge($this->passed, $this->further), $this->eof);
     }
 
     const DUMP_MARKER = '.';
@@ -89,7 +89,7 @@ class Item extends BaseRule
         return join(self::DUMP_SPACE, array_merge(
             $this->passed,
             [self::DUMP_MARKER],
-            $this->futher
+            $this->further
         ));
     }
 }

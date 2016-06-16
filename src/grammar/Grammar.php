@@ -6,6 +6,8 @@ use VovanVE\parser\common\Symbol;
 
 class Grammar extends BaseObject
 {
+    const RE_INPUT_RULE = '/^(?<subj>[a-z_0-9]++)\\s*+:\\s*+(?<def>[a-z_0-9\\s]++)(?<eof>\\$)?$/i';
+
     /** @var Rule[] */
     public $rules;
     /** @var Rule */
@@ -40,13 +42,7 @@ class Grammar extends BaseObject
                 continue;
             }
 
-            if (
-                !preg_match(
-                    '/^(?<subj>[a-z_0-9]++)\\s*+:\\s*+(?<def>[a-z_0-9\\s]++)(?<eof>\\$)?$/i',
-                    $rule_string,
-                    $match
-                )
-            ) {
+            if (!preg_match(self::RE_INPUT_RULE, $rule_string, $match)) {
                 throw new \InvalidArgumentException("Invalid rule format: '$rule_string'");
             }
 

@@ -2,6 +2,7 @@
 namespace VovanVE\parser\lexer;
 
 use VovanVE\parser\common\BaseObject;
+use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Token;
 
 class Lexer extends BaseObject
@@ -92,7 +93,7 @@ class Lexer extends BaseObject
 
     /**
      * @param array $map
-     * @param string|false $join
+     * @param string|bool $join
      * @return string|string[]
      */
     private function buildMap(array $map, $join = false)
@@ -135,14 +136,19 @@ class Lexer extends BaseObject
             throw new \RuntimeException('Tokens should not match empty string');
         }
 
-        // remove null
-        $match = array_filter($match, 'is_scalar');
-        // remove empty ""
-        $match = array_filter($match, 'strlen');
-        $match = array_diff_key($match, array_fill(1, count($match), null));
+        // remove null, empty "" values and integer keys but [0]
+        foreach ($match as $key => $value) {
+            if (null !== $value && '' !== $value && (0 === $key || !is_int($key))) {
+            } else {
+                unset($match[$key]);
+            }
+        }
 
         $named = $match;
         unset($named[0]);
+        if (1 !== count($named)) {
+            throw new InternalException('Match with multiple named group');
+        }
 
         $token = new Token();
         $token->content = reset($named);
@@ -166,8 +172,9 @@ class Lexer extends BaseObject
     {
         if ($this->regexpWhitespace) {
             if (false === preg_match($this->regexpWhitespace, $input, $match, 0, $pos)) {
-                throw new \RuntimeException(
-                    "PCRE error #" . preg_last_error() . " for whitespace at input pos $pos; REGEXP = {$this->regexpWhitespace}"
+                throw new InternalException(
+                    'PCRE error #' . preg_last_error() . ' for whitespace at input pos ' . $pos
+                    . '; REGEXP = ' . $this->regexpWhitespace
                 );
             }
 

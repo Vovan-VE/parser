@@ -143,7 +143,7 @@ class ItemSet extends BaseObject
     public function hasFinalItem()
     {
         foreach ($this->items as $item) {
-            if ($item->eof && !$item->futher) {
+            if ($item->eof && !$item->further) {
                 return true;
             }
         }
@@ -156,7 +156,7 @@ class ItemSet extends BaseObject
     public function getReduceRule()
     {
         foreach ($this->items as $item) {
-            if (!$item->futher) {
+            if (!$item->further) {
                 return $item->getAsRule();
             }
         }
@@ -164,10 +164,10 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param self $that
+     * @param ItemSet $that
      * @return bool
      */
-    public function isSame(self $that)
+    public function isSame($that)
     {
         if (count($this->items) !== count($that->items)) {
             return false;
@@ -218,13 +218,13 @@ class ItemSet extends BaseObject
     private function validateDeterministic($grammar)
     {
         /** @var Item[] */
-        $finit = [];
+        $finite = [];
         $terminals = [];
         $non_terminals = [];
         foreach ($this->items as $item) {
             $next_symbol = $item->getExpected();
             if (!$next_symbol) {
-                $finit[] = $item;
+                $finite[] = $item;
             } elseif ($next_symbol->isTerminal) {
                 $terminals[] = $item;
             } else {
@@ -232,36 +232,36 @@ class ItemSet extends BaseObject
             }
         }
 
-        $this->validateDeterministicShiftReduce($finit, $terminals, $non_terminals, $grammar);
-        $this->validateDeterministicReduceReduce($finit);
+        $this->validateDeterministicShiftReduce($finite, $terminals, $non_terminals, $grammar);
+        $this->validateDeterministicReduceReduce($finite);
     }
 
     /**
-     * @param Item[] $finit
+     * @param Item[] $finite
      * @param Item[] $terminals
      * @param Item[] $nonTerminals
      * @param Grammar $grammar
      */
-    private function validateDeterministicShiftReduce($finit, $terminals, $nonTerminals, $grammar)
+    private function validateDeterministicShiftReduce($finite, $terminals, $nonTerminals, $grammar)
     {
-        if ($finit && $terminals) {
+        if ($finite && $terminals) {
             $left_terminals = $grammar->getTerminals();
             foreach ($terminals as $item) {
                 unset($left_terminals[$item->getExpected()->name]);
             }
             if (!$left_terminals) {
-                throw new ConflictShiftReduceException(array_merge($finit, $terminals, $nonTerminals));
+                throw new ConflictShiftReduceException(array_merge($finite, $terminals, $nonTerminals));
             }
         }
     }
 
     /**
-     * @param Item[] $finit
+     * @param Item[] $finite
      */
-    private function validateDeterministicReduceReduce($finit)
+    private function validateDeterministicReduceReduce($finite)
     {
-        if (count($finit) > 1) {
-            throw new ConflictReduceReduceException($finit);
+        if (count($finite) > 1) {
+            throw new ConflictReduceReduceException($finite);
         }
     }
 }

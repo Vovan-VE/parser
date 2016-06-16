@@ -2,7 +2,6 @@
 namespace VovanVE\parser\table;
 
 use VovanVE\parser\common\BaseObject;
-use VovanVE\parser\common\InternalException;
 use VovanVE\parser\grammar\Grammar;
 
 class Table extends BaseObject
@@ -47,6 +46,7 @@ class Table extends BaseObject
         $states = [];
         $item = Item::createFromRule($grammar->getMainRule());
         $item_set = ItemSet::createFromItems([$item], $grammar);
+        /** @var ItemSet[][] $add_states_map */
         $add_states_map = [0 => ['' => $item_set]];
         while ($add_states_map) {
             $next_states_map = [];

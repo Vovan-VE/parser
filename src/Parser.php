@@ -8,7 +8,6 @@ use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\stack\NoReduceException;
 use VovanVE\parser\stack\Stack;
-use VovanVE\parser\stack\StackItem;
 use VovanVE\parser\stack\StateException;
 use VovanVE\parser\table\Table;
 

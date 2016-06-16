@@ -9,19 +9,19 @@ class Symbol extends BaseObject
     public $isTerminal;
 
     /**
-     * @param self $a
-     * @param self $b
+     * @param Symbol $a
+     * @param Symbol $b
      * @return integer
      */
-    public static function compare(self $a, self $b)
+    public static function compare($a, $b)
     {
         return ($a->isTerminal - $b->isTerminal)
             ?: strcmp($a->name, $b->name);
     }
 
     /**
-     * @param self[] $a
-     * @param self[] $b
+     * @param Symbol[] $a
+     * @param Symbol[] $b
      * @return integer
      */
     public static function compareList($a, $b)
