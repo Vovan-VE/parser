@@ -3,54 +3,56 @@ namespace VovanVE\parser\lexer;
 
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\Token;
+use VovanVE\parser\SyntaxException;
 
 class Lexer extends BaseObject
 {
-    /** @var array */
-    public $defines = [];
-    /** @var string[] */
-    public $whitespaces = [];
-    /** @var array */
-    private $declarations = [];
-    /** @var string */
-    private $regexpDefines;
     /** @var string */
     private $regexpWhitespace;
     /** @var string */
     private $regexp;
 
-    public function prepare(array $declarations)
-    {
-        if (!$declarations) {
-            throw new \InvalidArgumentException('Empty declarations map');
+    /**
+     * @param array $terminals
+     * @param array $whitespaces
+     * @param array $defines
+     * @param string $modifiers
+     */
+    public function __construct(
+        array $terminals,
+        array $whitespaces = [],
+        array $defines = [],
+        $modifiers = 'u'
+    ) {
+        if (!$terminals) {
+            throw new \InvalidArgumentException('Empty terminals map');
         }
 
         $regexp = [];
 
-        if ($this->defines) {
-            if (array_intersect_key($this->defines, $declarations)) {
+        if ($defines) {
+            if (array_intersect_key($defines, $terminals)) {
                 throw new \InvalidArgumentException('Declarations and defines has duplicated names');
             }
 
-            $defines = $this->buildMap($this->defines, '');
-            $defines = "(?(DEFINE)$defines)";
-            $regexp[] = $defines;
+            $re_defines = $this->buildMap($defines, '');
+            $re_defines = "(?(DEFINE)$re_defines)";
+            $regexp[] = $re_defines;
         } else {
-            $defines = '';
+            $re_defines = '';
         }
         $regexp[] = '\\G';
 
-        $alt = $this->buildMap($declarations, '|');
+        $alt = $this->buildMap($terminals, '|');
         $regexp[] = "(?:$alt)";
 
         $regexp = join('', $regexp);
 
-        $this->declarations = $declarations;
-        $this->regexp = "/$regexp/u";
+        $this->regexp = "/$regexp/$modifiers";
 
-        if ($this->whitespaces) {
-            $whitespaces = join('|', $this->whitespaces);
-            $this->regexpWhitespace = "/$defines\\G(?:$whitespaces)+/u";
+        if ($whitespaces) {
+            $re_whitespaces = join('|', $whitespaces);
+            $this->regexpWhitespace = "/$re_defines\\G(?:$re_whitespaces)+/$modifiers";
         } else {
             $this->regexpWhitespace = null;
         }
@@ -58,11 +60,10 @@ class Lexer extends BaseObject
 
     /**
      * @param string $input
-     * @return Token[]
+     * @return \Generator|Token[]
      */
     public function parse($input)
     {
-        $tokens = [];
         $length = strlen($input);
         $pos = 0;
         while ($pos < $length) {
@@ -81,12 +82,11 @@ class Lexer extends BaseObject
                 } else {
                     $near = '"' . $near . '"';
                 }
-                throw new \RuntimeException("Cannot parse input at offset $pos near $near");
+                throw new SyntaxException("Cannot parse input at offset $pos near $near");
             }
             $pos = $match->nextOffset;
-            $tokens[] = $match->token;
+            yield $match->token;
         }
-        return $tokens;
     }
 
     /**
