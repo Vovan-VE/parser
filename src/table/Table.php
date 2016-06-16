@@ -98,6 +98,13 @@ class Table extends BaseObject
             $add_states_map = $next_states_map;
         }
 
+        foreach ($states as $index => $state) {
+            $rule = $state->getReduceRule();
+            if ($rule) {
+                $rows[$index]->reduceRule = $rule;
+            }
+        }
+
         $this->rows = $rows;
         $this->states = $states;
     }

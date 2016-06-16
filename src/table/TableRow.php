@@ -24,6 +24,8 @@ class TableRow extends BaseObject
      * - integer - shift to the state
      */
     public $gotoSwitches = [];
+    /** @var Rule|null */
+    public $reduceRule;
 
     /**
      * @return string

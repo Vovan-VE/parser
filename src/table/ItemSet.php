@@ -4,6 +4,7 @@ namespace VovanVE\parser\table;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\Rule;
 
 class ItemSet extends BaseObject
 {
@@ -147,6 +148,19 @@ class ItemSet extends BaseObject
             }
         }
         return false;
+    }
+
+    /**
+     * @return Rule|null
+     */
+    public function getReduceRule()
+    {
+        foreach ($this->items as $item) {
+            if (!$item->futher) {
+                return $item->getAsRule();
+            }
+        }
+        return null;
     }
 
     /**
