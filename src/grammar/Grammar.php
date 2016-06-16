@@ -40,7 +40,13 @@ class Grammar extends BaseObject
                 continue;
             }
 
-            if (!preg_match('/^(?<subj>\\w++)\\s*+:\\s*+(?<def>[\\w\\s]++)(?<eof>\\$)?$/u', $rule_string, $match)) {
+            if (
+                !preg_match(
+                    '/^(?<subj>[a-z_0-9]++)\\s*+:\\s*+(?<def>[a-z_0-9\\s]++)(?<eof>\\$)?$/i',
+                    $rule_string,
+                    $match
+                )
+            ) {
                 throw new \InvalidArgumentException("Invalid rule format: '$rule_string'");
             }
 

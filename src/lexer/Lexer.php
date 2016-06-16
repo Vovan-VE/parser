@@ -3,10 +3,11 @@ namespace VovanVE\parser\lexer;
 
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\Token;
-use VovanVE\parser\SyntaxException;
 
 class Lexer extends BaseObject
 {
+    const DUMP_NEAR_LENGTH = 30;
+
     /** @var string */
     private $regexpWhitespace;
     /** @var string */
@@ -76,13 +77,13 @@ class Lexer extends BaseObject
             }
             $match = $this->match($input, $pos);
             if (!$match) {
-                $near = substr($input, $pos, 20);
+                $near = substr($input, $pos, self::DUMP_NEAR_LENGTH);
                 if ("" === $near || false === $near) {
                     $near = '<EOF>';
                 } else {
                     $near = '"' . $near . '"';
                 }
-                throw new SyntaxException("Cannot parse input at offset $pos near $near");
+                throw new ParseException("Cannot parse valid token near $near", $pos);
             }
             $pos = $match->nextOffset;
             yield $match->token;
@@ -147,6 +148,7 @@ class Lexer extends BaseObject
         $token->content = reset($named);
         $token->type = key($named);
         $token->match = $match;
+        $token->offset = $pos;
 
         $result = new Match();
         $result->token = $token;

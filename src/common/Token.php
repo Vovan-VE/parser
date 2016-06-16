@@ -9,6 +9,8 @@ class Token extends BaseObject implements TreeNodeInterface
     public $content;
     /** @var array */
     public $match;
+    /** @var integer */
+    public $offset;
 
     /**
      * @inheritdoc
