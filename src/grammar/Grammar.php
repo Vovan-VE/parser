@@ -93,7 +93,7 @@ class Grammar extends BaseObject
         if (!$this->mainRule) {
             throw new GrammarException('Exactly one rule must to allow EOF - it will be main rule');
         }
-        if (!$non_terminals) {
+        if (!$terminals) {
             throw new GrammarException('No terminals');
         }
         $this->symbols = $symbols;
@@ -122,12 +122,12 @@ class Grammar extends BaseObject
      */
     public function getNonTerminals()
     {
-        return $this->terminals;
+        return $this->nonTerminals;
     }
 
     /**
      * @param string $name
-     * @return Symbol
+     * @return Symbol|null
      */
     public function getSymbol($name)
     {
