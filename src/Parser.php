@@ -25,16 +25,14 @@ class Parser extends BaseObject
     public function __construct($lexer, $grammar)
     {
         if (!$lexer instanceof Lexer) {
-            throw new \InvalidArgumentException('Argument $lexer must be ' . Lexer::className());
+            throw new \InvalidArgumentException('Argument $lexer must be ' . Lexer::class);
         }
         $this->lexer = $lexer;
 
         if (is_string($grammar)) {
             $grammar = Grammar::create($grammar);
         } elseif (!$grammar instanceof Grammar) {
-            throw new \InvalidArgumentException(
-                'Argument $grammar must be string or ' . Grammar::className()
-            );
+            throw new \InvalidArgumentException('Argument $grammar must be string or ' . Grammar::class);
         }
 
         $this->table = new Table($grammar);

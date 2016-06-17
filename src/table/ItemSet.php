@@ -71,7 +71,7 @@ class ItemSet extends BaseObject
     public function __construct(array $items, array $initialItems, $grammar)
     {
         $items_list = array_values($items);
-        usort($items_list, [Item::className(), 'compare']);
+        usort($items_list, [Item::class, 'compare']);
         $this->items = $items_list;
         $this->initialItems = array_values($initialItems);
 
