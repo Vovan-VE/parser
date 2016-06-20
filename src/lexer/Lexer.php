@@ -2,6 +2,7 @@
 namespace VovanVE\parser\lexer;
 
 use VovanVE\parser\common\BaseObject;
+use VovanVE\parser\common\DevException;
 use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Token;
 
@@ -51,6 +52,9 @@ class Lexer extends BaseObject
         $regexp = join('', $regexp);
 
         $this->regexp = "/$regexp/$modifiers";
+        if (false === preg_match($this->regexp, null)) {
+            throw new \InvalidArgumentException('PCRE error');
+        }
 
         if ($whitespaces) {
             $re_whitespaces = join('|', $whitespaces);
@@ -133,7 +137,7 @@ class Lexer extends BaseObject
 
         $full_match = $match[0];
         if ('' === $full_match) {
-            throw new \RuntimeException('Tokens should not match empty string');
+            throw new DevException('Tokens should not match empty string');
         }
 
         // remove null, empty "" values and integer keys but [0]
