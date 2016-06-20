@@ -12,8 +12,8 @@ class GrammarTest extends BaseTestCase
     public function testCreateSuccess()
     {
         $grammar = Grammar::create("E: A \$; A:a; A:A a\n A : B ; ;\n; \n\n B : b");
-        $this->assertTrue($grammar instanceof Grammar, 'is Grammar object');
-        $this->assertEquals(5, count($grammar->rules), 'rules count');
+        $this->assertInstanceOf(Grammar::class, $grammar, 'is Grammar object');
+        $this->assertCount(5, $grammar->rules, 'rules count');
         $this->assertEquals(
             0,
             Rule::compare(
@@ -25,29 +25,29 @@ class GrammarTest extends BaseTestCase
 
         $terminals = $grammar->getTerminals();
         $this->assertTrue(is_array($terminals), 'Terminals are array');
-        $this->assertEquals(2, count($terminals), 'Terminals count');
+        $this->assertCount(2, $terminals, 'Terminals count');
         $this->assertArrayHasKey('a', $terminals, 'Has terminal "a"');
         $this->assertArrayHasKey('b', $terminals, 'Has terminal "b"');
 
         $non_terminals = $grammar->getNonTerminals();
         $this->assertTrue(is_array($non_terminals), 'Non-terminals are array');
-        $this->assertEquals(3, count($non_terminals), 'Non-terminals count');
+        $this->assertCount(3, $non_terminals, 'Non-terminals count');
         $this->assertArrayHasKey('A', $non_terminals, 'Has non-terminal "A"');
         $this->assertArrayHasKey('B', $non_terminals, 'Has non-terminal "B"');
         $this->assertArrayHasKey('E', $non_terminals, 'Has non-terminal "E"');
 
         $symbol_b = $grammar->getSymbol('b');
-        $this->assertTrue($symbol_b instanceof Symbol, 'getSymbol(b) is Symbol');
+        $this->assertInstanceOf(Symbol::class, $symbol_b, 'getSymbol(b) is Symbol');
         $unknown_symbol = $grammar->getSymbol('unknown');
         $this->assertNull($unknown_symbol, 'getSymbol(unknown) is NULL');
 
         $a_rules = $grammar->getRulesFor(new Symbol('A', false));
         $this->assertTrue(is_array($a_rules), 'getRulesFor(A) is array');
-        $this->assertEquals(3, count($a_rules), 'Rules count for "A"');
+        $this->assertCount(3, $a_rules, 'Rules count for "A"');
 
         $terminal_rules = $grammar->getRulesFor(new Symbol('a', true));
         $this->assertTrue(is_array($terminal_rules), 'getRulesFor(a) is array');
-        $this->assertEquals(0, count($terminal_rules), 'Rules count for "a"');
+        $this->assertCount(0, $terminal_rules, 'Rules count for "a"');
     }
 
     public function testCreateFailFormat()
