@@ -14,7 +14,7 @@ class RuleTest extends BaseTestCase
         $baz = new Symbol('baz', true);
         $lol = new Symbol('lol', true);
 
-        $orig = new Rule($foo, [$bar, $baz, $lol], false);
+        $orig = new Rule($foo, [$bar, $baz, $lol]);
         $copy = new Rule($foo, [$bar, $baz, $lol], false);
 
         $this->assertEquals(0, Rule::compare($orig, $copy), 'orig == copy');

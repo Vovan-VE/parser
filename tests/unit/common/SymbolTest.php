@@ -8,9 +8,9 @@ class SymbolTest extends BaseTestCase
 {
     public function testCompare()
     {
-        $foo = new Symbol('foo', false);
+        $foo = new Symbol('foo');
         $foo_copy = new Symbol('foo', false);
-        $bar = new Symbol('bar', false);
+        $bar = new Symbol('bar');
 
         $baz = new Symbol('baz', true);
         $foo_terminal = new Symbol('foo', true);
