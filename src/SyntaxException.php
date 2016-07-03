@@ -11,7 +11,7 @@ class SyntaxException extends \RuntimeException
         $this->offset = (int)$offset;
     }
 
-    final public function getOffset()
+    public function getOffset()
     {
         return $this->offset;
     }

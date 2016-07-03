@@ -9,15 +9,15 @@ class Grammar extends BaseObject
     const RE_INPUT_RULE = '/^(?<subj>[a-z_0-9]++)\\s*+:\\s*+(?<def>[a-z_0-9\\s]++)(?<eof>\\$)?$/i';
 
     /** @var Rule[] */
-    public $rules;
+    private $rules;
     /** @var Rule */
-    protected $mainRule;
+    private $mainRule;
     /** @var Symbol[] */
-    protected $symbols;
+    private $symbols;
     /** @var Symbol[] */
-    protected $terminals;
+    private $terminals;
     /** @var Symbol[] */
-    protected $nonTerminals;
+    private $nonTerminals;
 
     /**
      * @param string $text
@@ -46,8 +46,9 @@ class Grammar extends BaseObject
                 throw new \InvalidArgumentException("Invalid rule format: '$rule_string'");
             }
 
+            /** @var Symbol $subject */
             $subject = $get_symbol($match['subj']);
-            $subject->isTerminal = false;
+            $subject->setIsTerminal(false);
 
             $definition_strings = preg_split('/\\s++/u', $match['def'], 0, PREG_SPLIT_NO_EMPTY);
             $definition = array_map($get_symbol, $definition_strings);
@@ -71,18 +72,19 @@ class Grammar extends BaseObject
         $non_terminals = [];
 
         foreach ($rules as $rule) {
-            if ($rule->eof) {
+            if ($rule->getEof()) {
                 if ($this->mainRule) {
                     throw new GrammarException('Only one rule must to allow EOF');
                 } else {
                     $this->mainRule = $rule;
                 }
             }
-            foreach (array_merge([$rule->subject], $rule->definition) as $symbol) {
-                $symbol_name = $symbol->name;
+            foreach (array_merge([$rule->getSubject()], $rule->getDefinition()) as $symbol) {
+                /** @var Symbol $symbol */
+                $symbol_name = $symbol->getName();
                 if (!isset($symbols[$symbol_name])) {
                     $symbols[$symbol_name] = $symbol;
-                    if ($symbol->isTerminal) {
+                    if ($symbol->isTerminal()) {
                         $terminals[$symbol_name] = $symbol;
                     } else {
                         $non_terminals[$symbol_name] = $symbol;
@@ -99,6 +101,14 @@ class Grammar extends BaseObject
         $this->symbols = $symbols;
         $this->terminals = $terminals;
         $this->nonTerminals = $non_terminals;
+    }
+
+    /**
+     * @return Rule[]
+     */
+    public function getRules()
+    {
+        return $this->rules;
     }
 
     /**
@@ -141,9 +151,9 @@ class Grammar extends BaseObject
     public function getRulesFor($subject)
     {
         $rules = [];
-        if (!$subject->isTerminal) {
+        if (!$subject->isTerminal()) {
             foreach ($this->rules as $rule) {
-                if (0 === Symbol::compare($rule->subject, $subject)) {
+                if (0 === Symbol::compare($rule->getSubject(), $subject)) {
                     $rules[] = $rule;
                 }
             }

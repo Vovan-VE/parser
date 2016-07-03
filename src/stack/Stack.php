@@ -33,7 +33,7 @@ class Stack extends BaseObject
     /**
      * @return integer
      */
-    final public function getStateIndex()
+    public function getStateIndex()
     {
         return $this->stateIndex;
     }
@@ -41,7 +41,7 @@ class Stack extends BaseObject
     /**
      * @return TableRow
      */
-    final public function getStateRow()
+    public function getStateRow()
     {
         return $this->stateRow;
     }
@@ -67,16 +67,16 @@ class Stack extends BaseObject
         if (!$rule) {
             throw new NoReduceException();
         }
-        $reduce_count = count($rule->definition);
+        $reduce_count = count($rule->getDefinition());
         $total_count = count($this->items);
         if ($total_count < $reduce_count) {
             throw new InternalException('Not enough items in stack');
         }
         $nodes = [];
         $reduce_items = array_slice($this->items, -$reduce_count);
-        foreach ($rule->definition as $i => $symbol) {
+        foreach ($rule->getDefinition() as $i => $symbol) {
             $item = $reduce_items[$i];
-            if ($item->node->getNodeName() !== $symbol->name) {
+            if ($item->node->getNodeName() !== $symbol->getName()) {
                 throw new InternalException('Unexpected stack content');
             }
             $nodes[] = $item->node;
@@ -87,7 +87,7 @@ class Stack extends BaseObject
             : 0;
         $base_state_row = $this->table->rows[$base_state_index];
 
-        $new_symbol_name = $rule->subject->name;
+        $new_symbol_name = $rule->getSubject()->getName();
 
         $new_node = new NonTerminal();
         $new_node->name = $new_symbol_name;

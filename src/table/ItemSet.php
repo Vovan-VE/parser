@@ -36,13 +36,14 @@ class ItemSet extends BaseObject
                 $final_items[] = $new_item;
 
                 $next_symbol = $new_item->getExpected();
-                if (!$next_symbol || $next_symbol->isTerminal) {
+                if (!$next_symbol || $next_symbol->isTerminal()) {
                     continue;
                 }
-                if (isset($known_next_symbols[$next_symbol->name])) {
+                $name = $next_symbol->getName();
+                if (isset($known_next_symbols[$name])) {
                     continue;
                 }
-                $next_symbols[$next_symbol->name] = $next_symbol;
+                $next_symbols[$name] = $next_symbol;
 
                 NEXT_NEW_ITEM:
             }
@@ -98,7 +99,7 @@ class ItemSet extends BaseObject
             if (!$symbol) {
                 continue;
             }
-            $name = $symbol->name;
+            $name = $symbol->getName();
             $next_item = $item->shift();
             if (isset($next_map[$name])) {
                 foreach ($next_map[$name] as $known_item) {
@@ -143,7 +144,7 @@ class ItemSet extends BaseObject
     public function hasFinalItem()
     {
         foreach ($this->items as $item) {
-            if ($item->eof && !$item->further) {
+            if ($item->getEof() && !$item->further) {
                 return true;
             }
         }
@@ -225,7 +226,7 @@ class ItemSet extends BaseObject
             $next_symbol = $item->getExpected();
             if (!$next_symbol) {
                 $finite[] = $item;
-            } elseif ($next_symbol->isTerminal) {
+            } elseif ($next_symbol->isTerminal()) {
                 $terminals[] = $item;
             } else {
                 $non_terminals[] = $item;
@@ -247,7 +248,7 @@ class ItemSet extends BaseObject
         if ($finite && $terminals) {
             $left_terminals = $grammar->getTerminals();
             foreach ($terminals as $item) {
-                unset($left_terminals[$item->getExpected()->name]);
+                unset($left_terminals[$item->getExpected()->getName()]);
             }
             if (!$left_terminals) {
                 throw new ConflictShiftReduceException(array_merge($finite, $terminals, $nonTerminals));

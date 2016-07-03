@@ -7,7 +7,7 @@ use VovanVE\parser\common\Symbol;
 class Rule extends BaseRule
 {
     /** @var Symbol[] */
-    public $definition;
+    private $definition;
 
     /**
      * @param Rule $a
@@ -31,6 +31,14 @@ class Rule extends BaseRule
         parent::__construct($subject, $eof);
 
         $this->definition = $definition;
+    }
+
+    /**
+     * @return Symbol[]
+     */
+    public function getDefinition()
+    {
+        return $this->definition;
     }
 
     /**

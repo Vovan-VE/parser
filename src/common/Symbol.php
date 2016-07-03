@@ -4,9 +4,9 @@ namespace VovanVE\parser\common;
 class Symbol extends BaseObject
 {
     /** @var string */
-    public $name;
+    private $name;
     /** @var boolean */
-    public $isTerminal;
+    private $isTerminal;
 
     /**
      * @param Symbol $a
@@ -57,6 +57,30 @@ class Symbol extends BaseObject
     {
         $this->name = $name;
         $this->isTerminal = $isTerminal;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isTerminal()
+    {
+        return $this->isTerminal;
+    }
+
+    /**
+     * @param boolean $value
+     */
+    public function setIsTerminal($value)
+    {
+        $this->isTerminal = (bool)$value;
     }
 
     /**

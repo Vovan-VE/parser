@@ -3,6 +3,7 @@ namespace VovanVE\parser;
 
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
+use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\lexer\Lexer;
@@ -53,8 +54,9 @@ class Parser extends BaseObject
         try {
             while (true) {
                 if ($tokens_gen->valid()) {
+                    /** @var Token $token */
                     $token = $tokens_gen->current();
-                    $symbol_name = $token->type;
+                    $symbol_name = $token->getType();
                 } else {
                     $token = null;
                     $symbol_name = null;
@@ -72,7 +74,7 @@ class Parser extends BaseObject
                         if ($token) {
                             throw new SyntaxException(
                                 'Expected <EOF> but got <' . $this->dumpTokenForError($token) . '>',
-                                $token->offset
+                                $token->getOffset()
                             );
                         }
                         goto DONE;
@@ -92,7 +94,7 @@ class Parser extends BaseObject
             // TODO: what expected
             throw new SyntaxException(
                 'Unexpected <' . $this->dumpTokenForError($token) . '>',
-                $token ? $token->offset : $eof_offset
+                $token ? $token->getOffset() : $eof_offset
             );
         } catch (StateException $e) {
             throw new InternalException('Unexpected state fail', 0, $e);
@@ -103,13 +105,13 @@ class Parser extends BaseObject
     }
 
     /**
-     * @param Token|null
+     * @param Token|null $token
      * @return string
      */
     private function dumpTokenForError($token)
     {
         if ($token) {
-            return $token->type . ' "' . $token->content . '"';
+            return $token->getType() . ' "' . $token->getContent() . '"';
         }
         return '<EOF>';
     }

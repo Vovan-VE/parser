@@ -25,7 +25,7 @@ class BadStateException extends DevException
     /**
      * @return Item[]
      */
-    final public function getItems()
+    public function getItems()
     {
         return $this->items;
     }
@@ -33,7 +33,7 @@ class BadStateException extends DevException
     /**
      * @return Rule[]
      */
-    final public function getRules()
+    public function getRules()
     {
         if (null === $this->rules) {
             $rules = [];

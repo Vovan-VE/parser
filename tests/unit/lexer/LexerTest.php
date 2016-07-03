@@ -57,8 +57,9 @@ class LexerTest extends BaseTestCase
                 $this->assertInstanceOf(Token::class, $token, "token[$i] is Token for input <$test_input>");
                 $this->assertArrayHasKey($i, $expect_tokens, "want token[$i] for input <$test_input>");
                 list ($expect_type, $expect_content) = $expect_tokens[$i];
-                $this->assertEquals($expect_type, $token->type, "token[$i]->type for input <$test_input>");
-                $this->assertEquals($expect_content, $token->content, "token[$i]->content for input <$test_input>");
+                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type for input <$test_input>");
+                $this->assertEquals($expect_content, $token->getContent(),
+                    "token[$i]->content for input <$test_input>");
                 ++$parsed_tokens_count;
             }
             $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count for input <$test_input>");
@@ -115,8 +116,9 @@ class LexerTest extends BaseTestCase
             $parsed_tokens_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
                 list ($expect_type, $expect_content) = $expect_tokens[$i];
-                $this->assertEquals($expect_type, $token->type, "token[$i]->type for subtest [$test_number]");
-                $this->assertEquals($expect_content, $token->content, "token[$i]->type for subtest [$test_number]");
+                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type for subtest [$test_number]");
+                $this->assertEquals($expect_content, $token->getContent(),
+                    "token[$i]->type for subtest [$test_number]");
                 ++$parsed_tokens_count;
             }
             $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count for subtest [$test_number]");
@@ -146,8 +148,8 @@ class LexerTest extends BaseTestCase
         foreach ($lexer->parse($test_input) as $i => $token) {
             $this->assertArrayHasKey($i, $expect_tokens, "want token [$i]");
             list ($expect_type, $expect_content) = $expect_tokens[$i];
-            $this->assertEquals($expect_type, $token->type, "tokens[$i]->type");
-            $this->assertEquals($expect_content, $token->content, "tokens[$i]->content");
+            $this->assertEquals($expect_type, $token->getType(), "tokens[$i]->type");
+            $this->assertEquals($expect_content, $token->getContent(), "tokens[$i]->content");
             ++$found_tokens;
         }
         $this->assertEquals(count($expect_tokens), $found_tokens, "tokens count");
@@ -178,8 +180,8 @@ class LexerTest extends BaseTestCase
             $found_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
                 $this->assertInstanceOf(Token::class, $token, "token [$i] is Token for input <$test_input>");
-                $this->assertEquals('a', $token->type, "token[$i]->type for input <$test_input>");
-                $this->assertEquals('A', $token->content, "token[$i]->type for input <$test_input>");
+                $this->assertEquals('a', $token->getType(), "token[$i]->type for input <$test_input>");
+                $this->assertEquals('A', $token->getContent(), "token[$i]->type for input <$test_input>");
                 ++$found_count;
             }
             $this->assertEquals($expect_count, $found_count, "tokens count for input <$test_input>");
@@ -208,8 +210,8 @@ class LexerTest extends BaseTestCase
             /** @var Token $token */
             $token = $tokens->current();
             $this->assertInstanceOf(Token::class, $token, "token [$i]");
-            $this->assertEquals($expect_type, $token->type, "token[$i]->type");
-            $this->assertEquals($expect_content, $token->content, "token[$i]->content");
+            $this->assertEquals($expect_type, $token->getType(), "token[$i]->type");
+            $this->assertEquals($expect_content, $token->getContent(), "token[$i]->content");
             if ($last_valid_index === $i) {
                 $this->setExpectedException(ParseException::class);
             }
@@ -271,7 +273,7 @@ class LexerTest extends BaseTestCase
         ]);
         $this->setExpectedException(DevException::class);
         foreach ($lexer->parse('.') as $token) {
-            $this->assertNotEquals('', $token->content);
+            $this->assertNotEquals('', $token->getContent());
         }
     }
 }

@@ -31,7 +31,7 @@ class Item extends BaseRule
      */
     public static function createFromRule($rule)
     {
-        return new static($rule->subject, [], $rule->definition, $rule->eof);
+        return new static($rule->getSubject(), [], $rule->getDefinition(), $rule->getEof());
     }
 
     /**

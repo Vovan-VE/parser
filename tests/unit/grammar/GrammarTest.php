@@ -13,7 +13,7 @@ class GrammarTest extends BaseTestCase
     {
         $grammar = Grammar::create("E: A \$; A:a; A:A a\n A : B ; ;\n; \n\n B : b");
         $this->assertInstanceOf(Grammar::class, $grammar, 'is Grammar object');
-        $this->assertCount(5, $grammar->rules, 'rules count');
+        $this->assertCount(5, $grammar->getRules(), 'rules count');
         $this->assertEquals(
             0,
             Rule::compare(

@@ -4,13 +4,13 @@ namespace VovanVE\parser\common;
 class Token extends BaseObject implements TreeNodeInterface
 {
     /** @var string */
-    public $type;
+    private $type;
     /** @var string */
-    public $content;
+    private $content;
     /** @var array */
-    public $match;
+    private $match;
     /** @var integer */
-    public $offset;
+    private $offset;
 
     public function __construct($type, $content, $match = null, $offset = null)
     {
@@ -21,9 +21,41 @@ class Token extends BaseObject implements TreeNodeInterface
     }
 
     /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContent()
+    {
+        return $this->content;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMatch()
+    {
+        return $this->match;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getOffset()
+    {
+        return $this->offset;
+    }
+
+    /**
      * @inheritdoc
      */
-    final public function getNodeName()
+    public function getNodeName()
     {
         return $this->type;
     }

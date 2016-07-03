@@ -56,7 +56,7 @@ class Table extends BaseObject
                     $from_symbol_non_term = false;
                     if ('' !== $from_symbol_name) {
                         $from_symbol = $grammar->getSymbol($from_symbol_name);
-                        if ($from_symbol->isTerminal) {
+                        if ($from_symbol->isTerminal()) {
                             $from_symbol_term = true;
                         } else {
                             $from_symbol_non_term = true;

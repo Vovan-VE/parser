@@ -4,9 +4,9 @@ namespace VovanVE\parser\common;
 class BaseRule extends BaseObject
 {
     /** @var Symbol */
-    public $subject;
+    protected $subject;
     /** @var bool Can EOF be in the end */
-    public $eof = false;
+    protected $eof = false;
 
     /**
      * @param Symbol $subject
@@ -16,6 +16,22 @@ class BaseRule extends BaseObject
     {
         $this->subject = $subject;
         $this->eof = $eof;
+    }
+
+    /**
+     * @return Symbol
+     */
+    public function getSubject()
+    {
+        return $this->subject;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getEof()
+    {
+        return $this->eof;
     }
 
     const DUMP_SPACE = ' ';
