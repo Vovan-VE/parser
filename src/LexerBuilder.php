@@ -20,7 +20,12 @@ class LexerBuilder extends BaseObject
      */
     public function create()
     {
-        return new Lexer($this->terminals, $this->whitespaces, $this->defines, $this->modifiers);
+        return new Lexer(
+            $this->terminals,
+            $this->whitespaces,
+            $this->defines,
+            $this->modifiers
+        );
     }
 
     /**

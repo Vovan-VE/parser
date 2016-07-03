@@ -26,14 +26,18 @@ class Parser extends BaseObject
     public function __construct($lexer, $grammar)
     {
         if (!$lexer instanceof Lexer) {
-            throw new \InvalidArgumentException('Argument $lexer must be ' . Lexer::class);
+            throw new \InvalidArgumentException(
+                'Argument $lexer must be ' . Lexer::class
+            );
         }
         $this->lexer = $lexer;
 
         if (is_string($grammar)) {
             $grammar = Grammar::create($grammar);
         } elseif (!$grammar instanceof Grammar) {
-            throw new \InvalidArgumentException('Argument $grammar must be string or ' . Grammar::class);
+            throw new \InvalidArgumentException(
+                'Argument $grammar must be string or ' . Grammar::class
+            );
         }
 
         $this->table = new Table($grammar);
@@ -66,14 +70,19 @@ class Parser extends BaseObject
                     if ($token) {
                         $terminal_actions = $stack->getStateRow()->terminalActions;
                         if (isset($terminal_actions[$symbol_name])) {
-                            $stack->shift($token, $terminal_actions[$symbol_name]);
+                            $stack->shift(
+                                $token,
+                                $terminal_actions[$symbol_name]
+                            );
                             goto NEXT_SYMBOL;
                         }
                     }
                     if ($stack->getStateRow()->eofAction) {
                         if ($token) {
                             throw new SyntaxException(
-                                'Expected <EOF> but got <' . $this->dumpTokenForError($token) . '>',
+                                'Expected <EOF> but got <'
+                                . $this->dumpTokenForError($token)
+                                . '>',
                                 $token->getOffset()
                             );
                         }

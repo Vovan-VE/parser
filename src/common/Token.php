@@ -65,6 +65,7 @@ class Token extends BaseObject implements TreeNodeInterface
      */
     public function dumpAsString($indent = '', $last = true)
     {
-        return $indent . ' `- ' . $this->type . ' <' . $this->content . '>' . PHP_EOL;
+        return $indent . ' `- ' . $this->type . ' <' . $this->content . '>'
+        . PHP_EOL;
     }
 }

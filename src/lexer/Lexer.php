@@ -35,7 +35,9 @@ class Lexer extends BaseObject
 
         if ($defines) {
             if (array_intersect_key($defines, $terminals)) {
-                throw new \InvalidArgumentException('Declarations and defines has duplicated names');
+                throw new \InvalidArgumentException(
+                    'Declarations and defines has duplicated names'
+                );
             }
 
             $re_defines = $this->buildMap($defines, '');
@@ -88,7 +90,10 @@ class Lexer extends BaseObject
                 } else {
                     $near = '"' . $near . '"';
                 }
-                throw new ParseException("Cannot parse valid token near $near", $pos);
+                throw new ParseException(
+                    "Cannot parse valid token near $near",
+                    $pos
+                );
             }
             $pos = $match->nextOffset;
             yield $match->token;
@@ -103,9 +108,15 @@ class Lexer extends BaseObject
     private function buildMap(array $map, $join = false)
     {
         $names = array_keys($map);
-        $bad_names = preg_grep('/^[a-z][_a-z0-9]*$/i', $names, PREG_GREP_INVERT);
+        $bad_names = preg_grep(
+            '/^[a-z][_a-z0-9]*$/i',
+            $names,
+            PREG_GREP_INVERT
+        );
         if ($bad_names) {
-            throw new \InvalidArgumentException('Bad names: ' . join(', ', $bad_names));
+            throw new \InvalidArgumentException(
+                'Bad names: ' . join(', ', $bad_names)
+            );
         }
 
         $alt = [];
@@ -127,7 +138,8 @@ class Lexer extends BaseObject
     {
         if (false === preg_match($this->regexp, $input, $match, 0, $pos)) {
             throw new \RuntimeException(
-                "PCRE error #" . preg_last_error() . " for token at input pos $pos; REGEXP = {$this->regexp}"
+                "PCRE error #" . preg_last_error()
+                . " for token at input pos $pos; REGEXP = {$this->regexp}"
             );
         }
 
@@ -142,8 +154,11 @@ class Lexer extends BaseObject
 
         // remove null, empty "" values and integer keys but [0]
         foreach ($match as $key => $value) {
-            if (null !== $value && '' !== $value && (0 === $key || !is_int($key))) {
-            } else {
+            if (
+                null === $value
+                || '' === $value
+                || (0 !== $key && is_int($key))
+            ) {
                 unset($match[$key]);
             }
         }
@@ -173,9 +188,18 @@ class Lexer extends BaseObject
     private function getWhitespaceLength($input, $pos)
     {
         if ($this->regexpWhitespace) {
-            if (false === preg_match($this->regexpWhitespace, $input, $match, 0, $pos)) {
+            if (
+                false === preg_match(
+                    $this->regexpWhitespace,
+                    $input,
+                    $match,
+                    0,
+                    $pos
+                )
+            ) {
                 throw new InternalException(
-                    'PCRE error #' . preg_last_error() . ' for whitespace at input pos ' . $pos
+                    'PCRE error #' . preg_last_error()
+                    . ' for whitespace at input pos ' . $pos
                     . '; REGEXP = ' . $this->regexpWhitespace
                 );
             }

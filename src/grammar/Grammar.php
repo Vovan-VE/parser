@@ -25,7 +25,12 @@ class Grammar extends BaseObject
      */
     public static function create($text)
     {
-        $rules_strings = preg_split('/[;\\r\\n\\f]+/u', $text, 0, PREG_SPLIT_NO_EMPTY);
+        $rules_strings = preg_split(
+            '/[;\\r\\n\\f]+/u',
+            $text,
+            0,
+            PREG_SPLIT_NO_EMPTY
+        );
         $rules_strings = preg_replace('/^\\s+|\\s+$/u', '', $rules_strings);
 
         $rules = [];
@@ -43,14 +48,21 @@ class Grammar extends BaseObject
             }
 
             if (!preg_match(self::RE_INPUT_RULE, $rule_string, $match)) {
-                throw new \InvalidArgumentException("Invalid rule format: '$rule_string'");
+                throw new \InvalidArgumentException(
+                    "Invalid rule format: '$rule_string'"
+                );
             }
 
             /** @var Symbol $subject */
             $subject = $get_symbol($match['subj']);
             $subject->setIsTerminal(false);
 
-            $definition_strings = preg_split('/\\s++/u', $match['def'], 0, PREG_SPLIT_NO_EMPTY);
+            $definition_strings = preg_split(
+                '/\\s++/u',
+                $match['def'],
+                0,
+                PREG_SPLIT_NO_EMPTY
+            );
             $definition = array_map($get_symbol, $definition_strings);
 
             $eof = !empty($match['eof']);
@@ -74,12 +86,17 @@ class Grammar extends BaseObject
         foreach ($rules as $rule) {
             if ($rule->getEof()) {
                 if ($this->mainRule) {
-                    throw new GrammarException('Only one rule must to allow EOF');
+                    throw new GrammarException(
+                        'Only one rule must to allow EOF'
+                    );
                 } else {
                     $this->mainRule = $rule;
                 }
             }
-            foreach (array_merge([$rule->getSubject()], $rule->getDefinition()) as $symbol) {
+            foreach (
+                array_merge([$rule->getSubject()], $rule->getDefinition())
+                as $symbol
+            ) {
                 /** @var Symbol $symbol */
                 $symbol_name = $symbol->getName();
                 if (!isset($symbols[$symbol_name])) {
@@ -93,7 +110,9 @@ class Grammar extends BaseObject
             }
         }
         if (!$this->mainRule) {
-            throw new GrammarException('Exactly one rule must to allow EOF - it will be main rule');
+            throw new GrammarException(
+                'Exactly one rule must to allow EOF - it will be main rule'
+            );
         }
         if (!$terminals) {
             throw new GrammarException('No terminals');

@@ -204,6 +204,7 @@ class ItemSet extends BaseObject
 
         $out = [];
         foreach ([$this->initialItems, $expanded_items] as $ex => $items) {
+            /** @var Item[] $items */
             $prefix = ($ex) ? self::DUMP_PREFIX_SUB : self::DUMP_PREFIX_MAIN;
             foreach ($items as $item) {
                 $out[] = $prefix . $item;
@@ -233,7 +234,12 @@ class ItemSet extends BaseObject
             }
         }
 
-        $this->validateDeterministicShiftReduce($finite, $terminals, $non_terminals, $grammar);
+        $this->validateDeterministicShiftReduce(
+            $finite,
+            $terminals,
+            $non_terminals,
+            $grammar
+        );
         $this->validateDeterministicReduceReduce($finite);
     }
 
@@ -243,15 +249,21 @@ class ItemSet extends BaseObject
      * @param Item[] $nonTerminals
      * @param Grammar $grammar
      */
-    private function validateDeterministicShiftReduce($finite, $terminals, $nonTerminals, $grammar)
-    {
+    private function validateDeterministicShiftReduce(
+        $finite,
+        $terminals,
+        $nonTerminals,
+        $grammar
+    ) {
         if ($finite && $terminals) {
             $left_terminals = $grammar->getTerminals();
             foreach ($terminals as $item) {
                 unset($left_terminals[$item->getExpected()->getName()]);
             }
             if (!$left_terminals) {
-                throw new ConflictShiftReduceException(array_merge($finite, $terminals, $nonTerminals));
+                throw new ConflictShiftReduceException(
+                    array_merge($finite, $terminals, $nonTerminals)
+                );
             }
         }
     }

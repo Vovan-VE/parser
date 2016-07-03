@@ -31,7 +31,12 @@ class Item extends BaseRule
      */
     public static function createFromRule($rule)
     {
-        return new static($rule->getSubject(), [], $rule->getDefinition(), $rule->getEof());
+        return new static(
+            $rule->getSubject(),
+            [],
+            $rule->getDefinition(),
+            $rule->getEof()
+        );
     }
 
     /**
@@ -40,8 +45,12 @@ class Item extends BaseRule
      * @param Symbol[] $further
      * @param bool $eof
      */
-    public function __construct($subject, $passed = [], $further = [], $eof = false)
-    {
+    public function __construct(
+        $subject,
+        $passed = [],
+        $further = [],
+        $eof = false
+    ) {
         parent::__construct($subject, $eof);
 
         $this->passed = array_values($passed);
@@ -76,7 +85,11 @@ class Item extends BaseRule
      */
     public function getAsRule()
     {
-        return new Rule($this->subject, array_merge($this->passed, $this->further), $this->eof);
+        return new Rule(
+            $this->subject,
+            array_merge($this->passed, $this->further),
+            $this->eof
+        );
     }
 
     const DUMP_MARKER = '.';
