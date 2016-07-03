@@ -12,9 +12,7 @@ class NonTerminalTest extends BaseTestCase
      */
     public function testVInt()
     {
-        $token = new Token();
-        $token->type = 'int';
-        $token->content = '42';
+        $token = new Token('int', '42');
 
         $node = new NonTerminal();
         $node->name = 'V';
@@ -83,9 +81,7 @@ DUMP
      */
     public function testEVMulInt($p, $v)
     {
-        $mul = new Token();
-        $mul->type = 'mul';
-        $mul->content = '*';
+        $mul = new Token('mul', '*');
 
         $node = new NonTerminal();
         $node->name = 'E';

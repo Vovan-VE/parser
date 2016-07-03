@@ -11,9 +11,7 @@ class TokenTest extends BaseTestCase
         $type = 'foo';
         $content = 'bar';
 
-        $token = new Token();
-        $token->type = $type;
-        $token->content = $content;
+        $token = new Token($type, $content);
 
         $dump_end = " `- $type <$content>" . PHP_EOL;
 

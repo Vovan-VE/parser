@@ -12,6 +12,14 @@ class Token extends BaseObject implements TreeNodeInterface
     /** @var integer */
     public $offset;
 
+    public function __construct($type, $content, $match = null, $offset = null)
+    {
+        $this->type = $type;
+        $this->content = $content;
+        $this->match = $match;
+        $this->offset = $offset;
+    }
+
     /**
      * @inheritdoc
      */

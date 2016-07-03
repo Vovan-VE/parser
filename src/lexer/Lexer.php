@@ -154,11 +154,9 @@ class Lexer extends BaseObject
             throw new InternalException('Match with multiple named group');
         }
 
-        $token = new Token();
-        $token->content = reset($named);
-        $token->type = key($named);
-        $token->match = $match;
-        $token->offset = $pos;
+        $token_content = reset($named);
+        $token_type = key($named);
+        $token = new Token($token_type, $token_content, $match, $pos);
 
         $result = new Match();
         $result->token = $token;
