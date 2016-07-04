@@ -9,7 +9,7 @@
             "email": "vovan-ve@yandex.ru"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.5",
         "lib-pcre": "*"
@@ -25,6 +25,11 @@
     "autoload-dev": {
         "psr-4": {
             "VovanVE\\parser\\tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-devel": "1.0.x-dev"
         }
     }
 }
