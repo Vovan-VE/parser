@@ -1,7 +1,9 @@
 LR(0) parser
 ============
 
+[![Latest Stable Version](https://poser.pugx.org/vovan-ve/lr0-parser/v/stable)](https://packagist.org/packages/vovan-ve/lr0-parser)
 [![Build Status](https://travis-ci.org/Vovan-VE/parser.svg)](https://travis-ci.org/Vovan-VE/parser)
+[![HHVM Status](http://hhvm.h4cc.de/badge/vovan-ve/lr0-parser.svg?style=flat)](http://hhvm.h4cc.de/package/vovan-ve/lr0-parser)
 
 This package contains [LR(0) parser][lr-parser.wiki] with parsing table
 generator to work with custom LR(0) grammar.
@@ -70,6 +72,17 @@ This package contains:
 This package was made just to apply the theory in practice. It may be easily be
 used for small grammars to parse small source codes.
 
+Installation
+------------
+
+Install through [composer][]:
+
+    composer require vovan-ve/lr0-parser
+
+or add to `require` section in your composer.json:
+
+    "vovan-ve/lr0-parser": "^1.0"
+
 Theory
 ------
 
@@ -81,5 +94,6 @@ License
 This package is under [MIT License][mit]
 
 
+[composer]: http://getcomposer.org/
 [lr-parser.wiki]: https://en.wikipedia.org/wiki/LR_parser
 [mit]: https://opensource.org/licenses/MIT
