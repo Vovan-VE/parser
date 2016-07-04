@@ -38,6 +38,8 @@ $lexer = (new LexerBuilder)
     ->modifiers('i')
     ->create();
 
+$parser = new Parser($lexer, $grammar);
+
 $tree = $parser->parse('A * 2 + 1');
 
 echo $tree->dumpAsString();
