@@ -55,10 +55,29 @@ Output:
              `- Value
                  `- int <1>
 
+Description
+-----------
+
+This package contains:
+
+*   Lexer to parse input string for tokens. Lexer is configurable by regexps.
+*   Parsing table generator to work with any LR(0) grammar. Input grammar does
+    initialize from plain text.
+*   LR(0) parser itself. It parse input string for AST using the table.
+
+This package was made just to apply the theory in practice. It may be easily be
+used for small grammars to parse small source codes.
+
 Theory
 ------
 
 [LR parser][lr-parser.wiki].
 
+License
+-------
+
+This package is under [MIT License][mit]
+
 
 [lr-parser.wiki]: https://en.wikipedia.org/wiki/LR_parser
+[mit]: https://opensource.org/licenses/MIT
