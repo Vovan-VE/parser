@@ -1,6 +1,8 @@
 LR(0) parser
 ============
 
+[![Build Status](https://travis-ci.org/Vovan-VE/parser.svg)](https://travis-ci.org/Vovan-VE/parser)
+
 This package contains [LR(0) parser][lr-parser.wiki] with parsing table
 generator to work with custom LR(0) grammar.
 
