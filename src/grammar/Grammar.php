@@ -84,7 +84,7 @@ class Grammar extends BaseObject
         $non_terminals = [];
 
         foreach ($rules as $rule) {
-            if ($rule->getEof()) {
+            if ($rule->hasEofMark()) {
                 if ($this->mainRule) {
                     throw new GrammarException(
                         'Only one rule must to allow EOF'

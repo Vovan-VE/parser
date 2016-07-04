@@ -29,7 +29,7 @@ class BaseRule extends BaseObject
     /**
      * @return boolean
      */
-    public function getEof()
+    public function hasEofMark()
     {
         return $this->eof;
     }

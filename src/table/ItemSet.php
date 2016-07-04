@@ -144,7 +144,7 @@ class ItemSet extends BaseObject
     public function hasFinalItem()
     {
         foreach ($this->items as $item) {
-            if ($item->getEof() && !$item->further) {
+            if ($item->hasEofMark() && !$item->further) {
                 return true;
             }
         }

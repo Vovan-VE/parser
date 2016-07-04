@@ -35,7 +35,7 @@ class Item extends BaseRule
             $rule->getSubject(),
             [],
             $rule->getDefinition(),
-            $rule->getEof()
+            $rule->hasEofMark()
         );
     }
 
