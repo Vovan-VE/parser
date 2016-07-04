@@ -1,5 +1,5 @@
 {
-    "name": "vovan-ve/parser",
+    "name": "vovan-ve/lr0-parser",
     "description": "LR(0) parser with state table generator for any LR(0) grammar",
     "type": "library",
     "license": "MIT",
