@@ -9,7 +9,7 @@
             "email": "vovan-ve@yandex.ru"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "php": ">=5.5",
         "lib-pcre": "*"
