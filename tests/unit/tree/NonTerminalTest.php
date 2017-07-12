@@ -18,6 +18,9 @@ class NonTerminalTest extends BaseTestCase
         $node->name = 'V';
         $node->children = [$token];
 
+        $this->assertEquals(1, $node->getChildrenCount());
+        $this->assertCount(1, $node->getChildren());
+
         $this->assertEquals(<<<'DUMP'
  `- V
      `- int <42>
@@ -86,6 +89,9 @@ DUMP
         $node = new NonTerminal();
         $node->name = 'E';
         $node->children = [$p, $mul, $v];
+
+        $this->assertEquals(3, $node->getChildrenCount());
+        $this->assertCount(3, $node->getChildren());
 
         $this->assertEquals(
             <<<'DUMP'

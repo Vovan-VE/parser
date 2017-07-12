@@ -11,6 +11,18 @@ interface TreeNodeInterface
     public function getNodeName();
 
     /**
+     * @return integer
+     * @since 1.1.0
+     */
+    public function getChildrenCount();
+
+    /**
+     * @return TreeNodeInterface[]
+     * @since 1.1.0
+     */
+    public function getChildren();
+
+    /**
      * @param string $indent
      * @param bool $last
      * @return string

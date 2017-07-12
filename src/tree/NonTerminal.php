@@ -21,6 +21,24 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
 
     /**
      * @inheritdoc
+     * @since 1.1.0
+     */
+    public function getChildrenCount()
+    {
+        return count($this->children);
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.1.0
+     */
+    public function getChildren()
+    {
+        return $this->children;
+    }
+
+    /**
+     * @inheritdoc
      */
     public function dumpAsString($indent = '', $last = true)
     {

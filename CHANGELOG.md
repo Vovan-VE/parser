@@ -4,7 +4,9 @@ LR(0) parser Change Log
 1.1.0
 -----
 
-No changes yet.
+*   Add: methods `getChildren()` and `getChildrenCount()` to interface
+    `VovanVE\parser\common\TreeNodeInterface` with its implementations in classes
+    `VovanVE\parser\common\Token` and `VovanVE\parser\tree\NonTerminal`.
 
 
 1.0.3
