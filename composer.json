@@ -26,11 +26,5 @@
         "psr-4": {
             "VovanVE\\parser\\tests\\": "tests/"
         }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-v1.1": "1.1.x-dev",
-            "dev-v1.0": "1.0.x-dev"
-        }
     }
 }
