@@ -13,6 +13,9 @@ class TokenTest extends BaseTestCase
 
         $token = new Token($type, $content);
 
+        $this->assertEquals(0, $token->getChildrenCount());
+        $this->assertCount(0, $token->getChildren());
+
         $dump_end = " `- $type <$content>" . PHP_EOL;
 
         foreach (['', '    ', "\t"] as $indent) {
