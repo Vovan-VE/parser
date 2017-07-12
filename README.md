@@ -82,7 +82,7 @@ Install through [composer][]:
 
 or add to `require` section in your composer.json:
 
-    "vovan-ve/lr0-parser": "~1.0.0"
+    "vovan-ve/lr0-parser": "~1.1.0"
 
 Theory
 ------
