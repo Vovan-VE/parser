@@ -47,6 +47,12 @@ DUMP
             $node->dumpAsString('.', false)
         );
 
+        $this->assertTrue($node->areChildrenMatch(['int']));
+        $this->assertFalse($node->areChildrenMatch([]));
+        $this->assertFalse($node->areChildrenMatch(['foo']));
+        $this->assertFalse($node->areChildrenMatch(['foo', 'int']));
+        $this->assertFalse($node->areChildrenMatch(['int', 'foo']));
+
         return $node;
     }
 
@@ -72,6 +78,13 @@ DUMP
             ,
             $node->dumpAsString()
         );
+
+        $this->assertTrue($node->areChildrenMatch(['V']));
+        $this->assertFalse($node->areChildrenMatch([]));
+        $this->assertFalse($node->areChildrenMatch(['P']));
+        $this->assertFalse($node->areChildrenMatch(['int']));
+        $this->assertFalse($node->areChildrenMatch(['foo', 'V']));
+        $this->assertFalse($node->areChildrenMatch(['V', 'foo']));
 
         return $node;
     }
@@ -108,5 +121,14 @@ DUMP
             ,
             $node->dumpAsString('....', false)
         );
+
+        $this->assertTrue($node->areChildrenMatch(['P', 'mul', 'V']));
+        $this->assertFalse($node->areChildrenMatch([]));
+        $this->assertFalse($node->areChildrenMatch(['P']));
+        $this->assertFalse($node->areChildrenMatch(['V']));
+        $this->assertFalse($node->areChildrenMatch(['P', 'mul']));
+        $this->assertFalse($node->areChildrenMatch(['P', 'mul', 'foo']));
+        $this->assertFalse($node->areChildrenMatch(['P', 'mul', 'V', 'foo']));
+        $this->assertFalse($node->areChildrenMatch(['V', 'P', 'mul']));
     }
 }

@@ -27,5 +27,9 @@ class TokenTest extends BaseTestCase
                 );
             }
         }
+
+        $this->assertTrue($token->areChildrenMatch([]));
+        $this->assertFalse($token->areChildrenMatch(['lorem']));
+        $this->assertFalse($token->areChildrenMatch(['ipsum', 'dolor']));
     }
 }
