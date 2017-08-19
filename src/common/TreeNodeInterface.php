@@ -23,6 +23,13 @@ interface TreeNodeInterface
     public function getChildren();
 
     /**
+     * @param string[] $nodeNames
+     * @return bool
+     * @since 1.2.0
+     */
+    public function areChildrenMatch($nodeNames);
+
+    /**
      * @param string $indent
      * @param bool $last
      * @return string

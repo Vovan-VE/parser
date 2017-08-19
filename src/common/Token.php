@@ -79,6 +79,16 @@ class Token extends BaseObject implements TreeNodeInterface
     }
 
     /**
+     * @param string[] $nodeNames
+     * @return bool
+     * @since 1.2.0
+     */
+    public function areChildrenMatch($nodeNames)
+    {
+        return [] === $nodeNames;
+    }
+
+    /**
      * @inheritdoc
      */
     public function dumpAsString($indent = '', $last = true)

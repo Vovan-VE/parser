@@ -39,6 +39,29 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
 
     /**
      * @inheritdoc
+     * @since 1.2.0
+     */
+    public function areChildrenMatch($nodeNames)
+    {
+        $count = $this->getChildrenCount();
+        if (count($nodeNames) !== $count) {
+            return false;
+        }
+
+        $children = $this->children;
+        $index = 0;
+        foreach ($nodeNames as $name) {
+            if ($name !== $children[$index]->getNodeName()) {
+                return false;
+            }
+            ++$index;
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritdoc
      */
     public function dumpAsString($indent = '', $last = true)
     {
