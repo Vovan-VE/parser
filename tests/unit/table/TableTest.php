@@ -210,7 +210,6 @@ _GRAMMAR
     /**
      * @param TableRow[] $rows
      * @param integer $stateB
-     * @return integer
      * @depends testCreateTable
      * @depends testRowEIsEMulWantB
      */
@@ -280,7 +279,6 @@ _GRAMMAR
     /**
      * @param TableRow[] $rows
      * @param integer $stateB
-     * @return integer
      * @depends testCreateTable
      * @depends testRowEIsEAddWantB
      */
