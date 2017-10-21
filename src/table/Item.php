@@ -35,7 +35,8 @@ class Item extends BaseRule
             $rule->getSubject(),
             [],
             $rule->getDefinition(),
-            $rule->hasEofMark()
+            $rule->hasEofMark(),
+            $rule->getTag()
         );
     }
 
@@ -44,14 +45,16 @@ class Item extends BaseRule
      * @param Symbol[] $passed
      * @param Symbol[] $further
      * @param bool $eof
+     * @param string|null $tag [since 1.3.0]
      */
     public function __construct(
         $subject,
         $passed = [],
         $further = [],
-        $eof = false
+        $eof = false,
+        $tag = null
     ) {
-        parent::__construct($subject, $eof);
+        parent::__construct($subject, $eof, $tag);
 
         $this->passed = array_values($passed);
         $this->further = array_values($further);
@@ -77,7 +80,7 @@ class Item extends BaseRule
         $passed = $this->passed;
 
         $passed[] = array_shift($further);
-        return new static($this->subject, $passed, $further, $this->eof);
+        return new static($this->subject, $passed, $further, $this->eof, $this->tag);
     }
 
     /**
@@ -88,7 +91,8 @@ class Item extends BaseRule
         return new Rule(
             $this->subject,
             array_merge($this->passed, $this->further),
-            $this->eof
+            $this->eof,
+            $this->tag
         );
     }
 

@@ -26,13 +26,13 @@ class ParserTest extends BaseTestCase
             ->create();
 
         $grammar = Grammar::create(<<<'_END'
-E: S $
-S: S add P
-S: P
-P: P mul V
-P: V
-V: int
-V: id
+E     : S $
+S(add): S add P
+S     : P
+P(mul): P mul V
+P     : V
+V(int): int
+V(var): id
 _END
         );
 
@@ -48,18 +48,18 @@ _END
         $tree = $parser->parse('A * 2  +1 ');
         $this->assertInstanceOf(NonTerminal::class, $tree);
         $this->assertEquals(<<<'DUMP'
- `- S
+ `- S(add)
      `- S
-     |   `- P
+     |   `- P(mul)
      |       `- P
-     |       |   `- V
+     |       |   `- V(var)
      |       |       `- id <A>
      |       `- mul <*>
-     |       `- V
+     |       `- V(int)
      |           `- int <2>
      `- add <+>
      `- P
-         `- V
+         `- V(int)
              `- int <1>
 
 DUMP
@@ -77,35 +77,35 @@ DUMP
         $tree = $parser->parse('A * B / 23  + B / 37 - 42 * C ');
         $this->assertInstanceOf(NonTerminal::class, $tree);
         $this->assertEquals(<<<'DUMP'
- `- S
-     `- S
+ `- S(add)
+     `- S(add)
      |   `- S
-     |   |   `- P
-     |   |       `- P
+     |   |   `- P(mul)
+     |   |       `- P(mul)
      |   |       |   `- P
-     |   |       |   |   `- V
+     |   |       |   |   `- V(var)
      |   |       |   |       `- id <A>
      |   |       |   `- mul <*>
-     |   |       |   `- V
+     |   |       |   `- V(var)
      |   |       |       `- id <B>
      |   |       `- mul </>
-     |   |       `- V
+     |   |       `- V(int)
      |   |           `- int <23>
      |   `- add <+>
-     |   `- P
+     |   `- P(mul)
      |       `- P
-     |       |   `- V
+     |       |   `- V(var)
      |       |       `- id <B>
      |       `- mul </>
-     |       `- V
+     |       `- V(int)
      |           `- int <37>
      `- add <->
-     `- P
+     `- P(mul)
          `- P
-         |   `- V
+         |   `- V(int)
          |       `- int <42>
          `- mul <*>
-         `- V
+         `- V(var)
              `- id <C>
 
 DUMP

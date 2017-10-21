@@ -89,9 +89,7 @@ class Stack extends BaseObject
 
         $new_symbol_name = $rule->getSubject()->getName();
 
-        $new_node = new NonTerminal();
-        $new_node->name = $new_symbol_name;
-        $new_node->children = $nodes;
+        $new_node = new NonTerminal($new_symbol_name, $nodes, $rule->getTag());
 
         $goto = $base_state_row->gotoSwitches;
         if (!isset($goto[$new_symbol_name])) {

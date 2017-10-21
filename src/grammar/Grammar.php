@@ -6,7 +6,24 @@ use VovanVE\parser\common\Symbol;
 
 class Grammar extends BaseObject
 {
-    const RE_INPUT_RULE = '/^(?<subj>[a-z_0-9]++)\\s*+:\\s*+(?<def>[a-z_0-9\\s]++)(?<eof>\\$)?$/i';
+    const RE_INPUT_RULE = '/
+        ^
+        (?<subj> [a-z_0-9]++ )
+        \\s*+
+        (?:
+            \(
+            \\s*+
+            (?<tag> [a-z_0-9]++ )
+            \\s*+
+            \)
+            \\s*+
+        )?
+        :
+        \\s*+
+        (?<def> [a-z_0-9\\s]++ )
+        (?<eof> \\$ )?
+        $
+    /xi';
 
     /** @var Rule[] */
     private $rules;
@@ -67,7 +84,12 @@ class Grammar extends BaseObject
 
             $eof = !empty($match['eof']);
 
-            $rules[] = new Rule($subject, $definition, $eof);
+            $rules[] = new Rule(
+                $subject,
+                $definition,
+                $eof,
+                isset($match['tag']) ? $match['tag'] : null
+            );
         }
 
         return new static($rules);

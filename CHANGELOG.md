@@ -4,7 +4,16 @@ LR(0) parser Change Log
 1.3.0
 -----
 
-*   Deprecated: const `VovanVE\parser\common\TreeNodeInterface::DUMP_INDENT`.
+*   BC break:
+    *   Interface `VovanVE\parser\common\TreeNodeInterface` introduce new method `getNodeTag()`.
+    *   Class `VovanVE\parser\tree\NonTerminal` now has constructor and it requires two arguments
+        `($name, $children)`. Also there are other optional arguments.
+*   Deprecated:
+    *   Class constant `VovanVE\parser\common\TreeNodeInterface::DUMP_INDENT` is useless.
+    *   Class `VovanVE\parser\tree\NonTerminal` will hide public properties `$name` and `$children`
+        to private. So use getters.
+*   New:
+    *   Add ability to mark rules with tags like `Sum(add): Sum add Product`.
 
 1.2.0
 -----

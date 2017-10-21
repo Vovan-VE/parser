@@ -12,6 +12,12 @@ interface TreeNodeInterface
     public function getNodeName();
 
     /**
+     * @return string|null
+     * @since 1.3.0
+     */
+    public function getNodeTag();
+
+    /**
      * @return integer
      * @since 1.1.0
      */

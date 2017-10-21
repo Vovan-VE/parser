@@ -12,23 +12,26 @@ class Rule extends BaseRule
     /**
      * @param Rule $a
      * @param Rule $b
-     * @return integer
+     * @param bool $checkTag [since 1.3.0]
+     * @return int
      */
-    public static function compare($a, $b)
+    public static function compare($a, $b, $checkTag = false)
     {
         return Symbol::compare($a->subject, $b->subject)
             ?: Symbol::compareList($a->definition, $b->definition)
-                ?: ($b->eof - $a->eof);
+                ?: ($b->eof - $a->eof)
+                    ?: ($checkTag ? self::compareTag($a->tag, $b->tag) : 0);
     }
 
     /**
      * @param Symbol $subject
      * @param Symbol[] $definition
      * @param bool $eof
+     * @param string|null $tag [since 1.3.0]
      */
-    public function __construct($subject, array $definition, $eof = false)
+    public function __construct($subject, array $definition, $eof = false, $tag = null)
     {
-        parent::__construct($subject, $eof);
+        parent::__construct($subject, $eof, $tag);
 
         $this->definition = $definition;
     }

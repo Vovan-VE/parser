@@ -18,8 +18,10 @@ class ItemTest extends BaseTestCase
 
         $orig = new Item($a, [$b, $c], [$d, $e]);
         $copy = new Item($a, [$b, $c], [$d, $e], false);
+        $wtag = new Item($a, [$b, $c], [$d, $e], false, 'foo');
 
         $this->assertEquals(0, Item::compare($orig, $copy), 'orig == copy');
+        $this->assertEquals(0, Item::compare($orig, $wtag), 'orig == copy with tag');
 
         $diffs = [
             new Item($a, [$b, $c], [$d, $e], true),
@@ -56,11 +58,28 @@ class ItemTest extends BaseTestCase
 
             $as_rule = $item->getAsRule();
             $this->assertInstanceOf(Rule::class, $as_rule, 'rule from item');
+            $this->assertEquals(0, Rule::compare($rule, $as_rule, true), 'source rule == out rule');
 
             $next_item = $item->shift();
             $this->assertFalse($next_item === $item, 'next item is not same object');
             $item = $next_item;
         }
         $this->assertNull($item, 'no next item');
+    }
+
+    public function testFlowTag()
+    {
+        $b = new Symbol('B');
+        $c = new Symbol('c', true);
+        $d = new Symbol('D');
+        $orig = new Rule(new Symbol('A'), [$b, $c, $d], false, 'foo');
+
+        $item = Item::createFromRule($orig);
+
+        $item->shift()->shift();
+
+        $out = $item->getAsRule();
+
+        $this->assertEquals(0, Rule::compare($orig, $out, true), 'source rule == out rule');
     }
 }

@@ -62,6 +62,15 @@ class Token extends BaseObject implements TreeNodeInterface
 
     /**
      * @inheritdoc
+     * @since 1.3.0
+     */
+    public function getNodeTag()
+    {
+        return null;
+    }
+
+    /**
+     * @inheritdoc
      * @since 1.1.0
      */
     public function getChildrenCount()
