@@ -3,6 +3,7 @@ namespace VovanVE\parser\common;
 
 interface TreeNodeInterface
 {
+    /** @deprecated */
     const DUMP_INDENT = '    ';
 
     /**

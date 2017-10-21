@@ -1,6 +1,11 @@
 LR(0) parser Change Log
 =======================
 
+1.3.0
+-----
+
+*   Deprecated: const `VovanVE\parser\common\TreeNodeInterface::DUMP_INDENT`.
+
 1.2.0
 -----
 
