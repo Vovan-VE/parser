@@ -12,11 +12,10 @@ matrix:
     - php: nightly
   fast_finish: true
 
-branches:
-  only:
-    - master
-    - rc
-    - devel
+#branches:
+#  only:
+#    - master
+#    - rc
 
 sudo: false
 
