@@ -1,6 +1,7 @@
 <?php
 namespace VovanVE\parser\stack;
 
+use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\TreeNodeInterface;
@@ -19,15 +20,19 @@ class Stack extends BaseObject
     private $stateIndex;
     /** @var TableRow */
     private $stateRow;
+    /** @var ActionsMap|null */
+    private $actions;
 
     /**
      * @param Table $table
+     * @param ActionsMap|null $actions [since 1.3.0]
      */
-    public function __construct($table)
+    public function __construct($table, $actions = null)
     {
         $this->table = $table;
         $this->stateIndex = 0;
         $this->stateRow = $table->rows[0];
+        $this->actions = $actions;
     }
 
     /**
@@ -55,6 +60,10 @@ class Stack extends BaseObject
         $item = new StackItem();
         $item->state = $stateIndex;
         $item->node = $node;
+
+        if ($this->actions) {
+            $node->make($this->actions->runForNode($node));
+        }
 
         $this->items[] = $item;
         $this->stateIndex = $stateIndex;
@@ -89,9 +98,7 @@ class Stack extends BaseObject
 
         $new_symbol_name = $rule->getSubject()->getName();
 
-        $new_node = new NonTerminal();
-        $new_node->name = $new_symbol_name;
-        $new_node->children = $nodes;
+        $new_node = new NonTerminal($new_symbol_name, $nodes, $rule->getTag());
 
         $goto = $base_state_row->gotoSwitches;
         if (!isset($goto[$new_symbol_name])) {

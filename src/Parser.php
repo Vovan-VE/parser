@@ -1,6 +1,7 @@
 <?php
 namespace VovanVE\parser;
 
+use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Token;
@@ -45,12 +46,13 @@ class Parser extends BaseObject
 
     /**
      * @param string $input
+     * @param callable[] $actions [since 1.3.0]
      * @return TreeNodeInterface
      */
-    public function parse($input)
+    public function parse($input, $actions = [])
     {
         $tokens_gen = $this->lexer->parse($input);
-        $stack = new Stack($this->table);
+        $stack = new Stack($this->table, $actions ? new ActionsMap($actions) : null);
 
         $eof_offset = mb_strlen($input, '8bit');
         $tokens_gen->rewind();

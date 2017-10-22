@@ -16,8 +16,12 @@ class RuleTest extends BaseTestCase
 
         $orig = new Rule($foo, [$bar, $baz, $lol]);
         $copy = new Rule($foo, [$bar, $baz, $lol], false);
+        $wtag = new Rule($foo, [$bar, $baz, $lol], false, 'foo');
 
-        $this->assertEquals(0, Rule::compare($orig, $copy), 'orig == copy');
+        $this->assertEquals(0, Rule::compare($orig, $copy, false), 'orig == copy /skip tag');
+        $this->assertEquals(0, Rule::compare($orig, $copy, true), 'orig == copy /check tag');
+        $this->assertEquals(0, Rule::compare($orig, $wtag, false), 'orig == copy-tag /skip tag');
+        $this->assertNotEquals(0, Rule::compare($orig, $wtag, true), 'orig != copy-tag /check tag');
 
         $diffs = [
             new Rule($foo, [$bar, $baz, $lol], true),

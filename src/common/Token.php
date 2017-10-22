@@ -11,7 +11,15 @@ class Token extends BaseObject implements TreeNodeInterface
     private $match;
     /** @var integer */
     private $offset;
+    /** @var mixed */
+    private $made;
 
+    /**
+     * @param string $type
+     * @param string $content
+     * @param null $match
+     * @param null $offset
+     */
     public function __construct($type, $content, $match = null, $offset = null)
     {
         $this->type = $type;
@@ -62,11 +70,29 @@ class Token extends BaseObject implements TreeNodeInterface
 
     /**
      * @inheritdoc
+     * @since 1.3.0
+     */
+    public function getNodeTag()
+    {
+        return null;
+    }
+
+    /**
+     * @inheritdoc
      * @since 1.1.0
      */
     public function getChildrenCount()
     {
         return 0;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.3.0
+     */
+    public function getChild($index)
+    {
+        throw new \OutOfBoundsException('No children');
     }
 
     /**
@@ -95,5 +121,23 @@ class Token extends BaseObject implements TreeNodeInterface
     {
         return $indent . ' `- ' . $this->type . ' <' . $this->content . '>'
         . PHP_EOL;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.3.0
+     */
+    public function make($value)
+    {
+        $this->made = $value;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.3.0
+     */
+    public function made()
+    {
+        return $this->made;
     }
 }

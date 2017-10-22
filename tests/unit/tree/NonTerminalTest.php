@@ -2,6 +2,7 @@
 namespace VovanVE\parser\tests\unit\tree;
 
 use VovanVE\parser\common\Token;
+use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 use VovanVE\parser\tree\NonTerminal;
 
@@ -14,9 +15,7 @@ class NonTerminalTest extends BaseTestCase
     {
         $token = new Token('int', '42');
 
-        $node = new NonTerminal();
-        $node->name = 'V';
-        $node->children = [$token];
+        $node = new NonTerminal('V', [$token]);
 
         $this->assertEquals(1, $node->getChildrenCount());
         $this->assertCount(1, $node->getChildren());
@@ -53,6 +52,35 @@ DUMP
         $this->assertFalse($node->areChildrenMatch(['foo', 'int']));
         $this->assertFalse($node->areChildrenMatch(['int', 'foo']));
 
+        $this->assertNull($node->made());
+        $node->make(42);
+        $this->assertEquals(42, $node->made());
+
+        $o = new \stdClass;
+        $node->make($o);
+        $this->assertSame($o, $node->made());
+
+        return $node;
+    }
+
+    public function testVTagInt()
+    {
+        $token = new Token('int', '37');
+
+        $node = new NonTerminal('V', [$token], 'num');
+
+        $this->assertEquals(1, $node->getChildrenCount());
+        $this->assertCount(1, $node->getChildren());
+
+        $this->assertEquals(<<<'DUMP'
+ `- V(num)
+     `- int <37>
+
+DUMP
+            ,
+            $node->dumpAsString()
+        );
+
         return $node;
     }
 
@@ -63,9 +91,7 @@ DUMP
      */
     public function testPVInt($v)
     {
-        $node = new NonTerminal();
-        $node->name = 'P';
-        $node->children = [$v];
+        $node = new NonTerminal('P', [$v]);
 
         $this->assertEquals(
             <<<'DUMP'
@@ -93,15 +119,14 @@ DUMP
      * @param NonTerminal $p
      * @param NonTerminal $v
      * @depends testPVInt
-     * @depends testVInt
+     * @depends testVTagInt
+     * @return NonTerminal
      */
     public function testEVMulInt($p, $v)
     {
         $mul = new Token('mul', '*');
 
-        $node = new NonTerminal();
-        $node->name = 'E';
-        $node->children = [$p, $mul, $v];
+        $node = new NonTerminal('E', [$p, $mul, $v]);
 
         $this->assertEquals(3, $node->getChildrenCount());
         $this->assertCount(3, $node->getChildren());
@@ -113,8 +138,8 @@ DUMP
 .... |   |   `- V
 .... |   |       `- int <42>
 .... |   `- mul <*>
-.... |   `- V
-.... |       `- int <42>
+.... |   `- V(num)
+.... |       `- int <37>
 
 DUMP
 
@@ -130,5 +155,21 @@ DUMP
         $this->assertFalse($node->areChildrenMatch(['P', 'mul', 'foo']));
         $this->assertFalse($node->areChildrenMatch(['P', 'mul', 'V', 'foo']));
         $this->assertFalse($node->areChildrenMatch(['V', 'P', 'mul']));
+
+        return $node;
+    }
+
+    /**
+     * @param NonTerminal $node
+     * @depends testEVMulInt
+     */
+    public function testGetChild($node)
+    {
+        $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(0));
+        $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(1));
+        $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(2));
+
+        $this->setExpectedException(\OutOfBoundsException::class);
+        $node->getChild(3);
     }
 }

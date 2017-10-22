@@ -10,55 +10,90 @@ generator to work with custom LR(0) grammar.
 Synopsis
 --------
 
+See also following example in [examples/](examples/).
+
 ```php
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\LexerBuilder;
 use VovanVE\parser\Parser;
 
 $grammar = Grammar::create(<<<'_END'
-    Goal: Sum $
-    Sum: Sum add Product
-    Sum: Product
-    Product: Product mul Value
-    Product: Value
-    Value: int
-    Value: id
+    Goal        : Sum $
+    Sum(add)    : Sum add Product
+    Sum(sub)    : Sum sub Product
+    Sum(P)      : Product
+    Product(mul): Product mul Value
+    Product(div): Product div Value
+    Product(V)  : Value
+    Value       : int
 _END
 );
 
 $lexer = (new LexerBuilder)
     ->terminals([
-        'id' => '[a-z]+',
         'int' => '\\d+',
-        'add' => '[-+]',
-        'mul' => '[*\\/]',
+        'add' => '\\+',
+        'sub' => '-',
+        'mul' => '\\*',
+        'div' => '\\/',
     ])
     ->whitespaces(['\\s+'])
     ->modifiers('i')
     ->create();
 
+$actions = [
+    'int' => function ($t) {
+        return (int) $t->getContent();
+    },
+    'Value' => function ($v, $int) {
+        return $int->made();
+    },
+    'Product(V)' => function ($p, $v) {
+        return $v->made();
+    },
+    'Product(mul)' => function ($p, $a, $op, $b) {
+        return $a->made() * $b->made();
+    },
+    'Product(div)' => function ($p, $a, $op, $b) {
+        return $a->made() / $b->made();
+    },
+    'Sum(P)' => function ($s, $p) {
+        return $p->made();
+    },
+    'Sum(add)' => function ($s, $a, $op, $b) {
+        return $a->made() + $b->made();
+    },
+    'Sum(sub)' => function ($s, $a, $op, $b) {
+        return $a->made() - $b->made();
+    },
+];
+
 $parser = new Parser($lexer, $grammar);
 
-$tree = $parser->parse('A * 2 + 1');
+$tree = $parser->parse('23 * 2 - 4', $actions);
 
+echo 'Result is ', $tree->made(), PHP_EOL;
+echo 'Tree:', PHP_EOL;
 echo $tree->dumpAsString();
 ```
 
 Output:
 
-     `- Sum
-         `- Sum
-         |   `- Product
-         |       `- Product
+    Result is 42
+    Tree:
+     `- Sum(sub)
+         `- Sum(P)
+         |   `- Product(mul)
+         |       `- Product(V)
          |       |   `- Value
-         |       |       `- id <A>
+         |       |       `- int <23>
          |       `- mul <*>
          |       `- Value
          |           `- int <2>
-         `- add <+>
-         `- Product
+         `- sub <->
+         `- Product(V)
              `- Value
-                 `- int <1>
+                 `- int <4>
 
 Description
 -----------

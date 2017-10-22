@@ -11,7 +11,13 @@ class GrammarTest extends BaseTestCase
 {
     public function testCreateSuccess()
     {
-        $grammar = Grammar::create("E: A \$; A:a; A:A a\n A : B ; ;\n; \n\n B : b");
+        $grammar = Grammar::create("
+            E: A \$;  A(end):a;  A ( loop ) :A a
+            A(ref) : B ; ;
+            ;
+
+            B : b"
+        );
         $this->assertInstanceOf(Grammar::class, $grammar, 'is Grammar object');
         $this->assertCount(5, $grammar->getRules(), 'rules count');
         $this->assertEquals(
@@ -24,13 +30,13 @@ class GrammarTest extends BaseTestCase
         );
 
         $terminals = $grammar->getTerminals();
-        $this->assertTrue(is_array($terminals), 'Terminals are array');
+        $this->assertInternalType('array', $terminals);
         $this->assertCount(2, $terminals, 'Terminals count');
         $this->assertArrayHasKey('a', $terminals, 'Has terminal "a"');
         $this->assertArrayHasKey('b', $terminals, 'Has terminal "b"');
 
         $non_terminals = $grammar->getNonTerminals();
-        $this->assertTrue(is_array($non_terminals), 'Non-terminals are array');
+        $this->assertInternalType('array', $non_terminals);
         $this->assertCount(3, $non_terminals, 'Non-terminals count');
         $this->assertArrayHasKey('A', $non_terminals, 'Has non-terminal "A"');
         $this->assertArrayHasKey('B', $non_terminals, 'Has non-terminal "B"');
@@ -42,11 +48,11 @@ class GrammarTest extends BaseTestCase
         $this->assertNull($unknown_symbol, 'getSymbol(unknown) is NULL');
 
         $a_rules = $grammar->getRulesFor(new Symbol('A', false));
-        $this->assertTrue(is_array($a_rules), 'getRulesFor(A) is array');
+        $this->assertInternalType('array', $a_rules);
         $this->assertCount(3, $a_rules, 'Rules count for "A"');
 
         $terminal_rules = $grammar->getRulesFor(new Symbol('a', true));
-        $this->assertTrue(is_array($terminal_rules), 'getRulesFor(a) is array');
+        $this->assertInternalType('array', $terminal_rules);
         $this->assertCount(0, $terminal_rules, 'Rules count for "a"');
     }
 

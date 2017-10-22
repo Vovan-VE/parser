@@ -164,7 +164,10 @@ _GRAMMAR
 
         $rule = $row->reduceRule;
         $this->assertInstanceOf(Rule::class, $rule);
-        $this->assertEquals(0, Rule::compare($rule, new Rule(new Symbol('S'), [new Symbol('E')], true)));
+        $this->assertEquals(0, Rule::compare(
+            $rule,
+            new Rule(new Symbol('S'), [new Symbol('E')], true)
+        ));
 
         return $terminals;
     }
@@ -210,7 +213,6 @@ _GRAMMAR
     /**
      * @param TableRow[] $rows
      * @param integer $stateB
-     * @return integer
      * @depends testCreateTable
      * @depends testRowEIsEMulWantB
      */
@@ -280,7 +282,6 @@ _GRAMMAR
     /**
      * @param TableRow[] $rows
      * @param integer $stateB
-     * @return integer
      * @depends testCreateTable
      * @depends testRowEIsEAddWantB
      */
