@@ -51,6 +51,14 @@ DUMP
         $this->assertFalse($node->areChildrenMatch(['foo', 'int']));
         $this->assertFalse($node->areChildrenMatch(['int', 'foo']));
 
+        $this->assertNull($node->made());
+        $node->make(42);
+        $this->assertEquals(42, $node->made());
+
+        $o = new \stdClass;
+        $node->make($o);
+        $this->assertSame($o, $node->made());
+
         return $node;
     }
 

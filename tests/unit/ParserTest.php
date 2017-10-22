@@ -1,6 +1,8 @@
 <?php
 namespace VovanVE\parser\tests\unit;
 
+use VovanVE\parser\common\Token;
+use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\LexerBuilder;
 use VovanVE\parser\Parser;
@@ -132,5 +134,74 @@ DUMP
     {
         $this->setExpectedException(SyntaxException::class, 'Unexpected <add "-">');
         $parser->parse('A * -5');
+    }
+
+    /**
+     * @param Parser $parser
+     * @depends testCreate
+     */
+    public function testParseWithActions($parser)
+    {
+        $lexer = (new LexerBuilder)
+            ->terminals([
+                'int' => '\\d++',
+                'add' => '\\+',
+                'sub' => '-',
+                'mul' => '\\*',
+                'div' => '\\/',
+            ])
+            ->modifiers('i')
+            ->create();
+
+        $grammar = Grammar::create(<<<'_END'
+E      : S $
+S(add) : S add P
+S(sub) : S sub P
+S(P)   : P
+P(mul) : P mul V
+P(div) : P div V
+P(V)   : V
+V(int) : int
+_END
+        );
+
+        $parser = new Parser($lexer, $grammar);
+
+        $actions = [
+            'int' => function (Token $int) {
+                return (int)$int->getContent();
+            },
+            'V(int)' => function (TreeNodeInterface $v) {
+                list ($int) = $v->getChildren();
+                return $int->made();
+            },
+            'P(V)' => function (TreeNodeInterface $p) {
+                list ($v) = $p->getChildren();
+                return $v->made();
+            },
+            'P(mul)' => function (TreeNodeInterface $p) {
+                list ($a, , $b) = $p->getChildren();
+                return $a->made() * $b->made();
+            },
+            'P(div)' => function (TreeNodeInterface $p) {
+                list ($a, , $b) = $p->getChildren();
+                return $a->made() / $b->made();
+            },
+            'S(P)' => function (TreeNodeInterface $s) {
+                list ($p) = $s->getChildren();
+                return $p->made();
+            },
+            'S(add)' => function (TreeNodeInterface $s) {
+                list ($a, , $b) = $s->getChildren();
+                return $a->made() + $b->made();
+            },
+            'S(sub)' => function (TreeNodeInterface $s) {
+                list ($a, , $b) = $s->getChildren();
+                return $a->made() - $b->made();
+            },
+        ];
+
+        $result = $parser->parse('42 * 23 / 3  + 90 / 15 - 17 * 19 ', $actions)->made();
+        $this->assertEquals(5, $result, 'calculated result');
     }
 }

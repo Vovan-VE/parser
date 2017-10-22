@@ -13,7 +13,9 @@ LR(0) parser Change Log
     *   Class `VovanVE\parser\tree\NonTerminal` will hide public properties `$name` and `$children`
         to private. So use getters.
 *   New:
-    *   Add ability to mark rules with tags like `Sum(add): Sum add Product`.
+    *   Add actions to evaluate result on tree nodes while parsing.
+    *   Add ability to mark rules with tags like `Sum(add): Sum add Product` to map actions by rules
+        subject.
 
 1.2.0
 -----

@@ -31,5 +31,13 @@ class TokenTest extends BaseTestCase
         $this->assertTrue($token->areChildrenMatch([]));
         $this->assertFalse($token->areChildrenMatch(['lorem']));
         $this->assertFalse($token->areChildrenMatch(['ipsum', 'dolor']));
+
+        $this->assertNull($token->made());
+        $token->make(42);
+        $this->assertEquals(42, $token->made());
+
+        $o = new \stdClass;
+        $token->make($o);
+        $this->assertSame($o, $token->made());
     }
 }

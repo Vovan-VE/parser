@@ -42,4 +42,16 @@ interface TreeNodeInterface
      * @return string
      */
     public function dumpAsString($indent = '', $last = true);
+
+    /**
+     * @param mixed $value
+     * @since 1.3.0
+     */
+    public function make($value);
+
+    /**
+     * @return mixed
+     * @since 1.3.0
+     */
+    public function made();
 }

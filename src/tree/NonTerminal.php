@@ -18,6 +18,8 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @deprecated Don't use outside directly - use getter
      */
     public $children;
+    /** @var mixed */
+    private $made;
 
     /**
      * @param string $name
@@ -112,5 +114,23 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
             $out .= $child->dumpAsString($sub_indent, $i === $last_i);
         }
         return $out;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.3.0
+     */
+    public function make($value)
+    {
+        $this->made = $value;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.3.0
+     */
+    public function made()
+    {
+        return $this->made;
     }
 }
