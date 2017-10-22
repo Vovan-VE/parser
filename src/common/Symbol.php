@@ -7,6 +7,8 @@ class Symbol extends BaseObject
     private $name;
     /** @var boolean */
     private $isTerminal;
+    /** @var boolean */
+    private $isHidden = false;
 
     /**
      * @param Symbol $a
@@ -52,11 +54,13 @@ class Symbol extends BaseObject
     /**
      * @param string $name
      * @param bool $isTerminal
+     * @param bool $isHidden [since 1.3.2]
      */
-    public function __construct($name, $isTerminal = false)
+    public function __construct($name, $isTerminal = false, $isHidden = false)
     {
         $this->name = $name;
         $this->isTerminal = $isTerminal;
+        $this->isHidden = $isHidden;
     }
 
     /**
@@ -84,10 +88,19 @@ class Symbol extends BaseObject
     }
 
     /**
+     * @return bool
+     * @since 1.3.2
+     */
+    public function isHidden()
+    {
+        return $this->isHidden;
+    }
+
+    /**
      * @return string
      */
     public function __toString()
     {
-        return $this->name;
+        return ($this->isHidden ? '.' : '') . $this->name;
     }
 }

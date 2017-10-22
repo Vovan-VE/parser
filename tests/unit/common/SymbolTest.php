@@ -10,12 +10,17 @@ class SymbolTest extends BaseTestCase
     {
         $foo = new Symbol('foo');
         $foo_copy = new Symbol('foo', false);
+        $foo_hidden = new Symbol('foo', false, true);
         $bar = new Symbol('bar');
 
         $baz = new Symbol('baz', true);
         $foo_terminal = new Symbol('foo', true);
 
+        $this->assertFalse($foo->isHidden(), 'must not be hidden by default');
+        $this->assertTrue($foo_hidden->isHidden(), 'foo_hidden must be hidden');
+
         $this->assertEquals(0, Symbol::compare($foo, $foo_copy), 'foo == foo_copy');
+        $this->assertEquals(0, Symbol::compare($foo, $foo_hidden), 'foo == foo_hidden');
         $this->assertNotEquals(0, Symbol::compare($foo, $bar), 'foo != bar');
         $this->assertNotEquals(0, Symbol::compare($foo, $baz), 'foo != baz');
         $this->assertNotEquals(0, Symbol::compare($foo, $foo_terminal), 'foo != foo_terminal');
@@ -30,8 +35,10 @@ class SymbolTest extends BaseTestCase
 
         $diffs = [
             [new Symbol('foo', true), new Symbol('foo', false)],
-            [new Symbol('foo', true), new Symbol('foo', false), new Symbol('bar', true), new Symbol('more')],
-            [new Symbol('more'), new Symbol('foo', true), new Symbol('foo', false), new Symbol('bar', true)],
+            [new Symbol('foo', true), new Symbol('foo', false), new Symbol('bar',
+                true), new Symbol('more')],
+            [new Symbol('more'), new Symbol('foo', true), new Symbol('foo',
+                false), new Symbol('bar', true)],
             [new Symbol('foo', false), new Symbol('foo', false), new Symbol('bar', true)],
             [new Symbol('foo', true), new Symbol('foo', true), new Symbol('bar', true)],
             [new Symbol('foo', false), new Symbol('foo', false), new Symbol('bar', false)],

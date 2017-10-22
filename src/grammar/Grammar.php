@@ -7,20 +7,25 @@ use VovanVE\parser\common\Symbol;
 class Grammar extends BaseObject
 {
     const RE_INPUT_RULE = '/
+        (?(DEFINE)
+            (?<name> [a-z_0-9]++ )
+        )
         ^
-        (?<subj> [a-z_0-9]++ )
+        (?<subj> (?&name) )
         \\s*+
         (?:
             \(
             \\s*+
-            (?<tag> [a-z_0-9]++ )
+            (?<tag> (?&name) )
             \\s*+
             \)
             \\s*+
         )?
         :
         \\s*+
-        (?<def> [a-z_0-9\\s]++ )
+        (?<def>
+            (?: \\.? (?&name) \\s*+ )++
+        )
         (?<eof> \\$ )?
         $
     /xi';
@@ -54,9 +59,13 @@ class Grammar extends BaseObject
 
         $symbols = [];
         $get_symbol = function ($name) use (&$symbols) {
-            return (isset($symbols[$name]))
-                ? $symbols[$name]
-                : ($symbols[$name] = new Symbol($name, true));
+            $is_hidden = '.' === mb_substr($name, 0, 1, '8bit');
+            $plain_name = $is_hidden
+                ? mb_substr($name, 1, null, '8bit')
+                : $name;
+            return (isset($symbols[$plain_name][$is_hidden]))
+                ? $symbols[$plain_name][$is_hidden]
+                : ($symbols[$plain_name][$is_hidden] = new Symbol($plain_name, true, $is_hidden));
         };
 
         foreach ($rules_strings as $rule_string) {

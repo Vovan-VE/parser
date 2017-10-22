@@ -79,4 +79,27 @@ class GrammarTest extends BaseTestCase
         $this->setExpectedException(GrammarException::class);
         Grammar::create("E: A \$; A: B; B: A");
     }
+
+    public function testCreateWithHidden()
+    {
+        $grammar = Grammar::create(
+            '
+            G: E $
+            E: A
+            E: B
+            A: A .comma a
+            A: a
+            B: B comma b
+            B: b
+            '
+        );
+        $this->assertCount(3, $grammar->getTerminals(), 'does not care about hidden flag');
+        $rules = $grammar->getRules();
+        $comma_hidden = $rules[3]->getDefinition()[1];
+        $this->assertEquals('comma', $comma_hidden->getName(), 'is comma');
+        $this->assertTrue($comma_hidden->isHidden(), 'hidden comma');
+        $comma_shown = $rules[5]->getDefinition()[1];
+        $this->assertEquals('comma', $comma_shown->getName(), 'is comma');
+        $this->assertFalse($comma_shown->isHidden(), 'shown comma');
+    }
 }

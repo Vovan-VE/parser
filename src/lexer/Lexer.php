@@ -14,6 +14,8 @@ class Lexer extends BaseObject
     private $regexpWhitespace;
     /** @var string */
     private $regexp;
+    /** @var array */
+    private $hiddens = [];
 
     /**
      * @param array $terminals
@@ -31,10 +33,12 @@ class Lexer extends BaseObject
             throw new \InvalidArgumentException('Empty terminals map');
         }
 
+        $terminals_map = $this->parseHiddenTerminals($terminals);
+
         $regexp = [];
 
         if ($defines) {
-            if (array_intersect_key($defines, $terminals)) {
+            if (array_intersect_key($defines, $terminals_map)) {
                 throw new \InvalidArgumentException(
                     'Declarations and defines has duplicated names'
                 );
@@ -48,7 +52,7 @@ class Lexer extends BaseObject
         }
         $regexp[] = '\\G';
 
-        $alt = $this->buildMap($terminals, '|');
+        $alt = $this->buildMap($terminals_map, '|');
         $regexp[] = "(?:$alt)";
 
         $regexp = join('', $regexp);
@@ -98,6 +102,36 @@ class Lexer extends BaseObject
             $pos = $match->nextOffset;
             yield $match->token;
         }
+    }
+
+    /**
+     * @param array $terminals
+     * @return array
+     * @uses $hiddens
+     * @since 1.3.2
+     */
+    private function parseHiddenTerminals(array $terminals) {
+        $map = [];
+        $hidden = [];
+        foreach ($terminals as $name => $re) {
+            if (is_string($name) && '.' === mb_substr($name, 0, 1, '8bit')) {
+                $true_name = mb_substr($name, 1, null, '8bit');
+                if (isset($map[$true_name])) {
+                    throw new \InvalidArgumentException(
+                        "Hidden name '$name' conflicts with existing '$true_name'"
+                    );
+                }
+                $name = $true_name;
+                $hidden[$name] = $name;
+            } elseif (isset($map[$name])) {
+                throw new \InvalidArgumentException(
+                    "Name '$name' conflicts with existing hidden name '.$name'"
+                );
+            }
+            $map[$name] = $re;
+        }
+        $this->hiddens = $hidden;
+        return $map;
     }
 
     /**
@@ -169,9 +203,9 @@ class Lexer extends BaseObject
             throw new InternalException('Match with multiple named group');
         }
 
-        $token_content = reset($named);
-        $token_type = key($named);
-        $token = new Token($token_type, $token_content, $match, $pos);
+        $content = reset($named);
+        $type = key($named);
+        $token = new Token($type, $content, $match, $pos, isset($this->hiddens[$type]));
 
         $result = new Match();
         $result->token = $token;

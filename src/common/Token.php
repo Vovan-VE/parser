@@ -7,6 +7,8 @@ class Token extends BaseObject implements TreeNodeInterface
     private $type;
     /** @var string */
     private $content;
+    /** @var bool */
+    private $isHidden = false;
     /** @var array */
     private $match;
     /** @var integer */
@@ -19,13 +21,15 @@ class Token extends BaseObject implements TreeNodeInterface
      * @param string $content
      * @param null $match
      * @param null $offset
+     * @param bool $isHidden [since 1.3.2]
      */
-    public function __construct($type, $content, $match = null, $offset = null)
+    public function __construct($type, $content, $match = null, $offset = null, $isHidden = false)
     {
         $this->type = $type;
         $this->content = $content;
         $this->match = $match;
         $this->offset = $offset;
+        $this->isHidden = $isHidden;
     }
 
     /**
@@ -42,6 +46,15 @@ class Token extends BaseObject implements TreeNodeInterface
     public function getContent()
     {
         return $this->content;
+    }
+
+    /**
+     * @return bool
+     * @since 1.3.2
+     */
+    public function isHidden()
+    {
+        return $this->isHidden;
     }
 
     /**

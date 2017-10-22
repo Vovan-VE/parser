@@ -18,6 +18,7 @@ class LexerTest extends BaseTestCase
                 'inc' => '\\+\\+',
                 'dec' => '--',
                 'add' => '[-+]',
+                '.mul' => '\\*',
             ],
             ['\\s++'],
             [],
@@ -25,7 +26,7 @@ class LexerTest extends BaseTestCase
         );
 
         $test_inputs = [
-            'foo  + --bar - 42 + i++-37 x y23' => [
+            'foo  + --bar - 42 + i++-37 x * y23' => [
                 ['var', 'foo'],
                 ['add', '+'],
                 ['dec', '--'],
@@ -38,6 +39,7 @@ class LexerTest extends BaseTestCase
                 ['add', '-'],
                 ['int', '37'],
                 ['var', 'x'],
+                ['mul', '*', true],
                 ['var', 'y23'],
             ],
             '' => [],
@@ -51,18 +53,18 @@ class LexerTest extends BaseTestCase
         ];
         foreach ($test_inputs as $test_input => $expect_tokens) {
             $tokens = $lexer->parse($test_input);
-            $this->assertInstanceOf(\Generator::class, $tokens, "Lexer->parse() is Generator for <$test_input>");
+            $this->assertInstanceOf(\Generator::class, $tokens, "Lexer->parse() is Generator");
             $parsed_tokens_count = 0;
             foreach ($tokens as $i => $token) {
-                $this->assertInstanceOf(Token::class, $token, "token[$i] is Token for input <$test_input>");
-                $this->assertArrayHasKey($i, $expect_tokens, "want token[$i] for input <$test_input>");
-                list ($expect_type, $expect_content) = $expect_tokens[$i];
-                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type for input <$test_input>");
-                $this->assertEquals($expect_content, $token->getContent(),
-                    "token[$i]->content for input <$test_input>");
+                $this->assertInstanceOf(Token::class, $token, "token[$i] is Token");
+                $this->assertArrayHasKey($i, $expect_tokens, "want token[$i]");
+                list ($expect_type, $expect_content, $expect_hidden) = $expect_tokens[$i] + [2 => false];
+                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type");
+                $this->assertEquals($expect_content, $token->getContent(), "token[$i]->content");
+                $this->assertEquals($expect_hidden, $token->isHidden(), "token[$i]->isHidden");
                 ++$parsed_tokens_count;
             }
-            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count for input <$test_input>");
+            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count");
         }
     }
 
@@ -116,12 +118,11 @@ class LexerTest extends BaseTestCase
             $parsed_tokens_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
                 list ($expect_type, $expect_content) = $expect_tokens[$i];
-                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type for subtest [$test_number]");
-                $this->assertEquals($expect_content, $token->getContent(),
-                    "token[$i]->type for subtest [$test_number]");
+                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type");
+                $this->assertEquals($expect_content, $token->getContent(), "token[$i]->type");
                 ++$parsed_tokens_count;
             }
-            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count for subtest [$test_number]");
+            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count");
         }
     }
 
@@ -179,12 +180,12 @@ class LexerTest extends BaseTestCase
         foreach ($test_inputs as $test_input => $expect_count) {
             $found_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
-                $this->assertInstanceOf(Token::class, $token, "token [$i] is Token for input <$test_input>");
-                $this->assertEquals('a', $token->getType(), "token[$i]->type for input <$test_input>");
-                $this->assertEquals('A', $token->getContent(), "token[$i]->type for input <$test_input>");
+                $this->assertInstanceOf(Token::class, $token, "token [$i] is Token");
+                $this->assertEquals('a', $token->getType(), "token[$i]->type");
+                $this->assertEquals('A', $token->getContent(), "token[$i]->type");
                 ++$found_count;
             }
-            $this->assertEquals($expect_count, $found_count, "tokens count for input <$test_input>");
+            $this->assertEquals($expect_count, $found_count, "tokens count");
         }
     }
 

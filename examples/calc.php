@@ -23,10 +23,10 @@ _END
 $lexer = (new LexerBuilder)
     ->terminals([
         'int' => '\\d+',
-        'add' => '\\+',
-        'sub' => '-',
-        'mul' => '\\*',
-        'div' => '\\/',
+        '.add' => '\\+',
+        '.sub' => '-',
+        '.mul' => '\\*',
+        '.div' => '\\/',
     ])
     ->whitespaces(['\\s+'])
     ->modifiers('i')
@@ -42,19 +42,19 @@ $actions = [
     'Product(V)' => function ($p, TreeNodeInterface $v) {
         return $v->made();
     },
-    'Product(mul)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+    'Product(mul)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
         return $a->made() * $b->made();
     },
-    'Product(div)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+    'Product(div)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
         return $a->made() / $b->made();
     },
     'Sum(P)' => function ($s, TreeNodeInterface $p) {
         return $p->made();
     },
-    'Sum(add)' => function ($s, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+    'Sum(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
         return $a->made() + $b->made();
     },
-    'Sum(sub)' => function ($s, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+    'Sum(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
         return $a->made() - $b->made();
     },
 ];

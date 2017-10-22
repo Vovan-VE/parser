@@ -31,14 +31,14 @@ _END
 
 $lexer = (new LexerBuilder)
     ->terminals([
-        'int' => '\\d+',
-        'add' => '\\+',
-        'sub' => '-',
-        'mul' => '\\*',
-        'div' => '\\/',
+        'int'  => '\\d+',
+        '.add' => '\\+',
+        '.sub' => '-',
+        '.mul' => '\\*',
+        '.div' => '\\/',
     ])
     ->whitespaces(['\\s+'])
-    ->modifiers('i')
+    //->modifiers('i')
     ->create();
 
 $actions = [
@@ -51,19 +51,19 @@ $actions = [
     'Product(V)' => function ($p, $v) {
         return $v->made();
     },
-    'Product(mul)' => function ($p, $a, $op, $b) {
+    'Product(mul)' => function ($p, $a, $b) {
         return $a->made() * $b->made();
     },
-    'Product(div)' => function ($p, $a, $op, $b) {
+    'Product(div)' => function ($p, $a, $b) {
         return $a->made() / $b->made();
     },
     'Sum(P)' => function ($s, $p) {
         return $p->made();
     },
-    'Sum(add)' => function ($s, $a, $op, $b) {
+    'Sum(add)' => function ($s, $a, $b) {
         return $a->made() + $b->made();
     },
-    'Sum(sub)' => function ($s, $a, $op, $b) {
+    'Sum(sub)' => function ($s, $a, $b) {
         return $a->made() - $b->made();
     },
 ];

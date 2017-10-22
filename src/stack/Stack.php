@@ -54,12 +54,14 @@ class Stack extends BaseObject
     /**
      * @param TreeNodeInterface $node
      * @param integer $stateIndex
+     * @param bool $isHidden [since 1.3.2]
      */
-    public function shift($node, $stateIndex)
+    public function shift($node, $stateIndex, $isHidden = false)
     {
         $item = new StackItem();
         $item->state = $stateIndex;
         $item->node = $node;
+        $item->isHidden = $isHidden;
 
         if ($this->actions) {
             $node->make($this->actions->runForNode($node));
@@ -88,7 +90,9 @@ class Stack extends BaseObject
             if ($item->node->getNodeName() !== $symbol->getName()) {
                 throw new InternalException('Unexpected stack content');
             }
-            $nodes[] = $item->node;
+            if (!($symbol->isHidden() || $item->isHidden)) {
+                $nodes[] = $item->node;
+            }
         }
 
         $base_state_index = ($total_count > $reduce_count)

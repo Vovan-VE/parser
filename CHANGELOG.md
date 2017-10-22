@@ -1,6 +1,11 @@
 LR(0) parser Change Log
 =======================
 
+1.3.2
+-----
+
+*   Add ability to omit some useless tokens from the resulting tree.
+
 1.3.0
 -----
 

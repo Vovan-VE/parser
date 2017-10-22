@@ -10,4 +10,9 @@ class StackItem extends BaseObject
     public $state;
     /** @var TreeNodeInterface */
     public $node;
+    /**
+     * @var boolean
+     * @since 1.3.2
+     */
+    public $isHidden = false;
 }
