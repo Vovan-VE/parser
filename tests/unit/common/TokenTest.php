@@ -40,4 +40,11 @@ class TokenTest extends BaseTestCase
         $token->make($o);
         $this->assertSame($o, $token->made());
     }
+
+    public function testNoChild()
+    {
+        $token = new Token('foo', 'bar');
+        $this->setExpectedException(\OutOfBoundsException::class);
+        $token->getChild(0);
+    }
 }

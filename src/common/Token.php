@@ -88,6 +88,15 @@ class Token extends BaseObject implements TreeNodeInterface
 
     /**
      * @inheritdoc
+     * @since 1.3.0
+     */
+    public function getChild($index)
+    {
+        throw new \OutOfBoundsException('No children');
+    }
+
+    /**
+     * @inheritdoc
      * @since 1.1.0
      */
     public function getChildren()

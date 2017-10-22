@@ -15,8 +15,7 @@ class ActionsMapTest extends BaseTestCase
             'foo' => function (Token $foo) {
                 return $foo->getContent();
             },
-            'Bar' => function (TreeNodeInterface $bar) {
-                list ($foo) = $bar->getChildren();
+            'Bar' => function (TreeNodeInterface $bar, TreeNodeInterface $foo) {
                 return '[' . $foo->made() . ']';
             },
         ]);

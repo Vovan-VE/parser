@@ -2,6 +2,7 @@
 namespace VovanVE\parser\tests\unit\tree;
 
 use VovanVE\parser\common\Token;
+use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 use VovanVE\parser\tree\NonTerminal;
 
@@ -119,6 +120,7 @@ DUMP
      * @param NonTerminal $v
      * @depends testPVInt
      * @depends testVTagInt
+     * @return NonTerminal
      */
     public function testEVMulInt($p, $v)
     {
@@ -153,5 +155,21 @@ DUMP
         $this->assertFalse($node->areChildrenMatch(['P', 'mul', 'foo']));
         $this->assertFalse($node->areChildrenMatch(['P', 'mul', 'V', 'foo']));
         $this->assertFalse($node->areChildrenMatch(['V', 'P', 'mul']));
+
+        return $node;
+    }
+
+    /**
+     * @param NonTerminal $node
+     * @depends testEVMulInt
+     */
+    public function testGetChild($node)
+    {
+        $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(0));
+        $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(1));
+        $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(2));
+
+        $this->setExpectedException(\OutOfBoundsException::class);
+        $node->getChild(3);
     }
 }

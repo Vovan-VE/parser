@@ -171,32 +171,25 @@ _END
             'int' => function (Token $int) {
                 return (int)$int->getContent();
             },
-            'V(int)' => function (TreeNodeInterface $v) {
-                list ($int) = $v->getChildren();
+            'V(int)' => function ($v, TreeNodeInterface $int) {
                 return $int->made();
             },
-            'P(V)' => function (TreeNodeInterface $p) {
-                list ($v) = $p->getChildren();
+            'P(V)' => function ($p, TreeNodeInterface $v) {
                 return $v->made();
             },
-            'P(mul)' => function (TreeNodeInterface $p) {
-                list ($a, , $b) = $p->getChildren();
+            'P(mul)' => function ($p, TreeNodeInterface $a, $mul, TreeNodeInterface $b) {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function (TreeNodeInterface $p) {
-                list ($a, , $b) = $p->getChildren();
+            'P(div)' => function ($p, TreeNodeInterface $a, $div, TreeNodeInterface $b) {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function (TreeNodeInterface $s) {
-                list ($p) = $s->getChildren();
+            'S(P)' => function ($s, TreeNodeInterface $p) {
                 return $p->made();
             },
-            'S(add)' => function (TreeNodeInterface $s) {
-                list ($a, , $b) = $s->getChildren();
+            'S(add)' => function ($s, TreeNodeInterface $a, $add, TreeNodeInterface $b) {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function (TreeNodeInterface $s) {
-                list ($a, , $b) = $s->getChildren();
+            'S(sub)' => function ($s, TreeNodeInterface $a, $sub, TreeNodeInterface $b) {
                 return $a->made() - $b->made();
             },
         ];

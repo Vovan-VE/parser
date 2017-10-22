@@ -24,6 +24,14 @@ interface TreeNodeInterface
     public function getChildrenCount();
 
     /**
+     * @param int $index Zero based
+     * @return TreeNodeInterface
+     * @throws \OutOfRangeException No child node with such index
+     * @since 1.3.0
+     */
+    public function getChild($index);
+
+    /**
      * @return TreeNodeInterface[]
      * @since 1.1.0
      */

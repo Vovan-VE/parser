@@ -41,6 +41,10 @@ class ActionsMap extends BaseObject
         if (!isset($this->actions[$name])) {
             return null;
         }
-        return call_user_func($this->actions[$name], $node);
+        // REFACT: minimal PHP >= 5.6:
+        // return $this->actions[$name]($node, ...$node->getChildren());
+        $args = $node->getChildren();
+        array_unshift($args, $node);
+        return call_user_func_array($this->actions[$name], $args);
     }
 }

@@ -5,7 +5,11 @@ LR(0) parser Change Log
 -----
 
 *   BC break:
-    *   Interface `VovanVE\parser\common\TreeNodeInterface` introduce new method `getNodeTag()`.
+    *   New methods in `VovanVE\parser\common\TreeNodeInterface` interface:
+        *   `getNodeTag()`
+        *   `getChild()`
+        *   `made()`
+        *   `make()`
     *   Class `VovanVE\parser\tree\NonTerminal` now has constructor and it requires two arguments
         `($name, $children)`. Also there are other optional arguments.
 *   Deprecated:
@@ -14,7 +18,7 @@ LR(0) parser Change Log
         to private. So use getters.
 *   New:
     *   Add actions to evaluate result on tree nodes while parsing.
-    *   Add ability to mark rules with tags like `Sum(add): Sum add Product` to map actions by rules
+    *   Add ability to mark rules with tags like `Sum(add): Sum add Product` to map actions by rule
         subject.
 
 1.2.0
