@@ -8,7 +8,7 @@ class Grammar extends BaseObject
 {
     const RE_INPUT_RULE = '/
         (?(DEFINE)
-            (?<name> [a-z_0-9]++ )
+            (?<name> [a-z][a-z_0-9]*+ )
         )
         ^
         (?<subj> (?&name) )
@@ -23,15 +23,31 @@ class Grammar extends BaseObject
         )?
         :
         \\s*+
-        (?<def>
-            (?: \\.? (?&name) \\s*+ )++
-        )
+        (?<def> (?: [^$] | \\$ (?! \\s*+ $ ) )++ )
         (?<eof> \\$ )?
         $
     /xi';
 
+    const RE_RULE_DEF_ITEM = '/
+        \\G
+        \\s*+
+        (?:
+            (?:
+                (?<word> \\.? [a-z][a-z_0-9]*+  )
+            |   (?<q>    " [^"]+ "
+                |       \' [^\']+ \'
+                |        < [^<>]+ >  )
+            )
+            \\s*+
+        |
+            (?<end> $ )
+        )
+    /xi';
+
     /** @var Rule[] */
     private $rules;
+    /** @var string[] */
+    private $inlines = [];
     /** @var Rule */
     private $mainRule;
     /** @var Symbol[] */
@@ -55,14 +71,16 @@ class Grammar extends BaseObject
         );
         $rules_strings = preg_replace('/^\\s+|\\s+$/u', '', $rules_strings);
 
+        $inlines = [];
         $rules = [];
 
         $symbols = [];
-        $get_symbol = function ($name) use (&$symbols) {
-            $is_hidden = '.' === mb_substr($name, 0, 1, '8bit');
-            $plain_name = $is_hidden
+        $get_symbol = function ($name, $isHidden = false) use (&$symbols) {
+            $is_hidden_name = '.' === mb_substr($name, 0, 1, '8bit');
+            $plain_name = $is_hidden_name
                 ? mb_substr($name, 1, null, '8bit')
                 : $name;
+            $is_hidden = $isHidden || $is_hidden_name;
             return (isset($symbols[$plain_name][$is_hidden]))
                 ? $symbols[$plain_name][$is_hidden]
                 : ($symbols[$plain_name][$is_hidden] = new Symbol($plain_name, true, $is_hidden));
@@ -83,13 +101,11 @@ class Grammar extends BaseObject
             $subject = $get_symbol($match['subj']);
             $subject->setIsTerminal(false);
 
-            $definition_strings = preg_split(
-                '/\\s++/u',
-                $match['def'],
-                0,
-                PREG_SPLIT_NO_EMPTY
-            );
-            $definition = array_map($get_symbol, $definition_strings);
+            $definition_list = self::parseDefinitionItems($match['def'], $inlines);
+            $definition = [];
+            foreach ($definition_list as $definition_item) {
+                $definition[] = $get_symbol($definition_item, isset($inlines[$definition_item]));
+            }
 
             $eof = !empty($match['eof']);
 
@@ -101,15 +117,17 @@ class Grammar extends BaseObject
             );
         }
 
-        return new static($rules);
+        return new static($rules, $inlines);
     }
 
     /**
      * @param Rule[] $rules
+     * @param string[] $inlines [since 1.3.2]
      */
-    public function __construct(array $rules)
+    public function __construct(array $rules, array $inlines = [])
     {
         $this->rules = $rules;
+        $this->inlines = $inlines;
         $symbols = [];
         $terminals = [];
         $non_terminals = [];
@@ -151,6 +169,15 @@ class Grammar extends BaseObject
         $this->symbols = $symbols;
         $this->terminals = $terminals;
         $this->nonTerminals = $non_terminals;
+    }
+
+    /**
+     * @return string[]
+     * @since 1.3.2
+     */
+    public function getInlines()
+    {
+        return $this->inlines;
     }
 
     /**
@@ -218,4 +245,42 @@ class Grammar extends BaseObject
     {
         return join(PHP_EOL, $this->rules);
     }
+
+    /**
+     * @param string $input
+     * @param array $inlines
+     * @return string[]
+     * @since 1.3.2
+     */
+    private static function parseDefinitionItems($input, array &$inlines)
+    {
+        if (!preg_match_all(self::RE_RULE_DEF_ITEM, $input, $matches, PREG_SET_ORDER)) {
+            throw new \InvalidArgumentException(
+                "Invalid rule definition: '$input'"
+            );
+        }
+
+        $last_match = array_pop($matches);
+        if (!isset($last_match['end'])) {
+            throw new \InvalidArgumentException(
+                "Invalid rule definition: '$input'"
+            );
+        }
+
+        $items = [];
+        foreach ($matches as $match) {
+            if (isset($match['q'])) {
+                $inline = mb_substr($match['q'], 1, -1, '8bit');
+                $items[] = $inline;
+                $inlines[$inline] = $inline;
+            } elseif (isset($match['word'])) {
+                $items[] = $match['word'];
+            } else {
+                throw new \LogicException('Unexpected item match');
+            }
+        }
+
+        return $items;
+    }
+
 }

@@ -19,6 +19,9 @@ class LexerTest extends BaseTestCase
                 'dec' => '--',
                 'add' => '[-+]',
                 '.mul' => '\\*',
+
+                '$',
+                '\\',
             ],
             ['\\s++'],
             [],
@@ -26,7 +29,7 @@ class LexerTest extends BaseTestCase
         );
 
         $test_inputs = [
-            'foo  + --bar - 42 + i++-37 x * y23' => [
+            'foo  + --bar - 42 + i++-37 x$\\ * y23' => [
                 ['var', 'foo'],
                 ['add', '+'],
                 ['dec', '--'],
@@ -39,6 +42,8 @@ class LexerTest extends BaseTestCase
                 ['add', '-'],
                 ['int', '37'],
                 ['var', 'x'],
+                ['$', '$', true],
+                ['\\', '\\', true],
                 ['mul', '*', true],
                 ['var', 'y23'],
             ],
@@ -110,6 +115,43 @@ class LexerTest extends BaseTestCase
                     ['var', 'b'],
                 ],
             ],
+            [
+                new Lexer(
+                    [
+                        'var' => '[a-z]',
+                        '++',
+                        '+',
+                    ],
+                    ['\\s++'],
+                    [],
+                    'i'
+                ),
+                [
+                    ['var', 'a'],
+                    ['++', '++', true],
+                    ['+', '+', true],
+                    ['var', 'b'],
+                ],
+            ],
+            [
+                new Lexer(
+                    [
+                        'var' => '[a-z]',
+                        '+',
+                        '++',
+                    ],
+                    ['\\s++'],
+                    [],
+                    'i'
+                ),
+                [
+                    ['var', 'a'],
+                    ['+', '+', true],
+                    ['+', '+', true],
+                    ['+', '+', true],
+                    ['var', 'b'],
+                ],
+            ],
         ];
 
         foreach ($sub_tests as $test_number => $sub_test) {
@@ -117,9 +159,10 @@ class LexerTest extends BaseTestCase
             list ($lexer, $expect_tokens) = $sub_test;
             $parsed_tokens_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
-                list ($expect_type, $expect_content) = $expect_tokens[$i];
+                list ($expect_type, $expect_content, $expect_hidden) = $expect_tokens[$i] + [2 => false];
                 $this->assertEquals($expect_type, $token->getType(), "token[$i]->type");
                 $this->assertEquals($expect_content, $token->getContent(), "token[$i]->type");
+                $this->assertEquals($expect_hidden, $token->isHidden(), "token[$i]->isHidden");
                 ++$parsed_tokens_count;
             }
             $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count");
@@ -229,8 +272,7 @@ class LexerTest extends BaseTestCase
 
     public function testFailOverlappedNames()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
-        new Lexer(
+        $lexer = new Lexer(
             [
                 'foo' => '(?&lol)',
                 'bar' => '(?&bar)',
@@ -241,21 +283,23 @@ class LexerTest extends BaseTestCase
                 'bar' => '\\d++',
             ]
         );
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
     }
 
     public function testFailBadNamesTerminals()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
-        new Lexer([
+        $lexer = new Lexer([
             'int' => '\\d++',
             'bad-name' => '\\s++',
         ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
     }
 
     public function testFailBadNamesDefined()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
-        new Lexer(
+        $lexer = new Lexer(
             [
                 'number' => '(?&int)',
             ],
@@ -265,6 +309,8 @@ class LexerTest extends BaseTestCase
                 'bad-name' => '\\s++',
             ]
         );
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
     }
 
     public function testFailEmptyMatch()
@@ -275,6 +321,52 @@ class LexerTest extends BaseTestCase
         $this->setExpectedException(DevException::class);
         foreach ($lexer->parse('.') as $token) {
             $this->assertNotEquals('', $token->getContent());
+        }
+    }
+
+    public function testExtend()
+    {
+        $base = new Lexer(['a' => 'a++']);
+        $ext1 = $base->extend(['b' => 'b++']);
+        $ext2 = $base->extend(['c' => 'c++']);
+        $this->assertNotSame($base, $ext1, 'extended lexer is new one');
+        $this->assertNotSame($base, $ext2, 'extended lexer is new one');
+        $this->assertNotSame($ext1, $ext2, 'both extended lexers are new');
+
+        $this->assertFalse($ext1->isCompiled(), 'ext1 is not compiled yet');
+        $ext1->compile();
+
+        $this->assertFalse($base->isCompiled(), 'base is not compiled yet');
+        $base->compile();
+
+        $this->assertFalse($ext2->isCompiled(), 'ext is not compiled yet');
+    }
+
+    public function testExtendDuplicate()
+    {
+        $base = new Lexer(['a' => 'a++'], [], ['x' => 'x++']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $base->extend(['a' => 'A'], [], ['x' => 'X']);
+    }
+
+    public function testAliasGeneration()
+    {
+        foreach (
+            [
+                'a' => 'b',
+                'y' => 'z',
+                'z' => 'aa',
+                'aa' => 'ab',
+                'az' => 'ba',
+                'ba' => 'bb',
+                'zz' => 'aaa',
+                'aaa' => 'aab',
+            ]
+            as $a => $b
+        ) {
+            $next = $a;
+            $next++;
+            $this->assertSame($b, $next, "'$a'++ => '$b'");
         }
     }
 }

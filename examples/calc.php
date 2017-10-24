@@ -10,12 +10,15 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 $grammar = Grammar::create(<<<'_END'
     Goal        : Sum $
-    Sum(add)    : Sum add Product
-    Sum(sub)    : Sum sub Product
+    Sum(add)    : Sum "+" Product
+    Sum(sub)    : Sum "-" Product
     Sum(P)      : Product
-    Product(mul): Product mul Value
-    Product(div): Product div Value
+    Product(mul): Product "*" Value
+    Product(div): Product "/" Value
     Product(V)  : Value
+    Value(neg)  : "-" Value
+    Value       : "+" Value
+    Value       : "(" Sum ")"
     Value       : int
 _END
 );
@@ -23,21 +26,20 @@ _END
 $lexer = (new LexerBuilder)
     ->terminals([
         'int' => '\\d+',
-        '.add' => '\\+',
-        '.sub' => '-',
-        '.mul' => '\\*',
-        '.div' => '\\/',
     ])
     ->whitespaces(['\\s+'])
-    ->modifiers('i')
+    //->modifiers('i')
     ->create();
 
 $actions = [
     'int' => function (Token $t) {
         return (int) $t->getContent();
     },
-    'Value' => function ($v, TreeNodeInterface $int) {
-        return $int->made();
+    'Value' => function ($v, TreeNodeInterface $n) {
+        return $n->made();
+    },
+    'Value(neg)' => function ($v, TreeNodeInterface $n) {
+        return -$n->made();
     },
     'Product(V)' => function ($p, TreeNodeInterface $v) {
         return $v->made();
@@ -61,7 +63,7 @@ $actions = [
 
 $parser = new Parser($lexer, $grammar);
 
-$tree = $parser->parse('23 * 2 - 4', $actions);
+$tree = $parser->parse('2 * (-10 + 33) - 4', $actions);
 
 echo 'Result is ', $tree->made(), PHP_EOL;
 echo 'Tree:', PHP_EOL;

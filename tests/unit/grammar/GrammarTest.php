@@ -102,4 +102,35 @@ class GrammarTest extends BaseTestCase
         $this->assertEquals('comma', $comma_shown->getName(), 'is comma');
         $this->assertFalse($comma_shown->isHidden(), 'shown comma');
     }
+
+    public function testCreateWithInlines()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: E $
+            E: A
+            E: B
+            E: C
+            A: A "," a
+            A: a
+            B: B ',' b
+            B: b
+            C: C <"> c
+            C: c
+_END
+        );
+        $this->assertCount(5, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(2, $grammar->getInlines(), 'total inlines');
+
+        $rules = $grammar->getRules();
+
+        $quote = $rules[4]->getDefinition()[1];
+        $this->assertEquals(',', $quote->getName(), 'is comma from quotes');
+        $this->assertTrue($quote->isHidden(), 'inlines are hidden tokens');
+
+        $comma_q = $rules[6]->getDefinition()[1];
+        $this->assertSame($comma_q, $quote, 'quoting style does not matter');
+
+        $quote = $rules[8]->getDefinition()[1];
+        $this->assertEquals('"', $quote->getName(), 'is quote from angle brackets');
+    }
 }

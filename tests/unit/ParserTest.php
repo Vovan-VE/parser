@@ -253,4 +253,59 @@ _END
         $result = $parser->parse('42 * 23 / 3  + 90 / 15 - 17 * 19 ', $actions)->made();
         $this->assertEquals(5, $result, 'calculated result');
     }
+
+    public function testParseWithInlinesAndActions()
+    {
+        // some tokens are hidden completely on its definition
+        $lexer = (new LexerBuilder)
+            ->terminals([
+                'int' => '\\d++',
+            ])
+            ->create();
+
+        // some tokens are hidden locally in specific rules
+        $grammar = Grammar::create(<<<'_END'
+E      : S $
+S(add) : S '+' P
+S(sub) : S "-" P
+S(P)   : P
+P(mul) : P <*> V
+P(div) : P '/' V
+P(V)   : V
+V(int) : int
+_END
+        );
+
+        $parser = new Parser($lexer, $grammar);
+
+        $actions = [
+            'int' => function (Token $int) {
+                return (int)$int->getContent();
+            },
+            'V(int)' => function ($v, TreeNodeInterface $int) {
+                return $int->made();
+            },
+            'P(V)' => function ($p, TreeNodeInterface $v) {
+                return $v->made();
+            },
+            'P(mul)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() * $b->made();
+            },
+            'P(div)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() / $b->made();
+            },
+            'S(P)' => function ($s, TreeNodeInterface $p) {
+                return $p->made();
+            },
+            'S(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() + $b->made();
+            },
+            'S(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() - $b->made();
+            },
+        ];
+
+        $result = $parser->parse('42 * 23 / 3  + 90 / 15 - 17 * 19 ', $actions)->made();
+        $this->assertEquals(5, $result, 'calculated result');
+    }
 }

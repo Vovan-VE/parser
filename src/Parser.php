@@ -31,7 +31,6 @@ class Parser extends BaseObject
                 'Argument $lexer must be ' . Lexer::class
             );
         }
-        $this->lexer = $lexer;
 
         if (is_string($grammar)) {
             $grammar = Grammar::create($grammar);
@@ -40,6 +39,18 @@ class Parser extends BaseObject
                 'Argument $grammar must be string or ' . Grammar::class
             );
         }
+
+        $my_lexer = $lexer;
+
+        $inlines = $grammar->getInlines();
+        if ($inlines) {
+            // sort in reverse order to let more long items match first
+            // so /'$$' | '$'/ will find ['$$', '$'] in '$$$' and not ['$', '$', '$']
+            rsort($inlines, SORT_STRING);
+
+            $my_lexer = $my_lexer->extend($inlines);
+        }
+        $this->lexer = $my_lexer;
 
         $this->table = new Table($grammar);
     }

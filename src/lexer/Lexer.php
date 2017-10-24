@@ -9,6 +9,19 @@ use VovanVE\parser\common\Token;
 class Lexer extends BaseObject
 {
     const DUMP_NEAR_LENGTH = 30;
+    const RE_NAME = '/^\\.?[_a-z][_a-z0-9]*$/i';
+
+    /** @var array */
+    private $defines;
+    /** @var array */
+    private $terminals;
+    /** @var array */
+    private $whitespaces;
+    /** @var string */
+    private $modifiers = '';
+
+    /** @var bool */
+    private $isCompiled = false;
 
     /** @var string */
     private $regexpWhitespace;
@@ -16,6 +29,8 @@ class Lexer extends BaseObject
     private $regexp;
     /** @var array */
     private $hiddens = [];
+    /** @var array Key is generated name, value is source string for Symbol name */
+    private $aliased = [];
 
     /**
      * @param array $terminals
@@ -33,18 +48,79 @@ class Lexer extends BaseObject
             throw new \InvalidArgumentException('Empty terminals map');
         }
 
-        $terminals_map = $this->parseHiddenTerminals($terminals);
+        $this->defines = $defines;
+        $this->terminals = $terminals;
+        $this->whitespaces = $whitespaces;
+        $this->modifiers = $modifiers;
+    }
+
+    /**
+     * @param array $terminals
+     * @param array $whitespaces
+     * @param array $defines
+     * @param string $modifiers
+     * @return static
+     * @since 1.3.2
+     */
+    public function extend(
+        array $terminals = [],
+        array $whitespaces = [],
+        array $defines = [],
+        $modifiers = ''
+    ) {
+        $new_terminals = $this->terminals;
+        foreach ($terminals as $name => $re) {
+            if (is_int($name)) {
+                $new_terminals[] = $re;
+            } elseif (isset($new_terminals[$name])) {
+                throw new \InvalidArgumentException(
+                    'Cannot redefine terminal: ' . var_export($name, true)
+                );
+            } else {
+                $new_terminals[$name] = $re;
+            }
+        }
+
+        $dup_keys = array_intersect_key($this->defines, $defines);
+        if ($dup_keys) {
+            throw new \InvalidArgumentException(
+                "Cannot redefine defines: " . var_export($dup_keys, true)
+            );
+        }
+
+        return new static(
+            $new_terminals,
+            array_merge($this->whitespaces, $whitespaces),
+            $this->defines + $defines,
+            $this->modifiers . $modifiers
+        );
+    }
+
+    /**
+     * @return $this
+     * @since 1.3.2
+     */
+    public function compile()
+    {
+        if ($this->isCompiled) {
+            return $this;
+        }
+
+        $this->checkMapNames($this->terminals, true);
+        $this->checkMapNames($this->defines);
+
+        $terminals_map = $this->parseHiddenTerminals($this->terminals);
 
         $regexp = [];
 
-        if ($defines) {
-            if (array_intersect_key($defines, $terminals_map)) {
+        if ($this->defines) {
+            if (array_intersect_key($this->defines, $terminals_map)) {
                 throw new \InvalidArgumentException(
                     'Declarations and defines has duplicated names'
                 );
             }
 
-            $re_defines = $this->buildMap($defines, '');
+            $re_defines = $this->buildMap($this->defines, '');
             $re_defines = "(?(DEFINE)$re_defines)";
             $regexp[] = $re_defines;
         } else {
@@ -57,17 +133,29 @@ class Lexer extends BaseObject
 
         $regexp = join('', $regexp);
 
-        $this->regexp = "/$regexp/$modifiers";
+        $this->regexp = "/$regexp/" . $this->modifiers;
         if (false === preg_match($this->regexp, null)) {
             throw new \InvalidArgumentException('PCRE error');
         }
 
-        if ($whitespaces) {
-            $re_whitespaces = join('|', $whitespaces);
-            $this->regexpWhitespace = "/$re_defines\\G(?:$re_whitespaces)+/$modifiers";
+        if ($this->whitespaces) {
+            $re_whitespaces = join('|', $this->whitespaces);
+            $this->regexpWhitespace = "/$re_defines\\G(?:$re_whitespaces)+/" . $this->modifiers;
         } else {
             $this->regexpWhitespace = null;
         }
+
+        $this->isCompiled = true;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     * @since 1.3.2
+     */
+    public function isCompiled()
+    {
+        return $this->isCompiled;
     }
 
     /**
@@ -76,6 +164,8 @@ class Lexer extends BaseObject
      */
     public function parse($input)
     {
+        $this->compile();
+
         $length = strlen($input);
         $pos = 0;
         while ($pos < $length) {
@@ -108,13 +198,24 @@ class Lexer extends BaseObject
      * @param array $terminals
      * @return array
      * @uses $hiddens
+     * @uses $aliased
      * @since 1.3.2
      */
     private function parseHiddenTerminals(array $terminals) {
         $map = [];
         $hidden = [];
+        $aliased = [];
+        $alias_name = 'a';
         foreach ($terminals as $name => $re) {
-            if (is_string($name) && '.' === mb_substr($name, 0, 1, '8bit')) {
+            if (is_int($name)) {
+                $name = '_' . $alias_name;
+                $hidden[$re] = $name;
+                $aliased[$name] = $re;
+                $re = preg_quote($re, '/');
+
+                // string increment
+                $alias_name++;
+            } elseif ('.' === mb_substr($name, 0, 1, '8bit')) {
                 $true_name = mb_substr($name, 1, null, '8bit');
                 if (isset($map[$true_name])) {
                     throw new \InvalidArgumentException(
@@ -131,6 +232,7 @@ class Lexer extends BaseObject
             $map[$name] = $re;
         }
         $this->hiddens = $hidden;
+        $this->aliased = $aliased;
         return $map;
     }
 
@@ -141,18 +243,6 @@ class Lexer extends BaseObject
      */
     private function buildMap(array $map, $join = false)
     {
-        $names = array_keys($map);
-        $bad_names = preg_grep(
-            '/^[a-z][_a-z0-9]*$/i',
-            $names,
-            PREG_GREP_INVERT
-        );
-        if ($bad_names) {
-            throw new \InvalidArgumentException(
-                'Bad names: ' . join(', ', $bad_names)
-            );
-        }
-
         $alt = [];
         foreach ($map as $type => $re) {
             $alt[] = "(?<$type>$re)";
@@ -205,6 +295,9 @@ class Lexer extends BaseObject
 
         $content = reset($named);
         $type = key($named);
+        if (isset($this->aliased[$type])) {
+            $type = $this->aliased[$type];
+        }
         $token = new Token($type, $content, $match, $pos, isset($this->hiddens[$type]));
 
         $result = new Match();
@@ -244,5 +337,24 @@ class Lexer extends BaseObject
         }
 
         return 0;
+    }
+
+    /**
+     * @param array $map
+     * @param bool $allowInlines
+     * @since 1.3.2
+     */
+    private function checkMapNames(array $map, $allowInlines = false)
+    {
+        $names = array_keys($map);
+        if ($allowInlines) {
+            $names = array_filter($names, 'is_string');
+        }
+        $bad_names = preg_grep(self::RE_NAME, $names, PREG_GREP_INVERT);
+        if ($bad_names) {
+            throw new \InvalidArgumentException(
+                'Bad names: ' . join(', ', $bad_names)
+            );
+        }
     }
 }

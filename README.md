@@ -19,34 +19,36 @@ use VovanVE\parser\Parser;
 
 $grammar = Grammar::create(<<<'_END'
     Goal        : Sum $
-    Sum(add)    : Sum add Product
-    Sum(sub)    : Sum sub Product
+    Sum(add)    : Sum "+" Product
+    Sum(sub)    : Sum "-" Product
     Sum(P)      : Product
-    Product(mul): Product mul Value
-    Product(div): Product div Value
+    Product(mul): Product "*" Value
+    Product(div): Product "/" Value
     Product(V)  : Value
+    Value(neg)  : "-" Value
+    Value       : "+" Value
+    Value       : "(" Sum ")"
     Value       : int
 _END
 );
 
 $lexer = (new LexerBuilder)
     ->terminals([
-        'int'  => '\\d+',
-        '.add' => '\\+',
-        '.sub' => '-',
-        '.mul' => '\\*',
-        '.div' => '\\/',
+        'int' => '\\d+',
     ])
     ->whitespaces(['\\s+'])
     //->modifiers('i')
     ->create();
 
 $actions = [
-    'int' => function ($t) {
+    'int' => function (Token $t) {
         return (int) $t->getContent();
     },
-    'Value' => function ($v, $int) {
-        return $int->made();
+    'Value' => function ($v, $n) {
+        return $n->made();
+    },
+    'Value(neg)' => function ($v, $n) {
+        return -$n->made();
     },
     'Product(V)' => function ($p, $v) {
         return $v->made();
@@ -70,7 +72,7 @@ $actions = [
 
 $parser = new Parser($lexer, $grammar);
 
-$tree = $parser->parse('23 * 2 - 4', $actions);
+$tree = $parser->parse('2 * (-10 + 33) - 4', $actions);
 
 echo 'Result is ', $tree->made(), PHP_EOL;
 echo 'Tree:', PHP_EOL;
@@ -86,11 +88,17 @@ Output:
          |   `- Product(mul)
          |       `- Product(V)
          |       |   `- Value
-         |       |       `- int <23>
-         |       `- mul <*>
+         |       |       `- int <2>
          |       `- Value
-         |           `- int <2>
-         `- sub <->
+         |           `- Sum(add)
+         |               `- Sum(P)
+         |               |   `- Product(V)
+         |               |       `- Value(neg)
+         |               |           `- Value
+         |               |               `- int <10>
+         |               `- Product(V)
+         |                   `- Value
+         |                       `- int <33>
          `- Product(V)
              `- Value
                  `- int <4>
