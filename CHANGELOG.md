@@ -6,6 +6,7 @@ LR(0) parser Change Log
 
 *   Add inline quoted tokens in grammar source.
 *   Add ability to omit some useless tokens from the resulting tree.
+*   Add action shortcut to bubble up the only child's `made()` value.
 
 1.3.0
 -----

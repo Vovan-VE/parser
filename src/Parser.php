@@ -15,6 +15,8 @@ use VovanVE\parser\table\Table;
 
 class Parser extends BaseObject
 {
+    const ACTION_BUBBLE_THE_ONLY = ActionsMap::DO_BUBBLE_THE_ONLY;
+
     /** @var Lexer */
     protected $lexer;
     /** @var Table */

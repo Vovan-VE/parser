@@ -18,13 +18,17 @@ class ActionsMapTest extends BaseTestCase
             'Bar' => function (TreeNodeInterface $bar, TreeNodeInterface $foo) {
                 return '[' . $foo->made() . ']';
             },
+            'Baz' => ActionsMap::DO_BUBBLE_THE_ONLY,
         ]);
 
-        $token = new Token('foo', 'lorem ipsum');
-        $token->make($map->runForNode($token));
-        $node = new NonTerminal('Bar', [$token]);
+        $foo = new Token('foo', 'lorem ipsum');
+        $foo->make($map->runForNode($foo));
+        $bar = new NonTerminal('Bar', [$foo]);
 
-        $this->assertEquals('[lorem ipsum]', $map->runForNode($node));
+        $this->assertEquals('[lorem ipsum]', $map->runForNode($bar));
         $this->assertNull($map->runForNode(new Token('x', '42')));
+
+        $baz = new NonTerminal('Baz', [$foo]);
+        $this->assertEquals('lorem ipsum', $map->runForNode($baz));
     }
 }

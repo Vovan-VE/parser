@@ -41,27 +41,24 @@ $lexer = (new LexerBuilder)
     ->create();
 
 $actions = [
-    'int' => function (Token $t) {
+    'int' => function ($t) {
         return (int) $t->getContent();
     },
-    'Value' => function ($v, $n) {
-        return $n->made();
-    },
+
+    'Value' => Parser::ACTION_BUBBLE_THE_ONLY,
     'Value(neg)' => function ($v, $n) {
         return -$n->made();
     },
-    'Product(V)' => function ($p, $v) {
-        return $v->made();
-    },
+
+    'Product(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
     'Product(mul)' => function ($p, $a, $b) {
         return $a->made() * $b->made();
     },
     'Product(div)' => function ($p, $a, $b) {
         return $a->made() / $b->made();
     },
-    'Sum(P)' => function ($s, $p) {
-        return $p->made();
-    },
+
+    'Sum(P)' => Parser::ACTION_BUBBLE_THE_ONLY,
     'Sum(add)' => function ($s, $a, $b) {
         return $a->made() + $b->made();
     },
@@ -109,8 +106,8 @@ Description
 This package contains:
 
 *   Lexer to parse input string for tokens. Lexer is configurable by regexps.
-*   Parsing table generator to work with any LR(0) grammar. Input grammar does
-    initialize from plain text.
+*   Parsing table generator to work with any LR(0) grammar. Input grammar can
+    be initialized from plain text.
 *   LR(0) parser itself. It parse input string for AST using the table.
 
 This package was made just to apply the theory in practice. It may be easily be
