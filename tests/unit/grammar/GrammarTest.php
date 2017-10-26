@@ -103,6 +103,19 @@ class GrammarTest extends BaseTestCase
         $this->assertFalse($comma_shown->isHidden(), 'shown comma');
     }
 
+    public function testCreateHiddenOverlap()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: E $
+            E: a .a
+            E: a .b
+            E: .a c
+            E: .a .c
+_END
+        );
+        $this->assertCount(3, $grammar->getTerminals());
+    }
+
     public function testCreateWithInlines()
     {
         $grammar = Grammar::create(<<<'_END'
@@ -132,5 +145,79 @@ _END
 
         $quote = $rules[8]->getDefinition()[1];
         $this->assertEquals('"', $quote->getName(), 'is quote from angle brackets');
+    }
+
+    public function testCreateInlineWithConflictSingle()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        Grammar::create(<<<'_END'
+            G: E $
+            E: a 'a'
+_END
+        );
+    }
+
+    public function testCreateInlineWithConflictSubject()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        Grammar::create(<<<'_END'
+            G: E $
+            E: "E"
+_END
+        );
+    }
+
+    public function testCreateInlineWithConflictCross1()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        Grammar::create(<<<'_END'
+            G: E $
+            E: 'a'
+            E: a
+_END
+        );
+    }
+
+    public function testCreateInlineWithConflictCross2()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        Grammar::create(<<<'_END'
+            G: E $
+            E: a
+            E: 'a'
+_END
+        );
+    }
+
+    public function testCreateInlineWithConflictSingleHidden()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        Grammar::create(<<<'_END'
+            G: E $
+            E: .a 'a'
+_END
+        );
+    }
+
+    public function testCreateInlineWithConflictCross1Hidden()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        Grammar::create(<<<'_END'
+            G: E $
+            E: 'a'
+            E: .a
+_END
+        );
+    }
+
+    public function testCreateInlineWithConflictCross2Hidden()
+    {
+        $this->setExpectedException(\InvalidArgumentException::class);
+        Grammar::create(<<<'_END'
+            G: E $
+            E: .a
+            E: 'a'
+_END
+        );
     }
 }

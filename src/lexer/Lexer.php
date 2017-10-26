@@ -9,7 +9,7 @@ use VovanVE\parser\common\Token;
 class Lexer extends BaseObject
 {
     const DUMP_NEAR_LENGTH = 30;
-    const RE_NAME = '/^\\.?[_a-z][_a-z0-9]*$/i';
+    const RE_NAME = '/^\\.?[a-z][_a-z0-9]*$/i';
 
     /** @var array */
     private $defines;
@@ -44,10 +44,6 @@ class Lexer extends BaseObject
         array $defines = [],
         $modifiers = 'u'
     ) {
-        if (!$terminals) {
-            throw new \InvalidArgumentException('Empty terminals map');
-        }
-
         $this->defines = $defines;
         $this->terminals = $terminals;
         $this->whitespaces = $whitespaces;
@@ -106,10 +102,29 @@ class Lexer extends BaseObject
             return $this;
         }
 
-        $this->checkMapNames($this->terminals, true);
         $this->checkMapNames($this->defines);
 
-        $terminals_map = $this->parseHiddenTerminals($this->terminals);
+        $inline = [];
+        $hidden = [];
+        $normal = [];
+        $map = [];
+        $this->splitTerminals($this->terminals, $inline, $hidden, $normal, $map);
+
+        $this->checkOverlappedNames($inline, $hidden, $normal);
+
+        $this->hiddens = $hidden;
+        $this->aliased = [];
+
+        $inline_re_map = $this->buildInlines($inline);
+        $same = array_intersect_key($map, $inline_re_map);
+        if ($same) {
+            throw new \LogicException("Duplicating inline and named tokens: " . join(', ', $same));
+        }
+
+        $terminals_map = $inline_re_map + $map;
+        if (!$terminals_map) {
+            throw new \InvalidArgumentException('No terminals defined');
+        }
 
         $regexp = [];
 
@@ -196,44 +211,82 @@ class Lexer extends BaseObject
 
     /**
      * @param array $terminals
-     * @return array
-     * @uses $hiddens
-     * @uses $aliased
+     * @param array $inline
+     * @param array $hidden
+     * @param array $normal
      * @since 1.3.2
      */
-    private function parseHiddenTerminals(array $terminals) {
-        $map = [];
-        $hidden = [];
-        $aliased = [];
-        $alias_name = 'a';
-        foreach ($terminals as $name => $re) {
-            if (is_int($name)) {
-                $name = '_' . $alias_name;
-                $hidden[$re] = $name;
-                $aliased[$name] = $re;
-                $re = preg_quote($re, '/');
-
-                // string increment
-                $alias_name++;
-            } elseif ('.' === mb_substr($name, 0, 1, '8bit')) {
-                $true_name = mb_substr($name, 1, null, '8bit');
-                if (isset($map[$true_name])) {
-                    throw new \InvalidArgumentException(
-                        "Hidden name '$name' conflicts with existing '$true_name'"
-                    );
+    private function splitTerminals(array $terminals, &$inline, &$hidden, &$normal, &$named)
+    {
+        foreach ($terminals as $key => $value) {
+            if (is_int($key)) {
+                $inline[$value] = $value;
+            } elseif (preg_match(self::RE_NAME, $key)) {
+                if ('.' === mb_substr($key, 0, 1, '8bit')) {
+                    $name = mb_substr($key, 1, null, '8bit');
+                    $hidden[$name] = true;
+                    $named[$name] = $value;
+                } else {
+                    $normal[$key] = true;
+                    $named[$key] = $value;
                 }
-                $name = $true_name;
-                $hidden[$name] = $name;
-            } elseif (isset($map[$name])) {
+            } else {
+                throw new \InvalidArgumentException("Bad token name <$key>");
+            }
+        }
+    }
+
+    /**
+     * @param array $inline `["plain" => mixed, ...]`
+     * @param array $hidden `["name" => mixed, ...]`
+     * @param array $normal `["name" => mixed, ...]`
+     * @since 1.3.2
+     */
+    private function checkOverlappedNames(array $inline, array $hidden, array $normal)
+    {
+        foreach (
+            [
+                'named normal and hidden' => [$normal, $hidden],
+                'named tokens and inline quoted' => [$normal, $inline],
+                'named hidden tokens and inline quoted' => [$hidden, $inline],
+            ]
+            as $message => $pair
+        ) {
+            list ($a, $b) = $pair;
+            $same = array_intersect_key($a, $b);
+            if ($same) {
                 throw new \InvalidArgumentException(
-                    "Name '$name' conflicts with existing hidden name '.$name'"
+                    "Duplicating $message tokens: " . join(', ', $same)
                 );
             }
-            $map[$name] = $re;
         }
-        $this->hiddens = $hidden;
-        $this->aliased = $aliased;
-        return $map;
+    }
+
+    /**
+     * @param array $inlines
+     * @return array
+     * @since 1.3.2
+     */
+    private function buildInlines(array $inlines)
+    {
+        // sort in reverse order to let more long items match first
+        // so /'$$' | '$'/ will find ['$$', '$'] in '$$$' and not ['$', '$', '$']
+        rsort($inlines, SORT_STRING);
+
+        $re_map = [];
+
+        $alias_name = 'a';
+        foreach ($inlines as $text) {
+            $name = '_' . $alias_name;
+            // string increment
+            $alias_name++;
+
+            $this->aliased[$name] = $text;
+            $this->hiddens[$text] = true;
+            $re_map[$name] = preg_quote($text, '/');
+        }
+
+        return $re_map;
     }
 
     /**
@@ -341,15 +394,11 @@ class Lexer extends BaseObject
 
     /**
      * @param array $map
-     * @param bool $allowInlines
      * @since 1.3.2
      */
-    private function checkMapNames(array $map, $allowInlines = false)
+    private function checkMapNames(array $map)
     {
         $names = array_keys($map);
-        if ($allowInlines) {
-            $names = array_filter($names, 'is_string');
-        }
         $bad_names = preg_grep(self::RE_NAME, $names, PREG_GREP_INVERT);
         if ($bad_names) {
             throw new \InvalidArgumentException(

@@ -4,6 +4,7 @@ namespace VovanVE\parser\tests\unit;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\LexerBuilder;
 use VovanVE\parser\Parser;
 use VovanVE\parser\SyntaxException;
@@ -307,5 +308,38 @@ _END
 
         $result = $parser->parse('42 * 23 / 3  + 90 / 15 - 17 * 19 ', $actions)->made();
         $this->assertEquals(5, $result, 'calculated result');
+    }
+
+    public function testInlinesOrderDoesNotMatter()
+    {
+        $lexer = new Lexer([]);
+        $actions = [
+            'A(a)' => function () {
+                return 1;
+            },
+            'A(aa)' => function () {
+                return 2;
+            },
+        ];
+
+        foreach (
+            [
+                Grammar::create('
+                    G    : A $
+                    A(aa): "aa"
+                    A(a) : "a" "a"
+                '),
+                Grammar::create('
+                    G    : A $
+                    A(a) : "a" "a"
+                    A(aa): "aa"
+                '),
+            ]
+            as $grammar
+        ) {
+            $parser = new Parser($lexer, $grammar);
+            $out = $parser->parse('aa', $actions)->made();
+            $this->assertEquals(2, $out);
+        }
     }
 }

@@ -75,12 +75,29 @@ class Grammar extends BaseObject
         $rules = [];
 
         $symbols = [];
-        $get_symbol = function ($name, $isHidden = false) use (&$symbols) {
-            $is_hidden_name = '.' === mb_substr($name, 0, 1, '8bit');
-            $plain_name = $is_hidden_name
-                ? mb_substr($name, 1, null, '8bit')
-                : $name;
-            $is_hidden = $isHidden || $is_hidden_name;
+        $get_symbol = function ($name, $isInline = false) use (&$symbols, &$inlines) {
+            if ($isInline) {
+                if (!isset($inlines[$name]) && isset($symbols[$name])) {
+                    throw new \InvalidArgumentException(
+                        "Inline '$name' conflicts with token <$name> defined previously"
+                    );
+                }
+                $inlines[$name] = $name;
+                $plain_name = $name;
+                $is_hidden = true;
+            } else {
+                $is_hidden = '.' === mb_substr($name, 0, 1, '8bit');
+                $plain_name = $is_hidden
+                    ? mb_substr($name, 1, null, '8bit')
+                    : $name;
+
+                if (isset($inlines[$plain_name])) {
+                    throw new \InvalidArgumentException(
+                        "Token <$plain_name> conflicts with inline '$plain_name' defined previously"
+                    );
+                }
+            }
+
             return (isset($symbols[$plain_name][$is_hidden]))
                 ? $symbols[$plain_name][$is_hidden]
                 : ($symbols[$plain_name][$is_hidden] = new Symbol($plain_name, true, $is_hidden));
@@ -91,23 +108,30 @@ class Grammar extends BaseObject
                 continue;
             }
 
-            if (!preg_match(self::RE_INPUT_RULE, $rule_string, $match)) {
-                throw new \InvalidArgumentException(
-                    "Invalid rule format: '$rule_string'"
-                );
+            try {
+                if (!preg_match(self::RE_INPUT_RULE, $rule_string, $match)) {
+                    throw new \InvalidArgumentException("Invalid rule format");
+                }
+
+                /** @var Symbol $subject */
+                $subject = $get_symbol($match['subj']);
+                $subject->setIsTerminal(false);
+
+                $rule_inlines = [];
+                $definition_list = self::parseDefinitionItems($match['def'], $rule_inlines);
+
+                $definition = [];
+                foreach ($definition_list as $definition_item) {
+                    $definition[] = $get_symbol(
+                        $definition_item,
+                        isset($rule_inlines[$definition_item])
+                    );
+                }
+
+                $eof = !empty($match['eof']);
+            } catch (\InvalidArgumentException $e) {
+                throw new \InvalidArgumentException($e->getMessage() . " - rule '$rule_string'");
             }
-
-            /** @var Symbol $subject */
-            $subject = $get_symbol($match['subj']);
-            $subject->setIsTerminal(false);
-
-            $definition_list = self::parseDefinitionItems($match['def'], $inlines);
-            $definition = [];
-            foreach ($definition_list as $definition_item) {
-                $definition[] = $get_symbol($definition_item, isset($inlines[$definition_item]));
-            }
-
-            $eof = !empty($match['eof']);
 
             $rules[] = new Rule(
                 $subject,
@@ -127,7 +151,7 @@ class Grammar extends BaseObject
     public function __construct(array $rules, array $inlines = [])
     {
         $this->rules = $rules;
-        $this->inlines = $inlines;
+        $this->inlines = array_values($inlines);
         $symbols = [];
         $terminals = [];
         $non_terminals = [];
@@ -255,26 +279,36 @@ class Grammar extends BaseObject
     private static function parseDefinitionItems($input, array &$inlines)
     {
         if (!preg_match_all(self::RE_RULE_DEF_ITEM, $input, $matches, PREG_SET_ORDER)) {
-            throw new \InvalidArgumentException(
-                "Invalid rule definition: '$input'"
-            );
+            throw new \InvalidArgumentException("Invalid rule definition");
         }
 
         $last_match = array_pop($matches);
         if (!isset($last_match['end'])) {
-            throw new \InvalidArgumentException(
-                "Invalid rule definition: '$input'"
-            );
+            throw new \InvalidArgumentException("Invalid rule definition");
         }
 
         $items = [];
         foreach ($matches as $match) {
             if (isset($match['q'])) {
                 $inline = mb_substr($match['q'], 1, -1, '8bit');
+                if (!isset($inlines[$inline]) && in_array($inline, $items, true)) {
+                    throw new \InvalidArgumentException(
+                        "Inline token {$match['q']} conflicts with token <$inline>"
+                    );
+                }
+
                 $items[] = $inline;
                 $inlines[$inline] = $inline;
             } elseif (isset($match['word'])) {
-                $items[] = $match['word'];
+                $word = $match['word'];
+                $items[] = $word;
+
+                $name = ltrim($word, '.');
+                if (isset($inlines[$name])) {
+                    throw new \InvalidArgumentException(
+                        "Token <$word> conflicts with inline token '$name'"
+                    );
+                }
             } else {
                 throw new \LogicException('Unexpected item match');
             }
