@@ -6,37 +6,115 @@ use VovanVE\parser\common\DevException;
 use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Token;
 
+/**
+ * Lexer parses input text into tokens stream
+ *
+ * Tokens are atomic parts of a grammar.
+ *
+ * ```php
+ * $lexer = new Lexer(
+ *     // all terminals to parse
+ *     [
+ *         // inline tokens literally, order does not matter
+ *         // inline tokens are always hidden
+ *         '++',
+ *         '+',
+ *         '--',
+ *         '-',
+ *         '*',
+ *         '/',
+ *
+ *         // named tokens are RegExp parts
+ *         'int'   => '\\d++',
+ *         'const' => '(?&name)',
+ *         'var'   => '\\$(?&name)',
+ *         '.foo'  => ';',            // hidden named token
+ *     ],
+ *     // whitespaces and comments to skip completely
+ *     [
+ *         '\\s++',           // linear whitespaces
+ *         '#\\N*+\\n?+',     // line #comments
+ *     ],
+ *     // DEFINEs can only be referenced from tokens as named recursion `(?&name)`
+ *     [
+ *         'name' => '[a-z_][a-z_0-9]*+',
+ *     ],
+ *     'iu'
+ * );
+ *
+ * Mostly you can define only named tokens. Inline tokens will be added later
+ * from grammar inline tokens.
+ * ```
+ *
+ * @package VovanVE\parser
+ * @see \VovanVE\parser\LexerBuilder
+ */
 class Lexer extends BaseObject
 {
+    // REFACT: minimal PHP >= 7.1: private const
     const DUMP_NEAR_LENGTH = 30;
+    // REFACT: minimal PHP >= 7.1: private const
     const RE_NAME = '/^\\.?[a-z][_a-z0-9]*$/i';
+    // REFACT: minimal PHP >= 7.1: private const
+    const RE_DEFINE_NAME = '/^[a-z][_a-z0-9]*$/i';
 
-    /** @var array */
+    /**
+     * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
+     * Key is name and value is a part of RegExp
+     */
     private $defines;
-    /** @var array */
+    /**
+     * @var array Terminals definition. Items of the array can be
+     * either key=>value for named tokens (here Key is name and value is a part of RegExp;
+     * DEFINEs can be referred with `(?&name)` regexp recursion)
+     * or just a value (integer auto index) with inline token text literally.
+     */
     private $terminals;
-    /** @var array */
+    /**
+     * @var array List of RegExp parts to define whitespaces to ignore in an input text.
+     * DEFINEs can be referred with `(?&name)` regexp recursion.
+     */
     private $whitespaces;
-    /** @var string */
+    /**
+     * @var string Modifiers to whole regexp.
+     *
+     * Same modifiers will be applied both to tokens and whitespaces regexps.
+     *
+     * Here only "global" modifiers like `u`, `x`, `D`, etc.
+     * should be used. Other modifiers like `i` should (but not required) be used locally
+     * in specific parts like `(?i)[a-z]` or `(?i:[a-z])`.
+     */
     private $modifiers = '';
 
-    /** @var bool */
+    /** @var bool Was the lexer already compiled into regexps from provided configuration */
     private $isCompiled = false;
 
-    /** @var string */
+    /** @var string Compiled full RegExp for whitespaces and comments */
     private $regexpWhitespace;
-    /** @var string */
+    /** @var string Compiled full RegExp for tokens */
     private $regexp;
-    /** @var array */
+    /**
+     * @var array Map for hidden tokens to mark output Tokens.
+     * Keys are either names or inline values. Values are any non-null value. */
     private $hiddens = [];
-    /** @var array Key is generated name, value is source string for Symbol name */
+    /**
+     * @var array Aliases map for inline tokens. Key is generated name,
+     * value is source string for Symbol name
+     */
     private $aliased = [];
 
     /**
-     * @param array $terminals
-     * @param array $whitespaces
-     * @param array $defines
-     * @param string $modifiers
+     * Constructor
+     *
+     * See class description for details
+     * @param array $terminals Terminals definitions. Key=>value pairs are named tokens.
+     * Plain value with auto index is inline tokens literally.
+     * @param array $whitespaces List of regexp parts to define whitespaces and comments to skip
+     * @param array $defines Map of DEFINEs regexp parts to reference from terminals and whitespaces.
+     * @param string $modifiers Mogifiers to both whole regexps. Here should be (but not required)
+     * used only "global" modifiers like `u`, `x`, `D` etc. Other modifiers like `i` is better
+     * to use locally like `(?i)[a-z]` or `(?i:[a-z])`.
+     * @see \VovanVE\parser\LexerBuilder
      */
     public function __construct(
         array $terminals,
@@ -51,11 +129,15 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param array $terminals
-     * @param array $whitespaces
-     * @param array $defines
-     * @param string $modifiers
-     * @return static
+     * Create new Lexer extending this one
+     * @param array $terminals Additional terminals. Both inline and named are acceptable.
+     * Duplicating inline tokens is not permitted, but redefinition of named tokens
+     * is restricted.
+     * @param array $whitespaces Additional whitespaces regexps. Duplicating currently
+     * is not checked, so it on your own.
+     * @param array $defines Additional DEFINEs regexps. Duplicating names is restricted.
+     * @param string $modifiers Additional modifiers to whole regexps.
+     * @return static New Lexer object not compiled yet.
      * @since 1.3.2
      */
     public function extend(
@@ -93,6 +175,17 @@ class Lexer extends BaseObject
     }
 
     /**
+     * Compile internal regexps
+     *
+     * Build internal regexps from configured parts. There are some logic checks.
+     * Also both compiled regexps will be checked itself in the end by test matching.
+     *
+     * As of specific lexer instance is immutable, compilation will be
+     * performed only once. Subsequent calls to the method does nothing special.
+     *
+     * Method will be called automatically with first call to `parse()` method.
+     * Direct call to the method can be used to divide compilation errors from other errors
+     * from `parse()` method.
      * @return $this
      * @since 1.3.2
      */
@@ -102,7 +195,7 @@ class Lexer extends BaseObject
             return $this;
         }
 
-        $this->checkMapNames($this->defines);
+        $this->checkMapNames($this->defines, self::RE_DEFINE_NAME);
 
         $inline = [];
         $hidden = [];
@@ -150,12 +243,18 @@ class Lexer extends BaseObject
 
         $this->regexp = "/$regexp/" . $this->modifiers;
         if (false === preg_match($this->regexp, null)) {
-            throw new \InvalidArgumentException('PCRE error');
+            throw new \InvalidArgumentException('PCRE error in main RegExp', preg_last_error());
         }
 
         if ($this->whitespaces) {
             $re_whitespaces = join('|', $this->whitespaces);
             $this->regexpWhitespace = "/$re_defines\\G(?:$re_whitespaces)+/" . $this->modifiers;
+            if (false === preg_match($this->regexpWhitespace, null)) {
+                throw new \InvalidArgumentException(
+                    'PCRE error in whitespaces RegExp',
+                    preg_last_error()
+                );
+            }
         } else {
             $this->regexpWhitespace = null;
         }
@@ -165,6 +264,7 @@ class Lexer extends BaseObject
     }
 
     /**
+     * Was lexer compiled or not yet
      * @return bool
      * @since 1.3.2
      */
@@ -174,8 +274,13 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param string $input
-     * @return \Generator|Token[]
+     * Parse input text into Tokens
+     *
+     * Lexer will be compiled if didn't yet.
+     *
+     * @param string $input Input text to parse
+     * @return \Generator|Token[] Returns generator of `Token`s. Generator has no its own return value.
+     * @throws ParseException Nothing matched in a current position
      */
     public function parse($input)
     {
@@ -210,10 +315,13 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param array $terminals
-     * @param array $inline
-     * @param array $hidden
-     * @param array $normal
+     * Split terminals definition in different types
+     *
+     * @param array $terminals Input terminals definitions array
+     * @param array $inline Variable to store inline tokens. Both keys and value are same.
+     * @param array $hidden Variable to store hidden named tokens. Key is name without leading
+     * dot and value is non-null.
+     * @param array $normal Variable to store normal named tokens. Key is name and value is non-null.
      * @since 1.3.2
      */
     private function splitTerminals(array $terminals, &$inline, &$hidden, &$normal, &$named)
@@ -237,9 +345,14 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param array $inline `["plain" => mixed, ...]`
-     * @param array $hidden `["name" => mixed, ...]`
-     * @param array $normal `["name" => mixed, ...]`
+     * Check defined tokens for duplicating names
+     *
+     * Different tokens must to produce different output Tokens.
+     * So names and inline tokens must not overlap.
+     * @param array $inline Extracted inline tokens `["plain" => mixed, ...]`
+     * @param array $hidden Extracted hidden tokens `["name" => mixed, ...]`
+     * @param array $normal Extracted normal tokens `["name" => mixed, ...]`
+     * @throws \InvalidArgumentException Some overlapping names
      * @since 1.3.2
      */
     private function checkOverlappedNames(array $inline, array $hidden, array $normal)
@@ -263,13 +376,21 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param array $inlines
-     * @return array
+     * Build inline tokens into regexp map
+     *
+     * **Note** about side effect of changing properties in addition to returned map.
+     *
+     * Inline tokens all are aliased with generated names. Returned regexps map has that
+     * generated named in keys. Aliases map is stored in `$aliased` property. As of all inline
+     * tokens are hidden, `$hiddens` map will be updated too with generated names.
+     * @param array $inlines List of inline token texts.
+     * @return array Returns regexps map with generated names in keys. Also properties `$aliased`
+     * and `$hiddens` will be updated.
      * @since 1.3.2
      */
     private function buildInlines(array $inlines)
     {
-        // sort in reverse order to let more long items match first
+        // sort in reverse order to let more long items with match first
         // so /'$$' | '$'/ will find ['$$', '$'] in '$$$' and not ['$', '$', '$']
         rsort($inlines, SORT_STRING);
 
@@ -290,9 +411,16 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param array $map
-     * @param string|bool $join
-     * @return string|string[]
+     * Build regexp map into one regexp part or list of ready parts
+     *
+     * Input map is key=>value paired array. Key which is name will become name for named regexp
+     * group, and value will becove its body. So `'int' => '\\d+'` will become `(?<int>\\d+)`.
+     *
+     * The result is one regexp part of built subparts joined with delimiter. Joining can be
+     * bypassed with `$join = false` argument.
+     * @param array $map Input map of regexps.
+     * @param string|bool $join Join with delimiter. `false` cause to return list of built parts.
+     * @return string|string[] Returns either joined regexp part or list or regexp subparts
      */
     private function buildMap(array $map, $join = false)
     {
@@ -307,16 +435,25 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param string $input
-     * @param int $pos
-     * @return Match|null
+     * Search a match in input text at a position
+     *
+     * Search is performed by `parse()` after `compile()` call. Match is searched
+     * exactly in the given position by `\G`.
+     * @param string $input Input text to search where
+     * @param int $pos Position inthe text to match where
+     * @return Match|null Match object on success match. `null` if no match found.
+     * @throws \RuntimeException Error from PCRE
+     * @throws DevException Error by end developer in lexer configuration
+     * @throws InternalException Error in the package
      */
     private function match($input, $pos)
     {
         if (false === preg_match($this->regexp, $input, $match, 0, $pos)) {
+            $error_code = preg_last_error();
             throw new \RuntimeException(
-                "PCRE error #" . preg_last_error()
-                . " for token at input pos $pos; REGEXP = {$this->regexp}"
+                "PCRE error #" . $error_code
+                . " for token at input pos $pos; REGEXP = {$this->regexp}",
+                $error_code
             );
         }
 
@@ -361,9 +498,14 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param string $input
-     * @param int $pos
-     * @return int
+     * Search a presens of whitespaces in input text in a position
+     *
+     * Search is performed by `parse()` after `compile()` call. Match is searched
+     * exactly in the given position by `\G`.
+     * @param string $input Input text to search where
+     * @param int $pos Position inthe text to match where
+     * @return int Returns matched length of whitespaces. Returns 0 if no whitespaces
+     * found in the position.
      */
     private function getWhitespaceLength($input, $pos)
     {
@@ -377,10 +519,11 @@ class Lexer extends BaseObject
                     $pos
                 )
             ) {
-                throw new InternalException(
-                    'PCRE error #' . preg_last_error()
-                    . ' for whitespace at input pos ' . $pos
-                    . '; REGEXP = ' . $this->regexpWhitespace
+                $error_code = preg_last_error();
+                throw new \RuntimeException(
+                    "PCRE error #$error_code for whitespace at input pos $pos"
+                    . '; REGEXP = ' . $this->regexpWhitespace,
+                    $error_code
                 );
             }
 
@@ -393,13 +536,16 @@ class Lexer extends BaseObject
     }
 
     /**
-     * @param array $map
+     * Check names in regexps map for validity
+     * @param array $map Map of regexp parts to check
+     * @param string $nameRegExp Regexp for names to check against.
+     * @throws \InvalidArgumentException Some bad named was found.
      * @since 1.3.2
      */
-    private function checkMapNames(array $map)
+    private function checkMapNames(array $map, $nameRegExp)
     {
         $names = array_keys($map);
-        $bad_names = preg_grep(self::RE_NAME, $names, PREG_GREP_INVERT);
+        $bad_names = preg_grep($nameRegExp, $names, PREG_GREP_INVERT);
         if ($bad_names) {
             throw new \InvalidArgumentException(
                 'Bad names: ' . join(', ', $bad_names)

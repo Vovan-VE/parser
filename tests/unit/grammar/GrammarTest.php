@@ -58,7 +58,7 @@ class GrammarTest extends BaseTestCase
 
     public function testCreateFailFormat()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create("E: A \$; some ! invalid rule");
     }
 
@@ -149,7 +149,7 @@ _END
 
     public function testCreateInlineWithConflictSingle()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create(<<<'_END'
             G: E $
             E: a 'a'
@@ -159,7 +159,7 @@ _END
 
     public function testCreateInlineWithConflictSubject()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create(<<<'_END'
             G: E $
             E: "E"
@@ -169,7 +169,7 @@ _END
 
     public function testCreateInlineWithConflictCross1()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create(<<<'_END'
             G: E $
             E: 'a'
@@ -180,7 +180,7 @@ _END
 
     public function testCreateInlineWithConflictCross2()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create(<<<'_END'
             G: E $
             E: a
@@ -191,7 +191,7 @@ _END
 
     public function testCreateInlineWithConflictSingleHidden()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create(<<<'_END'
             G: E $
             E: .a 'a'
@@ -201,7 +201,7 @@ _END
 
     public function testCreateInlineWithConflictCross1Hidden()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create(<<<'_END'
             G: E $
             E: 'a'
@@ -212,7 +212,7 @@ _END
 
     public function testCreateInlineWithConflictCross2Hidden()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->setExpectedException(GrammarException::class);
         Grammar::create(<<<'_END'
             G: E $
             E: .a

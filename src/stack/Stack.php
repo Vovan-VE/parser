@@ -9,23 +9,31 @@ use VovanVE\parser\table\Table;
 use VovanVE\parser\table\TableRow;
 use VovanVE\parser\tree\NonTerminal;
 
+/**
+ * Stack of parsed tokens
+ *
+ * Stack to represent parser state according to [LR(0)](https://en.wikipedia.org/wiki/LR_parser)
+ * terms. Stack is used internally on every parsing session.
+ * @package VovanVE\parser
+ * @see https://en.wikipedia.org/wiki/LR_parser
+ */
 class Stack extends BaseObject
 {
-    /** @var Table */
+    /** @var Table Parser's states table */
     private $table;
 
-    /** @var StackItem[] */
+    /** @var StackItem[] Items in the stack. Last item in the array is topmost item. */
     private $items;
-    /** @var integer */
+    /** @var integer Current state index from states table */
     private $stateIndex;
-    /** @var TableRow */
+    /** @var TableRow Current state row from states table */
     private $stateRow;
-    /** @var ActionsMap|null */
+    /** @var ActionsMap|null Actions to apply to nodes on its construction */
     private $actions;
 
     /**
-     * @param Table $table
-     * @param ActionsMap|null $actions [since 1.3.0]
+     * @param Table $table Parser states table
+     * @param ActionsMap|null $actions [since 1.3.0] Actions map to apply to nodes
      */
     public function __construct($table, $actions = null)
     {
@@ -36,6 +44,7 @@ class Stack extends BaseObject
     }
 
     /**
+     * Current state index from states table
      * @return integer
      */
     public function getStateIndex()
@@ -44,6 +53,7 @@ class Stack extends BaseObject
     }
 
     /**
+     * Current state row from states table
      * @return TableRow
      */
     public function getStateRow()
@@ -52,12 +62,15 @@ class Stack extends BaseObject
     }
 
     /**
-     * @param TreeNodeInterface $node
-     * @param integer $stateIndex
-     * @param bool $isHidden [since 1.3.2]
+     * Perform a Shift of a node into the stack
+     * @param TreeNodeInterface $node Node to add into the stack
+     * @param integer $stateIndex Next state index to switch to
+     * @param bool $isHidden [since 1.3.2] Whether the node is hidden from the resulting tree
      */
     public function shift($node, $stateIndex, $isHidden = false)
     {
+        // REFACT: try to hide $stateIndex from public interface
+
         $item = new StackItem();
         $item->state = $stateIndex;
         $item->node = $node;
@@ -72,6 +85,11 @@ class Stack extends BaseObject
         $this->stateRow = $this->table->rows[$stateIndex];
     }
 
+    /**
+     * Perform the Reduce
+     * @throws NoReduceException No rule to reduce by in the current state
+     * @throws InternalException Internal package error
+     */
     public function reduce()
     {
         $rule = $this->stateRow->reduceRule;
@@ -115,7 +133,9 @@ class Stack extends BaseObject
     }
 
     /**
+     * End work and get final tree
      * @return TreeNodeInterface
+     * @throws InternalException Internal package error
      */
     public function done()
     {

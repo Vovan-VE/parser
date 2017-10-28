@@ -6,17 +6,28 @@ use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\grammar\Rule;
 
+/**
+ * Set of Items for a parser state
+ *
+ * Each parser state has a set of Items based on source rules and
+ * a current parsing position inside rules.
+ * @package VovanVE\parser
+ * @see https://en.wikipedia.org/wiki/LR_parser
+ */
 class ItemSet extends BaseObject
 {
-    /** @var Item[] */
+    /** @var Item[] All Items in the set */
     public $items;
-    /** @var Item[] */
+    /** @var Item[] Original Items which this set is initiated from */
     protected $initialItems;
 
     /**
-     * @param Item[] $items
-     * @param Grammar $grammar
-     * @return static
+     * Create a Set from an Items using a grammar
+     * @param Item[] $items Initial Items to expand
+     * @param Grammar $grammar Grammar to expand non-terminals
+     * @return static Returns new Set
+     * @throws ConflictShiftReduceException Shift-reduce conflict is detected
+     * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      */
     public static function createFromItems(array $items, $grammar)
     {
@@ -64,15 +75,20 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param Item[] $items
-     * @param Item[] $initialItems
-     * @param Grammar $grammar
+     * @param Item[] $items All Items in the set
+     * @param Item[] $initialItems Original Items which this set is initiated from
+     * @param Grammar $grammar Source grammar
+     * @throws ConflictShiftReduceException Shift-reduce conflict is detected
+     * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      * @uses Item::compare()
      */
     public function __construct(array $items, array $initialItems, $grammar)
     {
         $items_list = array_values($items);
+
+        // sort items to simplify equality comparison between sets itself
         usort($items_list, [Item::class, 'compare']);
+
         $this->items = $items_list;
         $this->initialItems = array_values($initialItems);
 
@@ -80,6 +96,7 @@ class ItemSet extends BaseObject
     }
 
     /**
+     * Original Items which this set is initiated from
      * @return Item[]
      */
     public function getInitialItems()
@@ -88,8 +105,9 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param Grammar $grammar
-     * @return static[]
+     * Create list all all next Sets for next states by shifting current position in Items
+     * @param Grammar $grammar Source grammar
+     * @return static[] New Sets for other states
      */
     public function getNextSets($grammar)
     {
@@ -123,9 +141,10 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param Item $item
-     * @param bool $initialOnly
-     * @return bool
+     * Check if this set contains an equal Item
+     * @param Item $item Item to search
+     * @param bool $initialOnly Whether to search in initial items only
+     * @return bool Returns `true` when the set contains equal item
      */
     public function hasItem($item, $initialOnly = true)
     {
@@ -139,6 +158,7 @@ class ItemSet extends BaseObject
     }
 
     /**
+     * Check if this set has item where the next token must be EOF
      * @return bool
      */
     public function hasFinalItem()
@@ -152,6 +172,7 @@ class ItemSet extends BaseObject
     }
 
     /**
+     * Get reduction rule of this set if any
      * @return Rule|null
      */
     public function getReduceRule()
@@ -165,8 +186,12 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param ItemSet $that
-     * @return bool
+     * Check equality with another set
+     *
+     * Two sets are equal when both contains only equal items in any order.
+     * In fact items are already sorted before for this comparison.
+     * @param ItemSet $that Another set to compare with
+     * @return bool Returns `true` when both sets are equal
      */
     public function isSame($that)
     {
@@ -181,7 +206,9 @@ class ItemSet extends BaseObject
         return true;
     }
 
+    // REFACT: minimal PHP >= 7.1: private const
     const DUMP_PREFIX_MAIN = '';
+    // REFACT: minimal PHP >= 7.1: private const
     const DUMP_PREFIX_SUB = '> ';
 
     /**
@@ -215,7 +242,10 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param Grammar $grammar
+     * Validate if this set is deterministic
+     * @param Grammar $grammar Source grammar
+     * @throws ConflictShiftReduceException Shift-reduce conflict is detected
+     * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      */
     private function validateDeterministic($grammar)
     {
@@ -244,10 +274,12 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param Item[] $finite
-     * @param Item[] $terminals
-     * @param Item[] $nonTerminals
-     * @param Grammar $grammar
+     * Check for Shift-Reduce conflicts
+     * @param Item[] $finite Items where all symbols are already passed
+     * @param Item[] $terminals Items where next expected symbol is terminal
+     * @param Item[] $nonTerminals Items where next expected symbol is non-terminal
+     * @param Grammar $grammar Source grammar
+     * @throws ConflictShiftReduceException Shift-reduce conflict is detected
      */
     private function validateDeterministicShiftReduce(
         $finite,
@@ -269,7 +301,9 @@ class ItemSet extends BaseObject
     }
 
     /**
-     * @param Item[] $finite
+     * Check for Reduce-Reduce conflicts
+     * @param Item[] $finite Items where all symbols are already passed
+     * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      */
     private function validateDeterministicReduceReduce($finite)
     {

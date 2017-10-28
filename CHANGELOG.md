@@ -4,7 +4,7 @@ LR(0) parser Change Log
 1.3.2
 -----
 
-*   Add inline quoted tokens in grammar source.
+*   Add inline quoted tokens in grammar source like `Sum(add): Sum "+" Product`.
 *   Add ability to omit some useless tokens from the resulting tree.
 *   Add action shortcut to bubble up the only child's `made()` value.
 

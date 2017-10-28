@@ -4,15 +4,20 @@ namespace VovanVE\parser\table;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\grammar\Grammar;
 
+/**
+ * Parser states table
+ * @package VovanVE\parser
+ * @see https://en.wikipedia.org/wiki/LR_parser
+ */
 class Table extends BaseObject
 {
-    /** @var TableRow[] */
+    /** @var TableRow[] Rows in hte table. Keys are state indices. */
     public $rows;
-    /** @var ItemSet[] */
+    /** @var ItemSet[] All items sets for all states. Keys are state indices. */
     public $states;
 
     /**
-     * @param Grammar $grammar
+     * @param Grammar $grammar Source grammar to work with
      */
     public function __construct($grammar)
     {
@@ -35,10 +40,12 @@ class Table extends BaseObject
     }
 
     /**
+     * Fulfill the table according to specified grammar
      * @param Grammar $grammar
      */
     protected function prepareStates($grammar)
     {
+        /** @var TableRow[] $rows */
         $rows = [];
         $states = [];
         $item = Item::createFromRule($grammar->getMainRule());

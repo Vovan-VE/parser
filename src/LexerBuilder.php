@@ -4,6 +4,10 @@ namespace VovanVE\parser;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\lexer\Lexer;
 
+/**
+ * Helper class to simplify Lexer creation
+ * @package VovanVE\parser
+ */
 class LexerBuilder extends BaseObject
 {
     /** @var array */

@@ -13,18 +13,26 @@ use VovanVE\parser\stack\Stack;
 use VovanVE\parser\stack\StateException;
 use VovanVE\parser\table\Table;
 
+/**
+ * Main parser class
+ *
+ * @package VovanVE\parser
+ * @see https://en.wikipedia.org/wiki/LR_parser
+ */
 class Parser extends BaseObject
 {
+    /** Shortcut action to bubble up the only child's made value */
     const ACTION_BUBBLE_THE_ONLY = ActionsMap::DO_BUBBLE_THE_ONLY;
 
-    /** @var Lexer */
+    /** @var Lexer lexer to parse input text into tokens stream */
     protected $lexer;
-    /** @var Table */
+    /** @var Table States table */
     protected $table;
 
     /**
-     * @param Lexer $lexer
-     * @param Grammar|string $grammar
+     * @param Lexer $lexer lexer to parse input text into tokens stream
+     * @param Grammar|string $grammar Grammar object or text. Text will be passed to `Grammar::create()`
+     * @see Grammar::create()
      */
     public function __construct($lexer, $grammar)
     {
@@ -54,8 +62,31 @@ class Parser extends BaseObject
     }
 
     /**
-     * @param string $input
-     * @param callable[] $actions [since 1.3.0]
+     * Parse input text into nodes tree
+     *
+     * Actions map can be used to evaluate node values on tree construction phase.
+     * Without action you will need dive into a tree manually.
+     *
+     * Key in actions map is a subject node name with optional tag in parenses
+     * without spaces (`Foo` or `Foo(bar)`). Action will be applied to nodes with
+     * given name and tag. So `Foo` would be applied either to terminals `Foo` or
+     * Non-terminals `Foo` built by rules without a tag. And so `Foo(bar)` would be applied
+     * to non-terminals `Foo` built by rules with tag `(bar)` (since terminals cannot have tags).
+     *
+     * Value in actions map is either shortcut action name or a callable with signature:
+     *
+     * ```php
+     * function (TreeNodeInterface $subject, TreeNodeInterface ...$children): mixed`
+     * ```
+     *
+     * Arguments is not required to be variadic `...$children`. It would be much better
+     * to declare exact amount of arguments with respect to corresponding rule(s).
+     *
+     * Return value of a callback will be use in `make()` method on a node. Callback
+     * itself should to use children nodes' `made()` values to evaluate the result.
+     *
+     * @param string $input Input text to parse
+     * @param callable[]|string[] $actions [since 1.3.0] Actions map.
      * @return TreeNodeInterface
      */
     public function parse($input, $actions = [])

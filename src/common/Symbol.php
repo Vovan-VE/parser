@@ -1,19 +1,30 @@
 <?php
 namespace VovanVE\parser\common;
 
+/**
+ * Atomic part of a grammar rules
+ *
+ * Symbol is used internally as atomic part of a rules and state table.
+ * @package VovanVE\parser
+ */
 class Symbol extends BaseObject
 {
-    /** @var string */
+    /** @var string Name of the symbol, case sensitive */
     private $name;
-    /** @var boolean */
+    /** @var boolean Is symbol terminal or not */
     private $isTerminal;
-    /** @var boolean */
+    /** @var boolean Is symbol defined as hidden to not produce resulting tree node */
     private $isHidden = false;
 
     /**
+     * Compares two symbols
+     *
+     * Two symbols are equal when its `$name` and `$isTerminal` are the same.
+     *
+     * Note: Value of `$isHidden` is not used for comparison.
      * @param Symbol $a
      * @param Symbol $b
-     * @return integer
+     * @return integer Returns 0 when both symbols are equal.
      */
     public static function compare($a, $b)
     {
@@ -22,9 +33,12 @@ class Symbol extends BaseObject
     }
 
     /**
+     * Compare two lists of symbols
+     *
+     * Lists are equal when both contains equal symbols in the same order.
      * @param Symbol[] $a
      * @param Symbol[] $b
-     * @return integer
+     * @return integer Returns 0 then lists are equals
      */
     public static function compareList($a, $b)
     {
@@ -52,18 +66,20 @@ class Symbol extends BaseObject
     }
 
     /**
-     * @param string $name
-     * @param bool $isTerminal
-     * @param bool $isHidden [since 1.3.2]
+     * @param string $name Name for the symbol, case sensitive
+     * @param bool $isTerminal Whether the symbol is terminal or not
+     * @param bool $isHidden [since 1.3.2] Whether the symbol is hidden or not.
+     * Hidden symbols does not produce nodes in the resulting tree.
      */
     public function __construct($name, $isTerminal = false, $isHidden = false)
     {
         $this->name = $name;
-        $this->isTerminal = $isTerminal;
+        $this->isTerminal = (bool)$isTerminal;
         $this->isHidden = $isHidden;
     }
 
     /**
+     * Name of the symbol, case sensitive
      * @return string
      */
     public function getName()
@@ -72,6 +88,7 @@ class Symbol extends BaseObject
     }
 
     /**
+     * Whether the symbol is terminal or not
      * @return boolean
      */
     public function isTerminal()
@@ -80,6 +97,7 @@ class Symbol extends BaseObject
     }
 
     /**
+     * Changes whether the symbol is terminal or not
      * @param boolean $value
      */
     public function setIsTerminal($value)
@@ -88,6 +106,7 @@ class Symbol extends BaseObject
     }
 
     /**
+     * Whether the symbol is hidden or not
      * @return bool
      * @since 1.3.2
      */

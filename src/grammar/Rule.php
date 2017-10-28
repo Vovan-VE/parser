@@ -4,16 +4,25 @@ namespace VovanVE\parser\grammar;
 use VovanVE\parser\common\BaseRule;
 use VovanVE\parser\common\Symbol;
 
+/**
+ * A Rule of a grammar
+ * @package VovanVE\parser
+ */
 class Rule extends BaseRule
 {
-    /** @var Symbol[] */
+    /** @var Symbol[] Definition body symbols */
     private $definition;
 
     /**
+     * Compare two rules
+     *
+     * Rules are equal when its' subject symbols, definition lists and EOF marker are equal.
+     * Equality of tags is not required by default, and is under control of `$checkTag` argument.
      * @param Rule $a
      * @param Rule $b
-     * @param bool $checkTag [since 1.3.0]
-     * @return int
+     * @param bool $checkTag [since 1.3.0] Whether to check tags too.
+     * Default is false to ignore tags
+     * @return int Returns 0 when rules are equal
      */
     public static function compare($a, $b, $checkTag = false)
     {
@@ -24,10 +33,10 @@ class Rule extends BaseRule
     }
 
     /**
-     * @param Symbol $subject
-     * @param Symbol[] $definition
-     * @param bool $eof
-     * @param string|null $tag [since 1.3.0]
+     * @param Symbol $subject Subject of the rule
+     * @param Symbol[] $definition Definition body symbols
+     * @param bool $eof Must EOF be found in the end of input text
+     * @param string|null $tag [since 1.3.0] Optional tag name in addition to subject
      */
     public function __construct($subject, array $definition, $eof = false, $tag = null)
     {
@@ -37,6 +46,7 @@ class Rule extends BaseRule
     }
 
     /**
+     * Definition body symbols
      * @return Symbol[]
      */
     public function getDefinition()

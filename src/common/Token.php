@@ -1,27 +1,32 @@
 <?php
 namespace VovanVE\parser\common;
 
+/**
+ * Matched terminal token from an input
+ * @package VovanVE\parser
+ */
 class Token extends BaseObject implements TreeNodeInterface
 {
-    /** @var string */
+    /** @var string Type of token which is `Symbol` name */
     private $type;
-    /** @var string */
+    /** @var string Matched content of the token */
     private $content;
-    /** @var bool */
+    /** @var bool Whether then token is hidden with respect to `Symbol` definition */
     private $isHidden = false;
-    /** @var array */
+    /** @var array|null Match data for the token given from `preg_match()` */
     private $match;
-    /** @var integer */
+    /** @var integer|null Position of the token in the input text */
     private $offset;
-    /** @var mixed */
+    /** @var mixed Value made with action */
     private $made;
 
     /**
-     * @param string $type
-     * @param string $content
-     * @param null $match
-     * @param null $offset
-     * @param bool $isHidden [since 1.3.2]
+     * @param string $type Type of token which is `Symbol` name
+     * @param string $content Matched content of the token
+     * @param null $match Match data for the token given from `preg_match()`
+     * @param null $offset Position of the token in the input text
+     * @param bool $isHidden [since 1.3.2] Whether then token is hidden with respect to `Symbol`
+     * definition
      */
     public function __construct($type, $content, $match = null, $offset = null, $isHidden = false)
     {
@@ -33,6 +38,7 @@ class Token extends BaseObject implements TreeNodeInterface
     }
 
     /**
+     * Type of token which is `Symbol` name
      * @return string
      */
     public function getType()
@@ -41,6 +47,7 @@ class Token extends BaseObject implements TreeNodeInterface
     }
 
     /**
+     * Matched content of the token
      * @return string
      */
     public function getContent()
@@ -49,6 +56,7 @@ class Token extends BaseObject implements TreeNodeInterface
     }
 
     /**
+     * Whether then token is hidden with respect to `Symbol` definition
      * @return bool
      * @since 1.3.2
      */
@@ -58,7 +66,8 @@ class Token extends BaseObject implements TreeNodeInterface
     }
 
     /**
-     * @return array
+     * Match data for the token given from `preg_match()`
+     * @return array|null
      */
     public function getMatch()
     {
@@ -66,6 +75,7 @@ class Token extends BaseObject implements TreeNodeInterface
     }
 
     /**
+     * Position of the token in the input text
      * @return integer
      */
     public function getOffset()
@@ -132,8 +142,7 @@ class Token extends BaseObject implements TreeNodeInterface
      */
     public function dumpAsString($indent = '', $last = true)
     {
-        return $indent . ' `- ' . $this->type . ' <' . $this->content . '>'
-        . PHP_EOL;
+        return $indent . ' `- ' . $this->type . ' <' . $this->content . '>' . PHP_EOL;
     }
 
     /**
