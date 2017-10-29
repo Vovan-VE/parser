@@ -164,9 +164,9 @@ class Grammar extends BaseObject
                 $plain_name = $name;
                 $is_hidden = true;
             } else {
-                $is_hidden = '.' === mb_substr($name, 0, 1, '8bit');
+                $is_hidden = '.' === substr($name, 0, 1);
                 $plain_name = $is_hidden
-                    ? mb_substr($name, 1, null, '8bit')
+                    ? substr($name, 1)
                     : $name;
 
                 if (isset($inlines[$plain_name])) {
@@ -385,7 +385,7 @@ class Grammar extends BaseObject
         $items = [];
         foreach ($matches as $match) {
             if (isset($match['q'])) {
-                $inline = mb_substr($match['q'], 1, -1, '8bit');
+                $inline = substr($match['q'], 1, -1);
                 if (!isset($inlines[$inline]) && in_array($inline, $items, true)) {
                     throw new GrammarException(
                         "Inline token {$match['q']} conflicts with token <$inline>"

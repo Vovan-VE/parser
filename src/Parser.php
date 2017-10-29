@@ -96,7 +96,7 @@ class Parser extends BaseObject
         $tokens_gen = $this->lexer->parse($input);
         $stack = new Stack($this->table, $actions ? new ActionsMap($actions) : null);
 
-        $eof_offset = mb_strlen($input, '8bit');
+        $eof_offset = strlen($input);
         $tokens_gen->rewind();
         $token = null;
         try {

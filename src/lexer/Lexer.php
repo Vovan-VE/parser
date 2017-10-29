@@ -377,8 +377,8 @@ class Lexer extends BaseObject
             if (is_int($key)) {
                 $inline[$value] = $value;
             } elseif (preg_match(self::RE_NAME, $key)) {
-                if ('.' === mb_substr($key, 0, 1, '8bit')) {
-                    $name = mb_substr($key, 1, null, '8bit');
+                if ('.' === substr($key, 0, 1)) {
+                    $name = substr($key, 1);
                     $hidden[$name] = true;
                     $named[$name] = $value;
                 } else {
