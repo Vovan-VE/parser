@@ -7,6 +7,7 @@ LR(0) parser Change Log
 *   Add inline quoted tokens in grammar source like `Sum(add): Sum "+" Product`.
 *   Add ability to omit some useless tokens from the resulting tree.
 *   Add action shortcut to bubble up the only child's `made()` value.
+*   Enh: Returning `null` from action handler will no longer change node's `made()` value.
 
 1.3.0
 -----

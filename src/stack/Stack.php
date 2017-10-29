@@ -77,7 +77,7 @@ class Stack extends BaseObject
         $item->isHidden = $isHidden;
 
         if ($this->actions) {
-            $node->make($this->actions->runForNode($node));
+            $this->actions->applyToNode($node);
         }
 
         $this->items[] = $item;

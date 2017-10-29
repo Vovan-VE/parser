@@ -82,9 +82,10 @@ class Parser extends BaseObject
      * Arguments is not required to be variadic `...$children`. It would be much better
      * to declare exact amount of arguments with respect to corresponding rule(s).
      *
-     * Return value of a callback will be use in `make()` method on a node. Callback
-     * itself should to use children nodes' `made()` values to evaluate the result.
-     *
+     * Return value of a callback (unless it's `null`) will be use in `make()` method
+     * on a node. Callback itself should to use children nodes' `made()` values to
+     * evaluate the result. To apply `null` value to a node you need to call `make(null)`
+     * manually in action callback, but it is not necessary since default `made()` value is `null`.
      * @param string $input Input text to parse
      * @param callable[]|string[] $actions [since 1.3.0] Actions map.
      * @return TreeNodeInterface
