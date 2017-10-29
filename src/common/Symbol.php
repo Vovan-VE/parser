@@ -120,6 +120,26 @@ class Symbol extends BaseObject
      */
     public function __toString()
     {
-        return ($this->isHidden ? '.' : '') . $this->name;
+        return ($this->isHidden ? '.' : '') . self::dumpName($this->name);
+    }
+
+    /**
+     * Dump symbol name for debug purpose
+     * @param string $name
+     * @return string
+     * @since 1.5.0
+     */
+    public static function dumpName($name)
+    {
+        if (preg_match('/^[a-z][a-z_0-9]*$/i', $name)) {
+            return $name;
+        }
+        if (false === strpos($name, '"')) {
+            return '"' . $name . '"';
+        }
+        if (false === strpos($name, "'")) {
+            return "'$name'";
+        }
+        return "<$name>";
     }
 }

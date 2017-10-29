@@ -2,6 +2,7 @@
 namespace VovanVE\parser\table;
 
 use VovanVE\parser\common\BaseObject;
+use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\Rule;
 
 /**
@@ -42,14 +43,24 @@ class TableRow extends BaseObject
             $out[] = '{eof}->accept';
         }
 
-        foreach ([$this->terminalActions, $this->gotoSwitches] as $map) {
-            foreach ($map as $name => $index) {
-                if (is_int($index)) {
-                    $out[] = $name . '->' . $index;
+        foreach (
+            [
+                'actions' => $this->terminalActions,
+                'goto' => $this->gotoSwitches,
+            ]
+            as $type => $map
+        ) {
+            if ($map) {
+                $sub_out = [];
+                foreach ($map as $name => $index) {
+                    if (is_int($index)) {
+                        $sub_out[] = Symbol::dumpName($name) . '->' . $index;
+                    }
                 }
+                $out[] = $type . ': ' . join(', ', $sub_out);
             }
         }
 
-        return ($out) ? join('; ', $out) : 'reduce';
+        return ($out) ? join(' | ', $out) : 'reduce';
     }
 }
