@@ -355,6 +355,27 @@ class LexerTest extends BaseTestCase
         $base->extend(['a' => 'A'], [], ['x' => 'X']);
     }
 
+    public function testFlowCreation()
+    {
+        $a = new Lexer();
+        $b = $a->defines(['name' => '[a-z]++']);
+        $c = $b->terminals(['var' => '$(?&name)', ',']);
+        $d = $c->whitespaces(['\\s++']);
+        $e = $d->modifiers('i');
+
+        $this->assertNotSame($a, $b);
+        $this->assertNotSame($b, $c);
+        $this->assertNotSame($c, $d);
+        $this->assertNotSame($d, $e);
+
+        $this->assertNotSame($a, $e);
+
+        foreach ([$a, $b, $c, $d, $e] as $lexer) {
+            $this->assertInstanceOf(Lexer::class, $lexer);
+            $this->assertFalse($lexer->isCompiled());
+        }
+    }
+
     public function testArrayMixedKeys()
     {
         foreach (

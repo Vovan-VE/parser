@@ -117,7 +117,7 @@ class Lexer extends BaseObject
      * @see \VovanVE\parser\LexerBuilder
      */
     public function __construct(
-        array $terminals,
+        array $terminals = [],
         array $whitespaces = [],
         array $defines = [],
         $modifiers = 'u'
@@ -172,6 +172,53 @@ class Lexer extends BaseObject
             $this->defines + $defines,
             $this->modifiers . $modifiers
         );
+    }
+
+    /**
+     * Create new Lexer extending this one with DEFINEs
+     * @param array $defines Additional DEFINEs regexps. Duplicating names is restricted.
+     * @return static
+     * @since 1.3.2
+     */
+    public function defines(array $defines)
+    {
+        return $this->extend([], [], $defines);
+    }
+
+    /**
+     * Create new Lexer extending this one with whitespaces
+     * @param array $whitespaces Additional whitespaces regexps. Duplicating currently
+     * is not checked, so it on your own.
+     * @return static
+     * @since 1.3.2
+     */
+    public function whitespaces(array $whitespaces)
+    {
+        return $this->extend([], $whitespaces);
+    }
+
+    /**
+     * Create new Lexer extending this one with terminals
+     * @param array $terminals Additional terminals. Both inline and named are acceptable.
+     * Duplicating inline tokens is not permitted, but redefinition of named tokens
+     * is restricted.
+     * @return static
+     * @since 1.3.2
+     */
+    public function terminals($terminals)
+    {
+        return $this->extend($terminals);
+    }
+
+    /**
+     * Create new Lexer extending this one with RegExp modifiers
+     * @param string $modifiers Additional modifiers to whole regexps.
+     * @return static
+     * @since 1.3.2
+     */
+    public function modifiers($modifiers)
+    {
+        return $this->extend([], [], [], $modifiers);
     }
 
     /**

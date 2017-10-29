@@ -3,7 +3,7 @@
 use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface as INode;
 use VovanVE\parser\grammar\Grammar;
-use VovanVE\parser\LexerBuilder;
+use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -23,13 +23,12 @@ $grammar = Grammar::create(<<<'_END'
 _END
 );
 
-$lexer = (new LexerBuilder)
+$lexer = (new Lexer)
     ->terminals([
         'int' => '\\d+',
     ])
-    ->whitespaces(['\\s+'])
     //->modifiers('i')
-    ->create();
+    ->whitespaces(['\\s+']);
 
 $actions = [
     'int' => function (Token $t) {

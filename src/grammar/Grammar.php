@@ -51,18 +51,19 @@ use VovanVE\parser\common\Symbol;
  * *   `foo "+" .bar` - definition body - space separated list of tokens
  *     *   `foo` - normal symbol
  *     *   `"+"` - inline defined token. Can be `"..."`, `'...'` or `<...>`. There is no escaping
- *         or something similar.
+ *         or something similar. So, you cannot use `"` inside `"..."`, `'` inside `'...'`
+ *         and `<` or `>` inside `<...>`.
  *     *   `.bar` - hidden symbol
  * *   `$` - EOF marker for main rule.
  *
  * Here is some terms:
  *
- * *   Grammar must to contain the exactly one main rule which has EOF marker `$` in the end.
- *     Subject symbol name for main rule currently does not matter, but must be present for
- *     consistency. Say it can be for example `Goal` or `TOP`. Tag `(tag)` for main rule also
- *     has no usage.
- * *   Order of rules is a grammar does not matter.
- * *   All symbols which are subjects of rules will became non-terminal.
+ * *   Grammar must to contain exactly one main rule which has EOF marker `$` in the end.
+ *     Subject symbol name for the main rule currently does not matter, but must be present for
+ *     consistency and must be unique. Say it can be for example `Goal` or `TOP`.
+ *     Tag `(tag)` for the main rule also has no usage.
+ * *   Order of rules in a grammar does not matter.
+ * *   All symbols which are subjects of rules will become non-terminal.
  * *   Others symbols and inline tokens will become terminals. Named terminals must
  *     be defined in Lexer.
  * *   Named symbols are case sensitive. It is recommended, but not required, to use

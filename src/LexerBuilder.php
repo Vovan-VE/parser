@@ -7,6 +7,8 @@ use VovanVE\parser\lexer\Lexer;
 /**
  * Helper class to simplify Lexer creation
  * @package VovanVE\parser
+ * @deprecated Use `Lexer` constructor directly, optionally simplified
+ * with expansion methods.
  */
 class LexerBuilder extends BaseObject
 {

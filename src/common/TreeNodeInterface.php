@@ -86,6 +86,7 @@ interface TreeNodeInterface
      * to evaluate value for a current node.
      * @return mixed Returns a value made previously by `make()` method.
      * @since 1.3.0
+     * @see make()
      */
     public function made();
 }

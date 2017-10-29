@@ -4,8 +4,8 @@ LR(0) parser
 [![Latest Stable Version](https://poser.pugx.org/vovan-ve/lr0-parser/v/stable)](https://packagist.org/packages/vovan-ve/lr0-parser)
 [![Build Status](https://travis-ci.org/Vovan-VE/parser.svg)](https://travis-ci.org/Vovan-VE/parser)
 
-This package contains [LR(0) parser][lr-parser.wiki] with parsing table
-generator to work with custom LR(0) grammar.
+This package contains [LR(0) parser][lr-parser.wiki] to parse texts according
+to custom LR(0) grammar.
 
 Synopsis
 --------
@@ -14,7 +14,7 @@ See also following example in [examples/](examples/).
 
 ```php
 use VovanVE\parser\grammar\Grammar;
-use VovanVE\parser\LexerBuilder;
+use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 $grammar = Grammar::create(<<<'_END'
@@ -32,13 +32,12 @@ $grammar = Grammar::create(<<<'_END'
 _END
 );
 
-$lexer = (new LexerBuilder)
+$lexer = (new Lexer)
     ->terminals([
         'int' => '\\d+',
     ])
-    ->whitespaces(['\\s+'])
     //->modifiers('i')
-    ->create();
+    ->whitespaces(['\\s+']);
 
 $actions = [
     'int' => function ($t) {
@@ -110,7 +109,7 @@ This package contains:
     be initialized from plain text.
 *   LR(0) parser itself. It parse input string for AST using the table.
 
-This package was made just to apply the theory in practice. It may be easily be
+This package was made just to apply the theory in practice. It may easily be
 used for small grammars to parse small source codes.
 
 Installation
@@ -122,7 +121,7 @@ Install through [composer][]:
 
 or add to `require` section in your composer.json:
 
-    "vovan-ve/lr0-parser": "~1.3.0"
+    "vovan-ve/lr0-parser": "~1.3.2"
 
 Theory
 ------
