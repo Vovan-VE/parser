@@ -167,6 +167,24 @@ _END
         $this->assertCount(3, $grammar->getTerminals());
     }
 
+    public function testHiddenNonTerminal()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: a .B c $
+            B: b
+_END
+        );
+        $this->assertCount(3, $grammar->getTerminals());
+
+        $non_terminals = $grammar->getNonTerminals();
+        $this->assertCount(2, $non_terminals);
+        $this->assertArrayHasKey('G', $non_terminals);
+        $this->assertArrayHasKey('B', $non_terminals);
+        $this->assertFalse($non_terminals['G']->isHidden());
+        $this->assertTrue($non_terminals['B']->isHidden());
+
+    }
+
     public function testCreateWithInlines()
     {
         $grammar = Grammar::create(<<<'_END'
