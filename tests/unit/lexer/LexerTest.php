@@ -13,11 +13,17 @@ class LexerTest extends BaseTestCase
     {
         $lexer = new Lexer(
             [
+                '--INLINE--',
+
                 'int' => '\\d++',
                 'var' => '[a-z_][a-z_0-9]*+',
                 'inc' => '\\+\\+',
                 'dec' => '--',
                 'add' => '[-+]',
+                '.mul' => '\\*',
+
+                '$',
+                '\\',
             ],
             ['\\s++'],
             [],
@@ -25,7 +31,7 @@ class LexerTest extends BaseTestCase
         );
 
         $test_inputs = [
-            'foo  + --bar - 42 + i++-37 x y23' => [
+            'foo  + --bar - 42 + i++-37 --INLINE-- x$\\ * y23' => [
                 ['var', 'foo'],
                 ['add', '+'],
                 ['dec', '--'],
@@ -37,7 +43,11 @@ class LexerTest extends BaseTestCase
                 ['inc', '++'],
                 ['add', '-'],
                 ['int', '37'],
+                ['--INLINE--', '--INLINE--', true],
                 ['var', 'x'],
+                ['$', '$', true],
+                ['\\', '\\', true],
+                ['mul', '*', true],
                 ['var', 'y23'],
             ],
             '' => [],
@@ -49,20 +59,22 @@ class LexerTest extends BaseTestCase
                 ['var', 'bar'],
             ],
         ];
+        $n = 0;
         foreach ($test_inputs as $test_input => $expect_tokens) {
             $tokens = $lexer->parse($test_input);
-            $this->assertInstanceOf(\Generator::class, $tokens, "Lexer->parse() is Generator for <$test_input>");
+            $this->assertInstanceOf(\Generator::class, $tokens, "Lexer->parse() is Generator");
             $parsed_tokens_count = 0;
             foreach ($tokens as $i => $token) {
-                $this->assertInstanceOf(Token::class, $token, "token[$i] is Token for input <$test_input>");
-                $this->assertArrayHasKey($i, $expect_tokens, "want token[$i] for input <$test_input>");
-                list ($expect_type, $expect_content) = $expect_tokens[$i];
-                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type for input <$test_input>");
-                $this->assertEquals($expect_content, $token->getContent(),
-                    "token[$i]->content for input <$test_input>");
+                $this->assertInstanceOf(Token::class, $token, "$n: token[$i] is Token");
+                $this->assertArrayHasKey($i, $expect_tokens, "$n: want token[$i]");
+                list ($expect_type, $expect_content, $expect_hidden) = $expect_tokens[$i] + [2 => false];
+                $this->assertEquals($expect_type, $token->getType(), "$n: token[$i] type");
+                $this->assertEquals($expect_content, $token->getContent(), "$n: token[$i] content");
+                $this->assertEquals($expect_hidden, $token->isHidden(), "$n: token[$i] isHidden");
                 ++$parsed_tokens_count;
             }
-            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count for input <$test_input>");
+            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "$n: tokens count");
+            ++$n;
         }
     }
 
@@ -108,20 +120,57 @@ class LexerTest extends BaseTestCase
                     ['var', 'b'],
                 ],
             ],
+            [
+                new Lexer(
+                    [
+                        'var' => '[a-z]',
+                        '++',
+                        '+',
+                    ],
+                    ['\\s++'],
+                    [],
+                    'i'
+                ),
+                [
+                    ['var', 'a'],
+                    ['++', '++', true],
+                    ['+', '+', true],
+                    ['var', 'b'],
+                ],
+            ],
+            [
+                //order for inlines does not matter
+                new Lexer(
+                    [
+                        'var' => '[a-z]',
+                        '+',
+                        '++',
+                    ],
+                    ['\\s++'],
+                    [],
+                    'i'
+                ),
+                [
+                    ['var', 'a'],
+                    ['++', '++', true],
+                    ['+', '+', true],
+                    ['var', 'b'],
+                ],
+            ],
         ];
 
-        foreach ($sub_tests as $test_number => $sub_test) {
+        foreach ($sub_tests as $n => $sub_test) {
             /** @var Lexer $lexer */
             list ($lexer, $expect_tokens) = $sub_test;
             $parsed_tokens_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
-                list ($expect_type, $expect_content) = $expect_tokens[$i];
-                $this->assertEquals($expect_type, $token->getType(), "token[$i]->type for subtest [$test_number]");
-                $this->assertEquals($expect_content, $token->getContent(),
-                    "token[$i]->type for subtest [$test_number]");
+                list ($expect_type, $expect_content, $expect_hidden) = $expect_tokens[$i] + [2 => false];
+                $this->assertEquals($expect_type, $token->getType(), "$n: token[$i] type");
+                $this->assertEquals($expect_content, $token->getContent(), "$n: token[$i] content");
+                $this->assertEquals($expect_hidden, $token->isHidden(), "$n: token[$i] isHidden");
                 ++$parsed_tokens_count;
             }
-            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "tokens count for subtest [$test_number]");
+            $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "$n: tokens count");
         }
     }
 
@@ -179,12 +228,12 @@ class LexerTest extends BaseTestCase
         foreach ($test_inputs as $test_input => $expect_count) {
             $found_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
-                $this->assertInstanceOf(Token::class, $token, "token [$i] is Token for input <$test_input>");
-                $this->assertEquals('a', $token->getType(), "token[$i]->type for input <$test_input>");
-                $this->assertEquals('A', $token->getContent(), "token[$i]->type for input <$test_input>");
+                $this->assertInstanceOf(Token::class, $token, "token [$i] is Token");
+                $this->assertEquals('a', $token->getType(), "token[$i]->type");
+                $this->assertEquals('A', $token->getContent(), "token[$i]->type");
                 ++$found_count;
             }
-            $this->assertEquals($expect_count, $found_count, "tokens count for input <$test_input>");
+            $this->assertEquals($expect_count, $found_count, "tokens count");
         }
     }
 
@@ -222,14 +271,14 @@ class LexerTest extends BaseTestCase
 
     public function testFailNoTerminals()
     {
+        $lexer = new Lexer([]);
         $this->setExpectedException(\InvalidArgumentException::class);
-        new Lexer([]);
+        $lexer->compile();
     }
 
     public function testFailOverlappedNames()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
-        new Lexer(
+        $lexer = new Lexer(
             [
                 'foo' => '(?&lol)',
                 'bar' => '(?&bar)',
@@ -240,21 +289,23 @@ class LexerTest extends BaseTestCase
                 'bar' => '\\d++',
             ]
         );
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
     }
 
     public function testFailBadNamesTerminals()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
-        new Lexer([
+        $lexer = new Lexer([
             'int' => '\\d++',
             'bad-name' => '\\s++',
         ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
     }
 
     public function testFailBadNamesDefined()
     {
-        $this->setExpectedException(\InvalidArgumentException::class);
-        new Lexer(
+        $lexer = new Lexer(
             [
                 'number' => '(?&int)',
             ],
@@ -264,6 +315,8 @@ class LexerTest extends BaseTestCase
                 'bad-name' => '\\s++',
             ]
         );
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
     }
 
     public function testFailEmptyMatch()
@@ -275,5 +328,148 @@ class LexerTest extends BaseTestCase
         foreach ($lexer->parse('.') as $token) {
             $this->assertNotEquals('', $token->getContent());
         }
+    }
+
+    public function testExtend()
+    {
+        $base = new Lexer(['a' => 'a++']);
+        $ext1 = $base->extend(['b' => 'b++']);
+        $ext2 = $base->extend(['c' => 'c++']);
+        $this->assertNotSame($base, $ext1, 'extended lexer is new one');
+        $this->assertNotSame($base, $ext2, 'extended lexer is new one');
+        $this->assertNotSame($ext1, $ext2, 'both extended lexers are new');
+
+        $this->assertFalse($ext1->isCompiled(), 'ext1 is not compiled yet');
+        $ext1->compile();
+
+        $this->assertFalse($base->isCompiled(), 'base is not compiled yet');
+        $base->compile();
+
+        $this->assertFalse($ext2->isCompiled(), 'ext is not compiled yet');
+    }
+
+    public function testExtendDuplicate()
+    {
+        $base = new Lexer(['a' => 'a++'], [], ['x' => 'x++']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $base->extend(['a' => 'A'], [], ['x' => 'X']);
+    }
+
+    public function testFlowCreation()
+    {
+        $a = new Lexer();
+        $b = $a->defines(['name' => '[a-z]++']);
+        $c = $b->terminals(['var' => '$(?&name)', ',']);
+        $d = $c->whitespaces(['\\s++']);
+        $e = $d->modifiers('i');
+
+        $this->assertNotSame($a, $b);
+        $this->assertNotSame($b, $c);
+        $this->assertNotSame($c, $d);
+        $this->assertNotSame($d, $e);
+
+        $this->assertNotSame($a, $e);
+
+        foreach ([$a, $b, $c, $d, $e] as $lexer) {
+            $this->assertInstanceOf(Lexer::class, $lexer);
+            $this->assertFalse($lexer->isCompiled());
+        }
+    }
+
+    public function testArrayMixedKeys()
+    {
+        foreach (
+            [
+                [['a' => null, 'b' => null, null, null], ['a', 'b', 0, 1]],
+                [['a' => null, null, 'b' => null, null], ['a', 0, 'b', 1]],
+                [[null, 'a' => null, null, 'b' => null], [0, 'a', 1, 'b']],
+                [[null, null, 'a' => null, 'b' => null], [0, 1, 'a', 'b']],
+            ]
+            as $case
+        ) {
+            list ($array, $keys) = $case;
+            $this->assertSame($keys, array_keys($array));
+        }
+    }
+
+    public function testAliasGeneration()
+    {
+        foreach (
+            [
+                'a' => 'b',
+                'y' => 'z',
+                'z' => 'aa',
+                'aa' => 'ab',
+                'az' => 'ba',
+                'ba' => 'bb',
+                'zz' => 'aaa',
+                'aaa' => 'aab',
+            ]
+            as $a => $b
+        ) {
+            $next = $a;
+            $next++;
+            $this->assertSame($b, $next, "'$a'++ => '$b'");
+        }
+    }
+
+    public function testConflictVisibleHidden()
+    {
+        $lexer = new Lexer([
+            'a' => 'x',
+            '.a' => 'y',
+        ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictHiddenVisible()
+    {
+        $lexer = new Lexer([
+            '.a' => 'y',
+            'a' => 'x',
+        ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictVisibleInline()
+    {
+        $lexer = new Lexer([
+            'a' => 'x',
+            'a',
+        ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictInlineVisible()
+    {
+        $lexer = new Lexer([
+            'a',
+            'a' => 'x',
+        ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictHiddenInline()
+    {
+        $lexer = new Lexer([
+            '.a' => 'x',
+            'a',
+        ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictInlineHidden()
+    {
+        $lexer = new Lexer([
+            'a',
+            '.a' => 'x',
+        ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
     }
 }

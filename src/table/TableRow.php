@@ -4,27 +4,32 @@ namespace VovanVE\parser\table;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\grammar\Rule;
 
+/**
+ * A row of parser states table
+ * @package VovanVE\parser
+ * @see https://en.wikipedia.org/wiki/LR_parser
+ */
 class TableRow extends BaseObject
 {
     /**
+     * EOF action
+     *
+     * * true - accept
+     * * null - no action
      * @var true|null
-     * - true - accept
-     * - null - no action
      */
     public $eofAction;
     /**
+     * Terminal actions. Key is symbol name. Value is state index to shift to.
      * @var integer[]
-     * array of:
-     * - integer - shift to the state
      */
     public $terminalActions = [];
     /**
+     * Goto switches. Key is symbol name. Value is state index to shift to.
      * @var integer[]
-     * array of:
-     * - integer - shift to the state
      */
     public $gotoSwitches = [];
-    /** @var Rule|null */
+    /** @var Rule|null Rule to reduce by if any */
     public $reduceRule;
 
     /**

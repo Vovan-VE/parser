@@ -1,67 +1,65 @@
 <?php
 
 use VovanVE\parser\common\Token;
-use VovanVE\parser\common\TreeNodeInterface;
+use VovanVE\parser\common\TreeNodeInterface as INode;
 use VovanVE\parser\grammar\Grammar;
-use VovanVE\parser\LexerBuilder;
+use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $grammar = Grammar::create(<<<'_END'
     Goal        : Sum $
-    Sum(add)    : Sum add Product
-    Sum(sub)    : Sum sub Product
+    Sum(add)    : Sum "+" Product
+    Sum(sub)    : Sum "-" Product
     Sum(P)      : Product
-    Product(mul): Product mul Value
-    Product(div): Product div Value
+    Product(mul): Product "*" Value
+    Product(div): Product "/" Value
     Product(V)  : Value
+    Value(neg)  : "-" Value
+    Value       : "+" Value
+    Value       : "(" Sum ")"
     Value       : int
 _END
 );
 
-$lexer = (new LexerBuilder)
+$lexer = (new Lexer)
     ->terminals([
         'int' => '\\d+',
-        'add' => '\\+',
-        'sub' => '-',
-        'mul' => '\\*',
-        'div' => '\\/',
     ])
-    ->whitespaces(['\\s+'])
-    ->modifiers('i')
-    ->create();
+    //->modifiers('i')
+    ->whitespaces(['\\s+']);
 
 $actions = [
     'int' => function (Token $t) {
-        return (int) $t->getContent();
+        return (int)$t->getContent();
     },
-    'Value' => function ($v, TreeNodeInterface $int) {
-        return $int->made();
+
+    'Value' => Parser::ACTION_BUBBLE_THE_ONLY,
+    'Value(neg)' => function ($v, INode $n) {
+        return -$n->made();
     },
-    'Product(V)' => function ($p, TreeNodeInterface $v) {
-        return $v->made();
-    },
-    'Product(mul)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+
+    'Product(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
+    'Product(mul)' => function ($p, INode $a, INode $b) {
         return $a->made() * $b->made();
     },
-    'Product(div)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+    'Product(div)' => function ($p, INode $a, INode $b) {
         return $a->made() / $b->made();
     },
-    'Sum(P)' => function ($s, TreeNodeInterface $p) {
-        return $p->made();
-    },
-    'Sum(add)' => function ($s, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+
+    'Sum(P)' => Parser::ACTION_BUBBLE_THE_ONLY,
+    'Sum(add)' => function ($s, INode $a, INode $b) {
         return $a->made() + $b->made();
     },
-    'Sum(sub)' => function ($s, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+    'Sum(sub)' => function ($s, INode $a, INode $b) {
         return $a->made() - $b->made();
     },
 ];
 
 $parser = new Parser($lexer, $grammar);
 
-$tree = $parser->parse('23 * 2 - 4', $actions);
+$tree = $parser->parse('2 * (-10 + 33) - 4', $actions);
 
 echo 'Result is ', $tree->made(), PHP_EOL;
 echo 'Tree:', PHP_EOL;

@@ -9,6 +9,32 @@ use VovanVE\parser\tree\NonTerminal;
 
 class ActionsMapTest extends BaseTestCase
 {
+    public function testApplyToNode()
+    {
+        $map = new ActionsMap([
+            'foo' => function (Token $foo) {
+                return $foo->getContent();
+            },
+            'Bar' => function (TreeNodeInterface $bar, TreeNodeInterface $foo) {
+                // apply instead of return
+                $bar->make('[' . $foo->made() . ']');
+                // so return null
+            },
+        ]);
+
+        $foo = new Token('foo', 'lorem ipsum');
+        $this->assertTrue($map->applyToNode($foo));
+
+        $bar = new NonTerminal('Bar', [$foo]);
+        $this->assertFalse($map->applyToNode($bar));
+        $this->assertEquals('[lorem ipsum]', $bar->made());
+
+        $baz = new Token('baz', 'dolor');
+        $baz->make(42);
+        $this->assertNull($map->applyToNode($baz));
+        $this->assertSame(42, $baz->made());
+    }
+
     public function testRunForNode()
     {
         $map = new ActionsMap([
@@ -18,13 +44,17 @@ class ActionsMapTest extends BaseTestCase
             'Bar' => function (TreeNodeInterface $bar, TreeNodeInterface $foo) {
                 return '[' . $foo->made() . ']';
             },
+            'Baz' => ActionsMap::DO_BUBBLE_THE_ONLY,
         ]);
 
-        $token = new Token('foo', 'lorem ipsum');
-        $token->make($map->runForNode($token));
-        $node = new NonTerminal('Bar', [$token]);
+        $foo = new Token('foo', 'lorem ipsum');
+        $foo->make($map->runForNode($foo));
+        $bar = new NonTerminal('Bar', [$foo]);
 
-        $this->assertEquals('[lorem ipsum]', $map->runForNode($node));
+        $this->assertEquals('[lorem ipsum]', $map->runForNode($bar));
         $this->assertNull($map->runForNode(new Token('x', '42')));
+
+        $baz = new NonTerminal('Baz', [$foo]);
+        $this->assertEquals('lorem ipsum', $map->runForNode($baz));
     }
 }

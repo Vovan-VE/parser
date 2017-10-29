@@ -4,27 +4,31 @@ namespace VovanVE\parser\tree;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\TreeNodeInterface;
 
+/**
+ * Non-terminal node of the resulting tree
+ * @package VovanVE\parser
+ */
 class NonTerminal extends BaseObject implements TreeNodeInterface
 {
     /**
-     * @var string
+     * @var string Symbol name from the grammar
      * @deprecated Don't use outside directly - use getter
      */
     public $name;
-    /** @var string|null */
+    /** @var string|null Tag from corresponding grammar rule if one was defined */
     private $tag;
     /**
-     * @var TreeNodeInterface[]
+     * @var TreeNodeInterface[] Children nodes
      * @deprecated Don't use outside directly - use getter
      */
     public $children;
-    /** @var mixed */
+    /** @var mixed Value evaluated with actions */
     private $made;
 
     /**
-     * @param string $name
-     * @param TreeNodeInterface[] $children
-     * @param string|null $tag
+     * @param string $name Symbol name from the grammar
+     * @param TreeNodeInterface[] $children Children nodes
+     * @param string|null $tag Tag from corresponding grammar rule if one was defined
      * @since 1.3.0
      */
     public function __construct($name, $children, $tag = null)

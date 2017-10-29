@@ -5,17 +5,30 @@ use VovanVE\parser\common\BaseRule;
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\Rule;
 
+/**
+ * Item of parser state items set
+ *
+ * Item is a rule-like object, where definition body is spited by Current Position into
+ * passed and further symbols. So each Rule can produce exactly N+1 Items where N is count
+ * of symbols in Rule definition body.
+ * @package VovanVE\parser
+ * @see https://en.wikipedia.org/wiki/LR_parser
+ */
 class Item extends BaseRule
 {
-    /** @var Symbol[] */
+    /** @var Symbol[] Already passed symbols behind current position */
     public $passed;
-    /** @var Symbol[] */
+    /** @var Symbol[] Further symbols expected next to current position */
     public $further;
 
     /**
+     * Compare two items
+     *
+     * Two items are equal when its both has equal subjects, passed and further symbols
+     * and EOF marker.
      * @param Item $a
      * @param Item $b
-     * @return integer
+     * @return integer Returns 0 when items are equal
      */
     public static function compare($a, $b)
     {
@@ -26,8 +39,11 @@ class Item extends BaseRule
     }
 
     /**
-     * @param Rule $rule
-     * @return static
+     * Create Item from a Rule
+     *
+     * Current position is placed in the start of rule body.
+     * @param Rule $rule Source rule
+     * @return static Returns new Item
      */
     public static function createFromRule($rule)
     {
@@ -41,11 +57,11 @@ class Item extends BaseRule
     }
 
     /**
-     * @param Symbol $subject
-     * @param Symbol[] $passed
-     * @param Symbol[] $further
-     * @param bool $eof
-     * @param string|null $tag [since 1.3.0]
+     * @param Symbol $subject Subject of a rule
+     * @param Symbol[] $passed Already passed symbols behind current position
+     * @param Symbol[] $further Further symbols expected next to current position
+     * @param bool $eof EOF marker
+     * @param string|null $tag [since 1.3.0] Tag name from the rule to use with actions
      */
     public function __construct(
         $subject,
@@ -61,7 +77,9 @@ class Item extends BaseRule
     }
 
     /**
-     * @return Symbol|null
+     * Get next expected Symbol if any
+     * @return Symbol|null Next symbol expected after current position.
+     * `null` when nothing more is expected.
      */
     public function getExpected()
     {
@@ -69,7 +87,9 @@ class Item extends BaseRule
     }
 
     /**
-     * @return static|null
+     * Create new Item by shifting current position to the next symbol
+     * @return static|null Returns new Item with current position shifted to the next symbol.
+     * Returns `null` then there is not next expected symbol.
      */
     public function shift()
     {
@@ -84,7 +104,8 @@ class Item extends BaseRule
     }
 
     /**
-     * @return Rule
+     * Reconstruct a source rule
+     * @return Rule New rule object which is equal to source one
      */
     public function getAsRule()
     {
@@ -96,7 +117,8 @@ class Item extends BaseRule
         );
     }
 
-    const DUMP_MARKER = '.';
+    // REFACT: minimal PHP >= 7.1: private const
+    const DUMP_MARKER = '•';
 
     /**
      * @inheritdoc

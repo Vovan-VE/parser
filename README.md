@@ -4,8 +4,8 @@ LR(0) parser
 [![Latest Stable Version](https://poser.pugx.org/vovan-ve/lr0-parser/v/stable)](https://packagist.org/packages/vovan-ve/lr0-parser)
 [![Build Status](https://travis-ci.org/Vovan-VE/parser.svg)](https://travis-ci.org/Vovan-VE/parser)
 
-This package contains [LR(0) parser][lr-parser.wiki] with parsing table
-generator to work with custom LR(0) grammar.
+This package contains [LR(0) parser][lr-parser.wiki] to parse texts according
+to custom LR(0) grammar.
 
 Synopsis
 --------
@@ -14,63 +14,61 @@ See also following example in [examples/](examples/).
 
 ```php
 use VovanVE\parser\grammar\Grammar;
-use VovanVE\parser\LexerBuilder;
+use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 $grammar = Grammar::create(<<<'_END'
     Goal        : Sum $
-    Sum(add)    : Sum add Product
-    Sum(sub)    : Sum sub Product
+    Sum(add)    : Sum "+" Product
+    Sum(sub)    : Sum "-" Product
     Sum(P)      : Product
-    Product(mul): Product mul Value
-    Product(div): Product div Value
+    Product(mul): Product "*" Value
+    Product(div): Product "/" Value
     Product(V)  : Value
+    Value(neg)  : "-" Value
+    Value       : "+" Value
+    Value       : "(" Sum ")"
     Value       : int
 _END
 );
 
-$lexer = (new LexerBuilder)
+$lexer = (new Lexer)
     ->terminals([
         'int' => '\\d+',
-        'add' => '\\+',
-        'sub' => '-',
-        'mul' => '\\*',
-        'div' => '\\/',
     ])
-    ->whitespaces(['\\s+'])
-    ->modifiers('i')
-    ->create();
+    //->modifiers('i')
+    ->whitespaces(['\\s+']);
 
 $actions = [
     'int' => function ($t) {
         return (int) $t->getContent();
     },
-    'Value' => function ($v, $int) {
-        return $int->made();
+
+    'Value' => Parser::ACTION_BUBBLE_THE_ONLY,
+    'Value(neg)' => function ($v, $n) {
+        return -$n->made();
     },
-    'Product(V)' => function ($p, $v) {
-        return $v->made();
-    },
-    'Product(mul)' => function ($p, $a, $op, $b) {
+
+    'Product(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
+    'Product(mul)' => function ($p, $a, $b) {
         return $a->made() * $b->made();
     },
-    'Product(div)' => function ($p, $a, $op, $b) {
+    'Product(div)' => function ($p, $a, $b) {
         return $a->made() / $b->made();
     },
-    'Sum(P)' => function ($s, $p) {
-        return $p->made();
-    },
-    'Sum(add)' => function ($s, $a, $op, $b) {
+
+    'Sum(P)' => Parser::ACTION_BUBBLE_THE_ONLY,
+    'Sum(add)' => function ($s, $a, $b) {
         return $a->made() + $b->made();
     },
-    'Sum(sub)' => function ($s, $a, $op, $b) {
+    'Sum(sub)' => function ($s, $a, $b) {
         return $a->made() - $b->made();
     },
 ];
 
 $parser = new Parser($lexer, $grammar);
 
-$tree = $parser->parse('23 * 2 - 4', $actions);
+$tree = $parser->parse('2 * (-10 + 33) - 4', $actions);
 
 echo 'Result is ', $tree->made(), PHP_EOL;
 echo 'Tree:', PHP_EOL;
@@ -86,11 +84,17 @@ Output:
          |   `- Product(mul)
          |       `- Product(V)
          |       |   `- Value
-         |       |       `- int <23>
-         |       `- mul <*>
+         |       |       `- int <2>
          |       `- Value
-         |           `- int <2>
-         `- sub <->
+         |           `- Sum(add)
+         |               `- Sum(P)
+         |               |   `- Product(V)
+         |               |       `- Value(neg)
+         |               |           `- Value
+         |               |               `- int <10>
+         |               `- Product(V)
+         |                   `- Value
+         |                       `- int <33>
          `- Product(V)
              `- Value
                  `- int <4>
@@ -101,11 +105,11 @@ Description
 This package contains:
 
 *   Lexer to parse input string for tokens. Lexer is configurable by regexps.
-*   Parsing table generator to work with any LR(0) grammar. Input grammar does
-    initialize from plain text.
+*   Parsing table generator to work with any LR(0) grammar. Input grammar can
+    be initialized from plain text.
 *   LR(0) parser itself. It parse input string for AST using the table.
 
-This package was made just to apply the theory in practice. It may be easily be
+This package was made just to apply the theory in practice. It may easily be
 used for small grammars to parse small source codes.
 
 Installation
@@ -117,7 +121,7 @@ Install through [composer][]:
 
 or add to `require` section in your composer.json:
 
-    "vovan-ve/lr0-parser": "~1.3.0"
+    "vovan-ve/lr0-parser": "~1.4.0"
 
 Theory
 ------
