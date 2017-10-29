@@ -1,6 +1,11 @@
 LR(0) parser Change Log
 =======================
 
+1.5.0
+-----
+
+no changes yet
+
 1.4.0
 -----
 
@@ -66,7 +71,7 @@ LR(0) parser Change Log
 1.0.1
 -----
 
-*   Fix: broken exmple code in README.
+*   Fix: broken example code in README.
 
 
 1.0.0

@@ -3,6 +3,7 @@ LR(0) parser
 
 [![Latest Stable Version](https://poser.pugx.org/vovan-ve/lr0-parser/v/stable)](https://packagist.org/packages/vovan-ve/lr0-parser)
 [![Build Status](https://travis-ci.org/Vovan-VE/parser.svg)](https://travis-ci.org/Vovan-VE/parser)
+[![License](https://poser.pugx.org/vovan-ve/lr0-parser/license)](https://packagist.org/packages/vovan-ve/lr0-parser)
 
 This package contains [LR(0) parser][lr-parser.wiki] to parse texts according
 to custom LR(0) grammar.
@@ -121,7 +122,7 @@ Install through [composer][]:
 
 or add to `require` section in your composer.json:
 
-    "vovan-ve/lr0-parser": "~1.4.0"
+    "vovan-ve/lr0-parser": "~1.5.0"
 
 Theory
 ------
