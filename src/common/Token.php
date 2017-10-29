@@ -25,7 +25,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @param string $content Matched content of the token
      * @param null $match Match data for the token given from `preg_match()`
      * @param null $offset Position of the token in the input text
-     * @param bool $isHidden [since 1.3.2] Whether then token is hidden with respect to `Symbol`
+     * @param bool $isHidden [since 1.4.0] Whether then token is hidden with respect to `Symbol`
      * definition
      */
     public function __construct($type, $content, $match = null, $offset = null, $isHidden = false)
@@ -58,7 +58,7 @@ class Token extends BaseObject implements TreeNodeInterface
     /**
      * Whether then token is hidden with respect to `Symbol` definition
      * @return bool
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function isHidden()
     {

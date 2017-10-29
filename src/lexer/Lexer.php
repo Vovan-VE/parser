@@ -138,7 +138,7 @@ class Lexer extends BaseObject
      * @param array $defines Additional DEFINEs regexps. Duplicating names is restricted.
      * @param string $modifiers Additional modifiers to whole regexps.
      * @return static New Lexer object not compiled yet.
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function extend(
         array $terminals = [],
@@ -178,7 +178,7 @@ class Lexer extends BaseObject
      * Create new Lexer extending this one with DEFINEs
      * @param array $defines Additional DEFINEs regexps. Duplicating names is restricted.
      * @return static
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function defines(array $defines)
     {
@@ -190,7 +190,7 @@ class Lexer extends BaseObject
      * @param array $whitespaces Additional whitespaces regexps. Duplicating currently
      * is not checked, so it on your own.
      * @return static
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function whitespaces(array $whitespaces)
     {
@@ -203,7 +203,7 @@ class Lexer extends BaseObject
      * Duplicating inline tokens is not permitted, but redefinition of named tokens
      * is restricted.
      * @return static
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function terminals($terminals)
     {
@@ -214,7 +214,7 @@ class Lexer extends BaseObject
      * Create new Lexer extending this one with RegExp modifiers
      * @param string $modifiers Additional modifiers to whole regexps.
      * @return static
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function modifiers($modifiers)
     {
@@ -234,7 +234,7 @@ class Lexer extends BaseObject
      * Direct call to the method can be used to divide compilation errors from other errors
      * from `parse()` method.
      * @return $this
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function compile()
     {
@@ -313,7 +313,7 @@ class Lexer extends BaseObject
     /**
      * Was lexer compiled or not yet
      * @return bool
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function isCompiled()
     {
@@ -369,7 +369,7 @@ class Lexer extends BaseObject
      * @param array $hidden Variable to store hidden named tokens. Key is name without leading
      * dot and value is non-null.
      * @param array $normal Variable to store normal named tokens. Key is name and value is non-null.
-     * @since 1.3.2
+     * @since 1.4.0
      */
     private function splitTerminals(array $terminals, &$inline, &$hidden, &$normal, &$named)
     {
@@ -400,7 +400,7 @@ class Lexer extends BaseObject
      * @param array $hidden Extracted hidden tokens `["name" => mixed, ...]`
      * @param array $normal Extracted normal tokens `["name" => mixed, ...]`
      * @throws \InvalidArgumentException Some overlapping names
-     * @since 1.3.2
+     * @since 1.4.0
      */
     private function checkOverlappedNames(array $inline, array $hidden, array $normal)
     {
@@ -433,7 +433,7 @@ class Lexer extends BaseObject
      * @param array $inlines List of inline token texts.
      * @return array Returns regexps map with generated names in keys. Also properties `$aliased`
      * and `$hiddens` will be updated.
-     * @since 1.3.2
+     * @since 1.4.0
      */
     private function buildInlines(array $inlines)
     {
@@ -587,7 +587,7 @@ class Lexer extends BaseObject
      * @param array $map Map of regexp parts to check
      * @param string $nameRegExp Regexp for names to check against.
      * @throws \InvalidArgumentException Some bad named was found.
-     * @since 1.3.2
+     * @since 1.4.0
      */
     private function checkMapNames(array $map, $nameRegExp)
     {

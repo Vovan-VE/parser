@@ -1,7 +1,7 @@
 LR(0) parser Change Log
 =======================
 
-1.3.2
+1.4.0
 -----
 
 *   Deprecated: class `\VovanVE\parser\LexerBuilder`. Use `use VovanVE\parser\lexer\Lexer`
@@ -11,6 +11,8 @@ LR(0) parser Change Log
 *   Add ability to omit some useless tokens from the resulting tree like `A: foo .bar baz`.
 *   Add action shortcut to bubble up the only child's `made()` value.
 *   Enh: Returning `null` from action handler will no longer change node's `made()` value.
+*   Branch 1.3 was reverted to its last fix release and current dev branch became 1.4
+    according to semver rules.
 
 1.3.0
 -----

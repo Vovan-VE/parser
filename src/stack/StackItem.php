@@ -17,7 +17,7 @@ class StackItem extends BaseObject
     public $node;
     /**
      * @var boolean Whether the node must be hidden from the resulting tree
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public $isHidden = false;
 }

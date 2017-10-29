@@ -65,7 +65,7 @@ class Stack extends BaseObject
      * Perform a Shift of a node into the stack
      * @param TreeNodeInterface $node Node to add into the stack
      * @param integer $stateIndex Next state index to switch to
-     * @param bool $isHidden [since 1.3.2] Whether the node is hidden from the resulting tree
+     * @param bool $isHidden [since 1.4.0] Whether the node is hidden from the resulting tree
      */
     public function shift($node, $stateIndex, $isHidden = false)
     {

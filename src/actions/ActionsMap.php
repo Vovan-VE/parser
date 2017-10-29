@@ -21,7 +21,7 @@ class ActionsMap extends BaseObject
     /**
      * @var callable[]|string[]
      * Holds source set of actions. Keys are node reference like `Name` or `Name(tag)`.
-     * Values are either callable or command name.
+     * Values are either callable (since 1.3.0) or command name (since 1.4.0).
      */
     private $actions = [];
 
@@ -37,7 +37,8 @@ class ActionsMap extends BaseObject
 
     /**
      * @param callable[]|string[] $actions Map of actions. Keys are node reference like
-     * `Name` or `Name(tag)`. Values are either callable or command name.
+     * `Name` or `Name(tag)`. Values are either callable (since 1.3.0)
+     * or command name (since 1.4.0).
      * Node reference must be the same as declared in corresponding rule in grammar.
      * That is action for node `Foo` will not apply to nodes created by `Foo(tag)`
      * rule. Last might be improved in future versions.
@@ -73,7 +74,7 @@ class ActionsMap extends BaseObject
      * @return bool|null Returns `null` when no action defined. Returns `false` when
      * action result `null` and so it was not applied. Returns `true` wher action result
      * was not `null` and it was applied.
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function applyToNode($node)
     {
@@ -112,7 +113,7 @@ class ActionsMap extends BaseObject
      * Get action handler for node
      * @param TreeNodeInterface $node Subject node
      * @return callable|string|null Action handler or `null`.
-     * @since 1.3.2
+     * @since 1.4.0
      */
     private function getAction($node)
     {
@@ -135,7 +136,7 @@ class ActionsMap extends BaseObject
      * @param callable|string $action Action from the map
      * @param TreeNodeInterface $node Subject node
      * @return mixed Result of the action call
-     * @since 1.3.2
+     * @since 1.4.0
      */
     private function runActionHandler($action, $node)
     {

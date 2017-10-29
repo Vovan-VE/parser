@@ -68,7 +68,7 @@ class Symbol extends BaseObject
     /**
      * @param string $name Name for the symbol, case sensitive
      * @param bool $isTerminal Whether the symbol is terminal or not
-     * @param bool $isHidden [since 1.3.2] Whether the symbol is hidden or not.
+     * @param bool $isHidden [since 1.4.0] Whether the symbol is hidden or not.
      * Hidden symbols does not produce nodes in the resulting tree.
      */
     public function __construct($name, $isTerminal = false, $isHidden = false)
@@ -108,7 +108,7 @@ class Symbol extends BaseObject
     /**
      * Whether the symbol is hidden or not
      * @return bool
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function isHidden()
     {

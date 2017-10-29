@@ -227,7 +227,7 @@ class Grammar extends BaseObject
      *
      * You should to use `create()` instead.
      * @param Rule[] $rules Manually constructed rules
-     * @param string[] $inlines [since 1.3.2] List of inline token values
+     * @param string[] $inlines [since 1.4.0] List of inline token values
      * @throws GrammarException Errors in grammar syntax or logic
      * @see create()
      */
@@ -281,7 +281,7 @@ class Grammar extends BaseObject
     /**
      * Strings list of defined inline tokens, unquoted
      * @return string[]
-     * @since 1.3.2
+     * @since 1.4.0
      */
     public function getInlines()
     {
@@ -369,7 +369,7 @@ class Grammar extends BaseObject
      * @param string $input Input string with rule definition body
      * @param array $inlines Variable to store values of inline tokens. Key are same as values
      * @return string[] List of tokens strings
-     * @since 1.3.2
+     * @since 1.4.0
      */
     private static function parseDefinitionItems($input, array &$inlines)
     {

@@ -73,7 +73,8 @@ class Parser extends BaseObject
      * Non-terminals `Foo` built by rules without a tag. And so `Foo(bar)` would be applied
      * to non-terminals `Foo` built by rules with tag `(bar)` (since terminals cannot have tags).
      *
-     * Value in actions map is either shortcut action name or a callable with signature:
+     * Value in actions map is either shortcut action name (since 1.4.0) or a callable
+     * with signature (since 1.3.0):
      *
      * ```php
      * function (TreeNodeInterface $subject, TreeNodeInterface ...$children): mixed`
