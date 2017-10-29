@@ -1,6 +1,11 @@
 LR(0) parser Change Log
 =======================
 
+1.4.1
+-----
+
+*   Fix: Inline semicolor in grammar `A: ";"` cause grammar syntax error.
+
 1.4.0
 -----
 

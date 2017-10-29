@@ -80,6 +80,57 @@ class GrammarTest extends BaseTestCase
         Grammar::create("E: A \$; A: B; B: A");
     }
 
+    public function testInlineSemicolon()
+    {
+        foreach (
+            [
+                <<<'_END'
+                    E: A $
+                    A: "x;"
+                    A: 'y;'
+                    A: <z;>
+_END
+                ,
+                <<<'_END'
+                    E: A $
+                    A: "x;"
+                    A: 'y;'
+                    A: <z;>
+
+_END
+                ,
+                <<<'_END'
+                    E: A $
+                    A: "x;"
+                    A: 'y;'
+                    A: <z;>
+                    A: a
+_END
+                ,
+                <<<'_END'
+                    E: A $
+                    A: "x;"
+                    A: 'y;'
+                    A: <z;>
+                    A: a
+
+_END
+                ,
+                ' E: A $;  A: "x;";  A: \'y;\';  A: <z;>',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>; ',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a;',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a; ',
+            ]
+            as $text
+        ) {
+            $grammar = Grammar::create($text);
+            $this->assertInstanceOf(Grammar::class, $grammar);
+        }
+    }
+
     public function testCreateWithHidden()
     {
         $grammar = Grammar::create(
