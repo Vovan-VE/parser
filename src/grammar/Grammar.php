@@ -38,6 +38,8 @@ use VovanVE\parser\common\Symbol;
  * );
  * ```
  *
+ * Rules in grammar text can be separated either by new-line characters or semicolon `;`.
+ *
  * Here is an example rule:
  *
  * ```
@@ -78,6 +80,31 @@ use VovanVE\parser\common\Symbol;
  */
 class Grammar extends BaseObject
 {
+    // REFACT: minimal PHP >= 7.0: const expression: extract and reuse defines
+
+    // REFACT: minimal PHP >= 7.1: private const
+    const RE_RULE_LINE = '/
+        \\G
+        \\h*+
+        (?<rule>
+            (?:
+                [^\\v;"\'<>]++
+            |
+                " [^\\v"]*+
+                (?: " | $ )
+            |
+                \' [^\\v\']*+
+                (?: \' | $ )
+            |
+                < [^\\v<>]*+
+                (?: > | $ )
+            )*+
+        )
+        (?= $ | [\\v;])
+        [\\v;]*+
+        (?<eof> $ )?
+    /xD';
+
     // REFACT: minimal PHP >= 7.1: private const
     const RE_INPUT_RULE = '/
         (?(DEFINE)
@@ -141,13 +168,7 @@ class Grammar extends BaseObject
      */
     public static function create($text)
     {
-        $rules_strings = preg_split(
-            '/[;\\r\\n\\f]+/u',
-            $text,
-            0,
-            PREG_SPLIT_NO_EMPTY
-        );
-        $rules_strings = preg_replace('/^\\s+|\\s+$/u', '', $rules_strings);
+        $rules_strings = self::splitIntoRules($text);
 
         $inlines = [];
         $rules = [];
@@ -362,6 +383,37 @@ class Grammar extends BaseObject
     public function __toString()
     {
         return join(PHP_EOL, $this->rules);
+    }
+
+    /**
+     * @param string $grammarText
+     * @return array|false|mixed|string[]
+     */
+    private static function splitIntoRules($grammarText)
+    {
+        if (false === preg_match_all(self::RE_RULE_LINE, $grammarText, $matches, PREG_SET_ORDER)) {
+            throw new InternalException('PCRE error', preg_last_error());
+        }
+
+        if (!$matches) {
+            throw new GrammarException('Cannot parse grammar text near start');
+        }
+
+        $last_match = $matches[count($matches) - 1];
+
+        $rules = array_column($matches, 'rule');
+        $rules = preg_replace('/^\\s+|\\s+$/u', '', $rules);
+        $rules = array_filter($rules, 'strlen');
+
+        if (!isset($last_match['eof'])) {
+            if ($rules) {
+                throw new GrammarException(
+                    "Cannot parse grammar after rule `{$rules[count($rules) - 1]}`"
+                );
+            }
+            throw new GrammarException('Could not parse grammar after some empty start');
+        }
+        return $rules;
     }
 
     /**
