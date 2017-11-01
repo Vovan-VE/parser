@@ -1,6 +1,11 @@
 LR(0) parser Change Log
 =======================
 
+1.4.2
+-----
+
+*   Fix: Hidden non-terminal completely broken is grammar.
+
 1.4.1
 -----
 

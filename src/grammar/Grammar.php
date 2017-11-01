@@ -173,6 +173,7 @@ class Grammar extends BaseObject
         $inlines = [];
         $rules = [];
 
+        /** @var Symbol[][] $symbols */
         $symbols = [];
         $get_symbol = function ($name, $isInline = false) use (&$symbols, &$inlines) {
             if ($isInline) {
@@ -202,6 +203,8 @@ class Grammar extends BaseObject
                 : ($symbols[$plain_name][$is_hidden] = new Symbol($plain_name, true, $is_hidden));
         };
 
+        $non_terminals_names = [];
+
         foreach ($rules_strings as $rule_string) {
             if ('' === $rule_string) {
                 continue;
@@ -215,6 +218,7 @@ class Grammar extends BaseObject
                 /** @var Symbol $subject */
                 $subject = $get_symbol($match['subj']);
                 $subject->setIsTerminal(false);
+                $non_terminals_names[$subject->getName()] = true;
 
                 $rule_inlines = [];
                 $definition_list = self::parseDefinitionItems($match['def'], $rule_inlines);
@@ -238,6 +242,13 @@ class Grammar extends BaseObject
                 $eof,
                 isset($match['tag']) ? $match['tag'] : null
             );
+        }
+
+        // Hidden symbols all are terminals still
+        foreach ($non_terminals_names as $name => $_) {
+            if (isset($symbols[$name][true])) {
+                $symbols[$name][true]->setIsTerminal(false);
+            }
         }
 
         return new static($rules, $inlines);
