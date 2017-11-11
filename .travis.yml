@@ -12,10 +12,10 @@ matrix:
     - php: nightly
   fast_finish: true
 
-#branches:
-#  only:
-#    - master
-#    - rc
+branches:
+  only:
+    - master
+    - /^v\d+\./
 
 sudo: false
 
