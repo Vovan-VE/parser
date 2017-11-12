@@ -312,7 +312,7 @@ _END
 
     public function testInlinesOrderDoesNotMatter()
     {
-        $lexer = new Lexer([]);
+        $lexer = new Lexer();
         $actions = [
             'A(a)' => function () {
                 return 1;

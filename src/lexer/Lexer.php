@@ -12,9 +12,9 @@ use VovanVE\parser\common\Token;
  * Tokens are atomic parts of a grammar.
  *
  * ```php
- * $lexer = new Lexer(
+ * $lexer = (new Lexer)
  *     // all terminals to parse
- *     [
+ *     ->terminals([
  *         // inline tokens literally, order does not matter
  *         // inline tokens are always hidden
  *         '++',
@@ -29,18 +29,17 @@ use VovanVE\parser\common\Token;
  *         'const' => '(?&name)',
  *         'var'   => '\\$(?&name)',
  *         '.foo'  => ';',            // hidden named token
- *     ],
+ *     ])
  *     // whitespaces and comments to skip completely
- *     [
+ *     ->whitespaces([
  *         '\\s++',           // linear whitespaces
  *         '#\\N*+\\n?+',     // line #comments
- *     ],
+ *     ])
  *     // DEFINEs can only be referenced from tokens as named recursion `(?&name)`
- *     [
+ *     ->defines([
  *         'name' => '[a-z_][a-z_0-9]*+',
- *     ],
- *     'iu'
- * );
+ *     ])
+ *     ->modifiers('i');
  *
  * Mostly you can define only named tokens. Inline tokens will be added later
  * from grammar inline tokens.
@@ -106,15 +105,17 @@ class Lexer extends BaseObject
     /**
      * Constructor
      *
-     * See class description for details
+     * See class description for details.
+     *
+     * > Deprecation notice: Utilizing all of arguments is deprecated in favor
+     * > to corresponding methods. Arguments will be removed in future.
      * @param array $terminals Terminals definitions. Key=>value pairs are named tokens.
      * Plain value with auto index is inline tokens literally.
      * @param array $whitespaces List of regexp parts to define whitespaces and comments to skip
      * @param array $defines Map of DEFINEs regexp parts to reference from terminals and whitespaces.
-     * @param string $modifiers Mogifiers to both whole regexps. Here should be (but not required)
+     * @param string $modifiers Modifiers to both whole regexps. Here should be (but not required)
      * used only "global" modifiers like `u`, `x`, `D` etc. Other modifiers like `i` is better
      * to use locally like `(?i)[a-z]` or `(?i:[a-z])`.
-     * @see \VovanVE\parser\LexerBuilder
      */
     public function __construct(
         array $terminals = [],

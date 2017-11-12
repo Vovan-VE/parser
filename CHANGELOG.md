@@ -4,6 +4,8 @@ LR(0) parser Change Log
 1.5.0
 -----
 
+*   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided
+    in favor to corresponding extending method.
 *   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding
     extending method.
 
