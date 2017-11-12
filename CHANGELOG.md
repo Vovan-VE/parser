@@ -4,7 +4,8 @@ LR(0) parser Change Log
 1.5.0
 -----
 
-no changes yet
+*   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding
+    extending method.
 
 1.4.2
 -----

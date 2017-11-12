@@ -128,6 +128,15 @@ class Lexer extends BaseObject
         $this->modifiers = $modifiers;
     }
 
+    public function __clone()
+    {
+        $this->isCompiled = false;
+        $this->regexpWhitespace = null;
+        $this->regexp = null;
+        $this->hiddens = [];
+        $this->aliased = [];
+    }
+
     /**
      * Create new Lexer extending this one
      * @param array $terminals Additional terminals. Both inline and named are acceptable.
@@ -139,6 +148,7 @@ class Lexer extends BaseObject
      * @param string $modifiers Additional modifiers to whole regexps.
      * @return static New Lexer object not compiled yet.
      * @since 1.4.0
+     * @deprecated >= 1.5.0: Use corresponding extension method
      */
     public function extend(
         array $terminals = [],
@@ -146,32 +156,11 @@ class Lexer extends BaseObject
         array $defines = [],
         $modifiers = ''
     ) {
-        $new_terminals = $this->terminals;
-        foreach ($terminals as $name => $re) {
-            if (is_int($name)) {
-                $new_terminals[] = $re;
-            } elseif (isset($new_terminals[$name])) {
-                throw new \InvalidArgumentException(
-                    'Cannot redefine terminal: ' . var_export($name, true)
-                );
-            } else {
-                $new_terminals[$name] = $re;
-            }
-        }
-
-        $dup_keys = array_intersect_key($this->defines, $defines);
-        if ($dup_keys) {
-            throw new \InvalidArgumentException(
-                "Cannot redefine defines: " . var_export($dup_keys, true)
-            );
-        }
-
-        return new static(
-            $new_terminals,
-            array_merge($this->whitespaces, $whitespaces),
-            $this->defines + $defines,
-            $this->modifiers . $modifiers
-        );
+        return $this
+            ->defines($defines)
+            ->terminals($terminals)
+            ->whitespaces($whitespaces)
+            ->modifiers($modifiers);
     }
 
     /**
@@ -182,7 +171,20 @@ class Lexer extends BaseObject
      */
     public function defines(array $defines)
     {
-        return $this->extend([], [], $defines);
+        if (!$defines) {
+            return $this;
+        }
+
+        $dup_keys = array_intersect_key($this->defines, $defines);
+        if ($dup_keys) {
+            throw new \InvalidArgumentException(
+                "Cannot redefine defines: " . var_export($dup_keys, true)
+            );
+        }
+
+        $copy = clone $this;
+        $copy->defines += $defines;
+        return $copy;
     }
 
     /**
@@ -194,7 +196,13 @@ class Lexer extends BaseObject
      */
     public function whitespaces(array $whitespaces)
     {
-        return $this->extend([], $whitespaces);
+        if (!$whitespaces) {
+            return $this;
+        }
+
+        $copy = clone $this;
+        $copy->whitespaces = array_merge($copy->whitespaces, $whitespaces);
+        return $copy;
     }
 
     /**
@@ -207,7 +215,15 @@ class Lexer extends BaseObject
      */
     public function terminals($terminals)
     {
-        return $this->extend($terminals);
+        if (!$terminals) {
+            return $this;
+        }
+
+        $new_terminals = $this->addMixedTokens($this->terminals, $terminals, 'terminal');
+
+        $copy = clone $this;
+        $copy->terminals = $new_terminals;
+        return $copy;
     }
 
     /**
@@ -218,7 +234,13 @@ class Lexer extends BaseObject
      */
     public function modifiers($modifiers)
     {
-        return $this->extend([], [], [], $modifiers);
+        if ('' === (string)$modifiers) {
+            return $this;
+        }
+
+        $copy = clone $this;
+        $copy->modifiers .= $modifiers;
+        return $copy;
     }
 
     /**
@@ -359,6 +381,35 @@ class Lexer extends BaseObject
             $pos = $match->nextOffset;
             yield $match->token;
         }
+    }
+
+    /**
+     * Extends array of mixed tokens definition with another array of tokens
+     *
+     * Array of mixed tokens has both named (name=>definition) and anonymous
+     * tokens (only definition in value).
+     * @param array $oldTokens Existing tokens array
+     * @param array $addTokens New tokens to add
+     * @param string $errorType Tokens type to insert in error message.
+     * @return array
+     * @throws \InvalidArgumentException In case of name duplication.
+     * @since 1.5.0
+     */
+    private function addMixedTokens($oldTokens, $addTokens, $errorType)
+    {
+        $new_terminals = $oldTokens;
+        foreach ($addTokens as $name => $re) {
+            if (is_int($name)) {
+                $new_terminals[] = $re;
+            } elseif (isset($new_terminals[$name])) {
+                throw new \InvalidArgumentException(
+                    "Cannot redefine $errorType: " . var_export($name, true)
+                );
+            } else {
+                $new_terminals[$name] = $re;
+            }
+        }
+        return $new_terminals;
     }
 
     /**
