@@ -54,7 +54,7 @@ class Parser extends BaseObject
 
         $inlines = $grammar->getInlines();
         if ($inlines) {
-            $my_lexer = $my_lexer->extend($inlines);
+            $my_lexer = $my_lexer->inline($inlines);
         }
         $this->lexer = $my_lexer;
 

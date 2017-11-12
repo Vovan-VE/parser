@@ -4,10 +4,13 @@ LR(0) parser Change Log
 1.5.0
 -----
 
+*   Add: Named fixed tokens in `VovanVE\parser\lexer\Lexer`.
+*   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
 *   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided
     in favor to corresponding extending method.
 *   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding
     extending method.
+*   Deprecated: Defining inline tokens within regexp terminals in `VovanVE\parser\lexer\Lexer`.
 
 1.4.2
 -----
