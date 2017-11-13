@@ -5,7 +5,6 @@ use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\lexer\Lexer;
-use VovanVE\parser\LexerBuilder;
 use VovanVE\parser\Parser;
 use VovanVE\parser\SyntaxException;
 use VovanVE\parser\tests\helpers\BaseTestCase;
@@ -18,21 +17,25 @@ class ParserTest extends BaseTestCase
      */
     public function testCreate()
     {
-        $lexer = (new LexerBuilder)
+        $lexer = (new Lexer)
+            ->fixed([
+                'mul' => '*',
+                'div' => '/',
+            ])
             ->terminals([
                 'id' => '[a-z_][a-z_\\d]*+',
                 'int' => '\\d++',
                 'add' => '[-+]',
-                'mul' => '[*\\/]',
             ])
-            ->modifiers('i')
-            ->create();
+            ->whitespaces(['\\s+'])
+            ->modifiers('i');
 
         $grammar = Grammar::create(<<<'_END'
 E     : S $
 S(add): S add P
 S     : P
 P(mul): P mul V
+P(div): P div V
 P     : V
 V(int): int
 V(var): id
@@ -83,7 +86,7 @@ DUMP
  `- S(add)
      `- S(add)
      |   `- S
-     |   |   `- P(mul)
+     |   |   `- P(div)
      |   |       `- P(mul)
      |   |       |   `- P
      |   |       |   |   `- V(var)
@@ -91,15 +94,15 @@ DUMP
      |   |       |   `- mul <*>
      |   |       |   `- V(var)
      |   |       |       `- id <B>
-     |   |       `- mul </>
+     |   |       `- div </>
      |   |       `- V(int)
      |   |           `- int <23>
      |   `- add <+>
-     |   `- P(mul)
+     |   `- P(div)
      |       `- P
      |       |   `- V(var)
      |       |       `- id <B>
-     |       `- mul </>
+     |       `- div </>
      |       `- V(int)
      |           `- int <37>
      `- add <->
@@ -139,16 +142,18 @@ DUMP
 
     public function testParseWithActions()
     {
-        $lexer = (new LexerBuilder)
+        $lexer = (new Lexer)
+            ->fixed([
+                'mul' => '*',
+                'div' => '/',
+            ])
             ->terminals([
                 'int' => '\\d++',
                 'add' => '\\+',
                 'sub' => '-',
-                'mul' => '\\*',
-                'div' => '\\/',
             ])
-            ->modifiers('i')
-            ->create();
+            ->whitespaces(['\\s+'])
+            ->modifiers('i');
 
         $grammar = Grammar::create(<<<'_END'
 E      : S $
@@ -198,16 +203,18 @@ _END
     public function testParseWithHiddensAndActions()
     {
         // some tokens are hidden completely on its definition
-        $lexer = (new LexerBuilder)
+        $lexer = (new Lexer)
+            ->fixed([
+                'add' => '+',
+                '.mul' => '*',
+            ])
             ->terminals([
                 'int' => '\\d++',
-                'add' => '\\+',
                 'sub' => '-',
-                '.mul' => '\\*',
                 '.div' => '\\/',
             ])
-            ->modifiers('i')
-            ->create();
+            ->whitespaces(['\\s+'])
+            ->modifiers('i');
 
         // some tokens are hidden locally in specific rules
         $grammar = Grammar::create(<<<'_END'
@@ -258,11 +265,11 @@ _END
     public function testParseWithInlinesAndActions()
     {
         // some tokens are hidden completely on its definition
-        $lexer = (new LexerBuilder)
+        $lexer = (new Lexer)
             ->terminals([
                 'int' => '\\d++',
             ])
-            ->create();
+            ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
         $grammar = Grammar::create(<<<'_END'
@@ -293,6 +300,65 @@ _END
                 return $a->made() * $b->made();
             },
             'P(div)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() / $b->made();
+            },
+            'S(P)' => function ($s, TreeNodeInterface $p) {
+                return $p->made();
+            },
+            'S(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() + $b->made();
+            },
+            'S(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() - $b->made();
+            },
+        ];
+
+        $result = $parser->parse('42 * 23 / 3  + 90 / 15 - 17 * 19 ', $actions)->made();
+        $this->assertEquals(5, $result, 'calculated result');
+    }
+
+    public function testParseWithInlinesAndFixedAndActions()
+    {
+        // some tokens are hidden completely on its definition
+        $lexer = (new Lexer)
+            ->terminals([
+                'int' => '\\d++',
+            ])
+            ->whitespaces(['\\s+']);
+
+        // some tokens are hidden locally in specific rules
+        $grammar = Grammar::create(<<<'_END'
+E      : S $
+S(add) : S .add P
+S(sub) : S .sub P
+S(P)   : P
+P(mul) : P mul V
+P(div) : P div V
+P(V)   : V
+V(int) : int
+add    : '+'
+sub    : "-"
+mul    : <*>
+div    : '/'
+_END
+        );
+
+        $parser = new Parser($lexer, $grammar);
+
+        $actions = [
+            'int' => function (Token $int) {
+                return (int)$int->getContent();
+            },
+            'V(int)' => function ($v, TreeNodeInterface $int) {
+                return $int->made();
+            },
+            'P(V)' => function ($p, TreeNodeInterface $v) {
+                return $v->made();
+            },
+            'P(mul)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+                return $a->made() * $b->made();
+            },
+            'P(div)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
                 return $a->made() / $b->made();
             },
             'S(P)' => function ($s, TreeNodeInterface $p) {

@@ -202,6 +202,7 @@ _END
         );
         $this->assertCount(5, $grammar->getTerminals(), 'total terminals');
         $this->assertCount(2, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
 
         $rules = $grammar->getRules();
 
@@ -214,6 +215,67 @@ _END
 
         $quote = $rules[8]->getDefinition()[1];
         $this->assertEquals('"', $quote->getName(), 'is quote from angle brackets');
+    }
+
+    public function testCreateWithFixed()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: a b $
+            a: "+"
+            b: "-"
+_END
+        );
+        $this->assertCount(2, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(0, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(2, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(1, $grammar->getRules(), 'rules count');
+
+    }
+
+    public function testCreateNoFixedDueToDefinitionItems()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: A $
+            A: "+" "-"
+_END
+        );
+        $this->assertCount(2, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(2, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(2, $grammar->getRules(), 'rules count');
+
+    }
+
+    public function testCreateNoFixedDueToMultiRef()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: A "+" $
+            A: "+"
+_END
+        );
+        $this->assertCount(1, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(1, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(2, $grammar->getRules(), 'rules count');
+
+    }
+
+    public function testCreateNoFixedDueToTag()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G   : A $
+            A(x): "+"
+_END
+        );
+        $this->assertCount(1, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(1, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(2, $grammar->getRules(), 'rules count');
+
     }
 
     public function testCreateInlineWithConflictSingle()

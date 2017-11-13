@@ -74,6 +74,9 @@ use VovanVE\parser\common\Symbol;
  * *   Named symbols can be marked as hidden too. Add a dot `.` in front of name: `.foo`.
  *     This can be done locally in a rule (both for terminals and non-terminals) or "globally"
  *     in Lexer (for terminals only).
+ * *   Rule with the only inline token and without tag like `name: "text"` can be removed
+ *     internally to define fixed terminal in Lexer instead when the inline has no other
+ *     references and subject symbol has no other rules.
  *
  * @package VovanVE\parser
  * @link https://en.wikipedia.org/wiki/LR_parser
@@ -149,6 +152,8 @@ class Grammar extends BaseObject
     private $rules;
     /** @var string[] Strings list of defined inline tokens, unquoted */
     private $inlines = [];
+    /** @var array Fixed tokens definition map */
+    private $fixed = [];
     /** @var Rule Reference to the mail rule */
     private $mainRule;
     /** @var Symbol[] Map of all Symbols from all rules. Key is a symbol name. */
@@ -172,6 +177,11 @@ class Grammar extends BaseObject
 
         $inlines = [];
         $rules = [];
+
+        $inline_ref_count = [];
+        /** @var Rule[] $inline_ref_rule */
+        $inline_ref_rule = [];
+        $subject_rules_count = [];
 
         /** @var Symbol[][] $symbols */
         $symbols = [];
@@ -236,12 +246,34 @@ class Grammar extends BaseObject
                 throw new GrammarException($e->getMessage() . " - rule '$rule_string'");
             }
 
-            $rules[] = new Rule(
+            $rule = new Rule(
                 $subject,
                 $definition,
                 $eof,
                 isset($match['tag']) ? $match['tag'] : null
             );
+            $rules[] = $rule;
+
+            $subject_name = $subject->getName();
+            // REFACT: PHP >= 7.0: use `??`
+            if (isset($subject_rules_count[$subject_name])) {
+                ++$subject_rules_count[$subject_name];
+            } else {
+                $subject_rules_count[$subject_name] = 1;
+            }
+
+            foreach ($rule_inlines as $inline_token) {
+                // REFACT: PHP >= 7.0: use `??`
+                if (isset($inline_ref_count[$inline_token])) {
+                    ++$inline_ref_count[$inline_token];
+                } else {
+                    $inline_ref_count[$inline_token] = 1;
+                }
+
+                // it is needed in case of the only reference,
+                // so array of an subject is not needed
+                $inline_ref_rule[$inline_token] = $rule;
+            }
         }
 
         // Hidden symbols all are terminals still
@@ -251,7 +283,40 @@ class Grammar extends BaseObject
             }
         }
 
-        return new static($rules, $inlines);
+        // Convert non-terminals defined only once with inline tokens
+        // `Subject: "inline"`
+        // into fixed terminals
+        $fixed = [];
+        foreach ($inline_ref_count as $inline_token => $ref_count) {
+            if (1 === $ref_count) {
+                $rule = $inline_ref_rule[$inline_token];
+                if (1 === count($rule->getDefinition()) && null === $rule->getTag()) {
+                    $subject = $rule->getSubject();
+                    $name = $subject->getName();
+
+                    if (1 === $subject_rules_count[$name]) {
+                        // remove rule
+                        $key = array_search($rule, $rules, true);
+                        if (false !== $key) {
+                            unset($rules[$key]);
+                        }
+
+                        // remove inline
+                        unset($inlines[$inline_token]);
+
+                        // make terminal
+                        $subject->setIsTerminal(true);
+                        if (isset($symbols[$name][true])) {
+                            $symbols[$name][true]->setIsTerminal(true);
+                        }
+
+                        $fixed[$name] = $inline_token;
+                    }
+                }
+            }
+        }
+
+        return new static($rules, $inlines, $fixed);
     }
 
     /**
@@ -260,13 +325,15 @@ class Grammar extends BaseObject
      * You should to use `create()` instead.
      * @param Rule[] $rules Manually constructed rules
      * @param string[] $inlines [since 1.4.0] List of inline token values
+     * @param string[] $fixed [since 1.5.0] Fixed token map
      * @throws GrammarException Errors in grammar syntax or logic
      * @see create()
      */
-    public function __construct(array $rules, array $inlines = [])
+    public function __construct(array $rules, array $inlines = [], array $fixed = [])
     {
-        $this->rules = $rules;
+        $this->rules = array_values($rules);
         $this->inlines = array_values($inlines);
+        $this->fixed = $fixed;
         $symbols = [];
         $terminals = [];
         $non_terminals = [];
@@ -318,6 +385,16 @@ class Grammar extends BaseObject
     public function getInlines()
     {
         return $this->inlines;
+    }
+
+    /**
+     * Fixed tokens definition map
+     * @return string[]
+     * @since 1.5.0
+     */
+    public function getFixed()
+    {
+        return $this->fixed;
     }
 
     /**

@@ -2,8 +2,6 @@ TODO
 ----
 
 *   Declarations for all terminals in a grammar.
-    *   Named static terminals `name: "text"` which are currently called "inline".
-        Report an error when named static overlaps with anonymous inline.
     *   RegExp terminals in grammar: `int: /\d++/`.
     *   Finally move Lexer to internals.
 *   Charset control for input text.
@@ -13,3 +11,6 @@ TODO
     ```php
     'Sum(add)' => function ($a, $b) { return $a + $b; },
     ```
+
+    Can be done for all actions by options in `[0]` element. Or can be done
+    in same manner for all next elements after `[int => options]` element.

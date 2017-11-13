@@ -4,6 +4,10 @@ LR(0) parser Change Log
 1.5.0
 -----
 
+*   BC break: Non-terminal in `VovanVE\parser\grammar\Grammar` with the only definition
+    which consists of the only inline token like `name: "text"` can be converted from rule
+    into fixed terminal. This may cause problems if you rely that the rules subjects are
+    always non-terminal or rely either on rules count or specific rules.
 *   Add: Named fixed tokens in `VovanVE\parser\lexer\Lexer`.
 *   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
 *   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided

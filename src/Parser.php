@@ -50,13 +50,9 @@ class Parser extends BaseObject
             );
         }
 
-        $my_lexer = $lexer;
-
-        $inlines = $grammar->getInlines();
-        if ($inlines) {
-            $my_lexer = $my_lexer->inline($inlines);
-        }
-        $this->lexer = $my_lexer;
+        $this->lexer = $lexer
+            ->fixed($grammar->getFixed())
+            ->inline($grammar->getInlines());
 
         $this->table = new Table($grammar);
     }
