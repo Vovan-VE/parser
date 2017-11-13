@@ -52,6 +52,7 @@ class Parser extends BaseObject
 
         $this->lexer = $lexer
             ->fixed($grammar->getFixed())
+            ->terminals($grammar->getRegExpMap())
             ->inline($grammar->getInlines());
 
         $this->table = new Table($grammar);

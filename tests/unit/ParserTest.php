@@ -19,12 +19,10 @@ class ParserTest extends BaseTestCase
     {
         $lexer = (new Lexer)
             ->fixed([
-                'mul' => '*',
                 'div' => '/',
             ])
             ->terminals([
                 'id' => '[a-z_][a-z_\\d]*+',
-                'int' => '\\d++',
                 'add' => '[-+]',
             ])
             ->whitespaces(['\\s+'])
@@ -39,6 +37,8 @@ P(div): P div V
 P     : V
 V(int): int
 V(var): id
+int   : /\d++/
+mul   : "*"
 _END
         );
 
@@ -376,6 +376,59 @@ _END
         $this->assertEquals(5, $result, 'calculated result');
     }
 
+    public function testParseWithAllInlineAndActions()
+    {
+        // some tokens are hidden completely on its definition
+        $lexer = (new Lexer)
+            ->whitespaces(['\\s+']);
+
+        // some tokens are hidden locally in specific rules
+        $grammar = Grammar::create(<<<'_END'
+E      : S $
+S(add) : S '+' P
+S(sub) : S "-" P
+S(P)   : P
+P(mul) : P <*> V
+P(div) : P '/' V
+P(V)   : V
+V(int) : int
+int    : /\d++/
+_END
+        );
+
+        $parser = new Parser($lexer, $grammar);
+
+        $actions = [
+            'int' => function (Token $int) {
+                return (int)$int->getContent();
+            },
+            'V(int)' => function ($v, TreeNodeInterface $int) {
+                return $int->made();
+            },
+            'P(V)' => function ($p, TreeNodeInterface $v) {
+                return $v->made();
+            },
+            'P(mul)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() * $b->made();
+            },
+            'P(div)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() / $b->made();
+            },
+            'S(P)' => function ($s, TreeNodeInterface $p) {
+                return $p->made();
+            },
+            'S(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() + $b->made();
+            },
+            'S(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() - $b->made();
+            },
+        ];
+
+        $result = $parser->parse('42 * 23 / 3  + 90 / 15 - 17 * 19 ', $actions)->made();
+        $this->assertEquals(5, $result, 'calculated result');
+    }
+
     public function testInlinesOrderDoesNotMatter()
     {
         $lexer = new Lexer();
@@ -407,5 +460,21 @@ _END
             $out = $parser->parse('aa', $actions)->made();
             $this->assertEquals(2, $out);
         }
+    }
+
+    public function testConflictTerminals()
+    {
+        $lexer = (new Lexer)
+            ->terminals([
+                'int' => '\\d+',
+            ]);
+        $grammar = Grammar::create(<<<'_END'
+            G: int $
+            int: /\d+/
+_END
+        );
+
+        $this->setExpectedException(\InvalidArgumentException::class);
+        new Parser($lexer, $grammar);
     }
 }

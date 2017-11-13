@@ -8,6 +8,7 @@ LR(0) parser Change Log
     which consists of the only inline token like `name: "text"` can be converted from rule
     into fixed terminal. This may cause problems if you rely that the rules subjects are
     always non-terminal or rely either on rules count or specific rules.
+*   Add: Terminals can be defined with RegExp literal in grammar text.
 *   Add: Named fixed tokens in `VovanVE\parser\lexer\Lexer`.
 *   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
 *   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided

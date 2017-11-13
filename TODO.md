@@ -2,7 +2,6 @@ TODO
 ----
 
 *   Declarations for all terminals in a grammar.
-    *   RegExp terminals in grammar: `int: /\d++/`.
     *   Finally move Lexer to internals.
 *   Charset control for input text.
 *   Introduce actions with only children' `made()` values as arguments.

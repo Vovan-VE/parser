@@ -20,13 +20,11 @@ $grammar = Grammar::create(<<<'_END'
     Value       : "+" Value
     Value       : "(" Sum ")"
     Value       : int
+    int         : /\d+/
 _END
 );
 
 $lexer = (new Lexer)
-    ->terminals([
-        'int' => '\\d+',
-    ])
     //->modifiers('i')
     ->whitespaces(['\\s+']);
 
