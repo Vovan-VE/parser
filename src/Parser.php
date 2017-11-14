@@ -4,6 +4,7 @@ namespace VovanVE\parser;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
+use VovanVE\parser\common\Symbol;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\grammar\Grammar;
@@ -122,9 +123,7 @@ class Parser extends BaseObject
                     if ($stack->getStateRow()->eofAction) {
                         if ($token) {
                             throw new SyntaxException(
-                                'Expected <EOF> but got <'
-                                . $this->dumpTokenForError($token)
-                                . '>',
+                                'Expected <EOF> but got ' . $this->dumpTokenForError($token),
                                 $token->getOffset()
                             );
                         }
@@ -142,9 +141,14 @@ class Parser extends BaseObject
             // when current terminal is not expected. So, some terminals
             // are expected here.
 
-            // TODO: what expected
+            $expected_terminals = [];
+            foreach ($stack->getStateRow()->terminalActions as $name => $_) {
+                $expected_terminals[] = Symbol::dumpType($name);
+            }
+
             throw new SyntaxException(
-                'Unexpected <' . $this->dumpTokenForError($token) . '>',
+                'Unexpected ' . $this->dumpTokenForError($token)
+                . ($expected_terminals ? '; expected: ' . join(', ', $expected_terminals) : ''),
                 $token ? $token->getOffset() : $eof_offset
             );
         } catch (StateException $e) {
@@ -161,9 +165,12 @@ class Parser extends BaseObject
      */
     private function dumpTokenForError($token)
     {
-        if ($token) {
-            return $token->getType() . ' "' . $token->getContent() . '"';
+        if (!$token) {
+            return '<EOF>';
         }
-        return '<EOF>';
+        if ($token->isInline()) {
+            return Symbol::dumpInline($token->getType());
+        }
+        return '<' . $token->getType() . ' "' . $token->getContent() . '">';
     }
 }

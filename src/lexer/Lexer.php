@@ -557,6 +557,7 @@ class Lexer extends BaseObject
      * @param array $hidden Variable to store hidden named tokens. Key is name without leading
      * dot and value is non-null.
      * @param array $normal Variable to store normal named tokens. Key is name and value is non-null.
+     * @param array $named Variable to store all named tokens. Key is name and value is definition.
      * @since 1.4.0
      */
     private function splitTerminals(array $terminals, &$inline, &$hidden, &$normal, &$named)
@@ -732,10 +733,12 @@ class Lexer extends BaseObject
 
         $content = reset($named);
         $type = key($named);
+        $is_inline = false;
         if (isset($this->aliased[$type])) {
             $type = $this->aliased[$type];
+            $is_inline = true;
         }
-        $token = new Token($type, $content, $match, $pos, isset($this->hiddens[$type]));
+        $token = new Token($type, $content, $match, $pos, isset($this->hiddens[$type]), $is_inline);
 
         $result = new Match();
         $result->token = $token;

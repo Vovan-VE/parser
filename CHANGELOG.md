@@ -12,6 +12,8 @@ LR(0) parser Change Log
 *   Add: Named fixed tokens in `VovanVE\parser\lexer\Lexer`.
 *   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
 *   Enh: RegExp validation throws exception from `VovanVE\parser\lexer\Lexer`.
+*   Enh: Enum expected tokens in `VovanVE\parser\SyntaxException` in case of unexpected token
+    in parsing text.
 *   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided
     in favor to corresponding extending method.
 *   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding

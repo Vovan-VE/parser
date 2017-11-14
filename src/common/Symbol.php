@@ -134,12 +134,37 @@ class Symbol extends BaseObject
         if (preg_match('/^[a-z][a-z_0-9]*$/i', $name)) {
             return $name;
         }
-        if (false === strpos($name, '"')) {
-            return '"' . $name . '"';
+        return self::dumpInline($name);
+    }
+
+    /**
+     * Dump symbol type for debug purpose
+     * @param string $type
+     * @return string
+     * @since 1.5.0
+     */
+    public static function dumpType($type)
+    {
+        if (preg_match('/^[a-z][a-z_0-9]*$/i', $type)) {
+            return "<$type>";
         }
-        if (false === strpos($name, "'")) {
-            return "'$name'";
+        return self::dumpInline($type);
+    }
+
+    /**
+     * Dump inline symbol for debug purpose
+     * @param string $inline
+     * @return string
+     * @since 1.5.0
+     */
+    public static function dumpInline($inline)
+    {
+        if (false === strpos($inline, '"')) {
+            return '"' . $inline . '"';
         }
-        return "<$name>";
+        if (false === strpos($inline, "'")) {
+            return "'$inline'";
+        }
+        return "<$inline>";
     }
 }
