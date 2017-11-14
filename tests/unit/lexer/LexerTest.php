@@ -621,4 +621,40 @@ class LexerTest extends BaseTestCase
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
+
+    public function testFailRegExpErrorDefines()
+    {
+        $lexer = (new Lexer)
+            ->fixed(['a' => 'x']);
+        $lexer->compile();
+
+        $lexer = $lexer
+            ->defines(['foo' => '(*']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testFailRegExpErrorTerminals()
+    {
+        $lexer = (new Lexer)
+            ->fixed(['a' => 'x']);
+        $lexer->compile();
+
+        $lexer = $lexer
+            ->terminals(['foo' => '(*']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testFailRegExpErrorWhitespaces()
+    {
+        $lexer = (new Lexer)
+            ->fixed(['a' => 'x']);
+        $lexer->compile();
+
+        $lexer = $lexer
+            ->whitespaces(['(*']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
 }

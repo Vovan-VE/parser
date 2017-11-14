@@ -421,6 +421,7 @@ class Lexer extends BaseObject
 
             $re_defines = $this->buildMap($this->defines, '');
             $re_defines = "(?(DEFINE)$re_defines)";
+            self::validateRegExp("/$re_defines\\G/" . $this->modifiers, 'DEFINEs');
             $regexp[] = $re_defines;
         } else {
             $re_defines = '';
@@ -433,19 +434,12 @@ class Lexer extends BaseObject
         $regexp = join('', $regexp);
 
         $this->regexp = "/$regexp/" . $this->modifiers;
-        if (false === preg_match($this->regexp, null)) {
-            throw new \InvalidArgumentException('PCRE error in main RegExp', preg_last_error());
-        }
+        self::validateRegExp($this->regexp, 'main');
 
         if ($this->whitespaces) {
             $re_whitespaces = join('|', $this->whitespaces);
             $this->regexpWhitespace = "/$re_defines\\G(?:$re_whitespaces)+/" . $this->modifiers;
-            if (false === preg_match($this->regexpWhitespace, null)) {
-                throw new \InvalidArgumentException(
-                    'PCRE error in whitespaces RegExp',
-                    preg_last_error()
-                );
-            }
+            self::validateRegExp($this->regexpWhitespace, 'whitespaces');
         } else {
             $this->regexpWhitespace = null;
         }
@@ -804,5 +798,46 @@ class Lexer extends BaseObject
                 'Bad names: ' . join(', ', $bad_names)
             );
         }
+    }
+
+    /**
+     * Validate given RegExp
+     * @param string $regExp RegExp to validate
+     * @param string $displayName Display name for error message
+     * @since 1.5.0
+     * @throws \InvalidArgumentException
+     */
+    private static function validateRegExp($regExp, $displayName)
+    {
+        /** @uses convertErrorToException() */
+        set_error_handler([__CLASS__, 'convertErrorToException'], E_WARNING);
+        try {
+            if (false === preg_match($regExp, null)) {
+                throw new \InvalidArgumentException(
+                    "PCRE error in $displayName RegExp: $regExp",
+                    preg_last_error()
+                );
+            }
+        } catch (\ErrorException $e) {
+            throw new \InvalidArgumentException(
+                "PCRE error in $displayName RegExp: " . $e->getMessage() . "; RegExp: $regExp",
+                preg_last_error(),
+                $e
+            );
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    /**
+     * @param int $level
+     * @param string $message
+     * @param string $file
+     * @param int $line
+     * @throws \ErrorException
+     */
+    private static function convertErrorToException($level, $message, $file, $line)
+    {
+        throw new \ErrorException($message, 0, $level, $file, $line);
     }
 }
