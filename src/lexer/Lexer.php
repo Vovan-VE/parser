@@ -4,6 +4,7 @@ namespace VovanVE\parser\lexer;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\DevException;
 use VovanVE\parser\common\InternalException;
+use VovanVE\parser\common\Symbol;
 use VovanVE\parser\common\Token;
 
 /**
@@ -352,6 +353,7 @@ class Lexer extends BaseObject
      * Direct call to the method can be used to divide compilation errors from other errors
      * from `parse()` method.
      * @return $this
+     * @throws \InvalidArgumentException
      * @since 1.4.0
      */
     public function compile()
@@ -426,10 +428,16 @@ class Lexer extends BaseObject
         } else {
             $re_defines = '';
         }
-        $regexp[] = '\\G';
+
+        foreach ($map as $name => $re_part) {
+            self::validateRegExp(
+                "/$re_defines\\G(?<$name>$re_part)/" . $this->modifiers,
+                Symbol::dumpType($name) . " definition /$re_part/"
+            );
+        }
 
         $alt = $this->buildMap($terminals_map, '|');
-        $regexp[] = "(?:$alt)";
+        $regexp[] = "\\G(?:$alt)";
 
         $regexp = join('', $regexp);
 
