@@ -93,78 +93,77 @@ class Grammar extends BaseObject
     // REFACT: minimal PHP >= 7.0: const expression: extract and reuse defines
 
     // REFACT: minimal PHP >= 7.1: private const
-    const RE_RULE_LINE = '~
-        \\G
-        \\h*+
-        (?<rule>
-            (?:
-                [^\\v;"\'<>/]++
-            |
-                " [^\\v"]*+
-                (?: " | $ )
-            |
-                \' [^\\v\']*+
-                (?: \' | $ )
-            |
-                < [^\\v<>]*+
-                (?: > | $ )
-            |
-                /
-                (?: [^\\v/\\\\]++ | \\\\[^\\v] )*+
-                \\\\?+
-                (?: / | $ )
+    const RE_RULE_LINE = <<<'_REGEXP'
+~
+    \G
+    \h*+
+    (?<rule>
+        (?: [^\v;"'<>/]++
+        |   " [^\v"]*+   (?: " | $ )
+        |   ' [^\v']*+   (?: ' | $ )
+        |   < [^\v<>]*+  (?: > | $ )
+        |   /
+            (?: [^\v/\\]++
+            |   \\ [^\v]
             )*+
-        )
-        (?= $ | [\\v;])
-        [\\v;]*+
-        (?<eof> $ )?
-    ~xD';
+            \\?+
+            (?: / | $ )
+        )*+
+    )
+    (?= $ | [\v;])
+    [\v;]*+
+    (?<eof> $ )?
+~xD
+_REGEXP;
 
     // REFACT: minimal PHP >= 7.1: private const
-    const RE_INPUT_RULE = '/
-        (?(DEFINE)
-            (?<name> [a-z][a-z_0-9]*+ )
-        )
-        ^
-        (?<subj> (?&name) )
-        \\s*+
-        (?:
-            \(
-            \\s*+
-            (?<tag> (?&name) )
-            \\s*+
-            \)
-            \\s*+
-        )?
-        :
-        \\s*+
-        (?<def>
-            (?:
-                [^$]++
-            |
-                \\$ (?! \\s*+ $ )
-            )++
-        )
-        (?<eof> \\$ )?
-        $
-    /xi';
+    const RE_INPUT_RULE = <<<'_REGEXP'
+/
+    (?(DEFINE)
+        (?<name> [a-z][a-z_0-9]*+ )
+    )
+    ^
+    (?<subj> (?&name) )
+    \s*+
+    (?:
+        \(
+        \s*+
+        (?<tag> (?&name) )
+        \s*+
+        \)
+        \s*+
+    )?
+    :
+    \s*+
+    (?<def>
+        (?: [^$]++
+        |   \$ (?! \s*+ $ )
+        )++
+    )
+    (?<eof> \$ )?
+    $
+/xi
+_REGEXP;
 
     // REFACT: minimal PHP >= 7.1: private const
-    const RE_RULE_DEF_ITEM = '/
-        \\G
-        \\s*+
-        (?:
-            (?:
-                (?<word> \\.? [a-z][a-z_0-9]*+  )
-            |   (?<q>    " [^"]+ "
-                |       \' [^\']+ \'
-                |        < [^<>]+ >  )
-            )
-            \\s*+
+    const RE_RULE_DEF_ITEM = <<<'_REGEXP'
+/
+    \G
+    \s*+
+    (?:
+        (?: (?<word> \.? [a-z][a-z_0-9]*+  )
         |
-            (?<end> $ )
+            (?<q> " [^"]+ "
+            |     ' [^']+ '
+            |     < [^<>]+ >
+            )
         )
-    /xi';
+        \s*+
+    |
+        (?<end> $ )
+    )
+/xi
+_REGEXP;
 
     /** @var Rule[] Rules in the grammar */
     private $rules;

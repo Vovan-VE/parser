@@ -131,7 +131,7 @@ class Symbol extends BaseObject
      */
     public static function dumpName($name)
     {
-        if (preg_match('/^[a-z][a-z_0-9]*$/i', $name)) {
+        if (self::isLikeName($name)) {
             return $name;
         }
         return self::dumpInline($name);
@@ -145,7 +145,7 @@ class Symbol extends BaseObject
      */
     public static function dumpType($type)
     {
-        if (preg_match('/^[a-z][a-z_0-9]*$/i', $type)) {
+        if (self::isLikeName($type)) {
             return "<$type>";
         }
         return self::dumpInline($type);
@@ -166,5 +166,15 @@ class Symbol extends BaseObject
             return "'$inline'";
         }
         return "<$inline>";
+    }
+
+    /**
+     * @param string $type
+     * @return bool
+     * @since 1.5.0
+     */
+    protected static function isLikeName($type)
+    {
+        return (bool)preg_match('/^[a-z][a-z_0-9]*$/i', $type);
     }
 }
