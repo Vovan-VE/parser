@@ -10,7 +10,31 @@ use VovanVE\parser\common\TreeNodeInterface;
  * Internal utility to call actions for nodes
  *
  * Since class definition is not so useful to declare set of actions like Perl6 does,
- * actions set is declaring with array. This class is used internally to handle actions set.
+ * actions set is declaring with array. This class is used as default actions map
+ * if you pass array of handlers in `\VovanVE\parser\Parser::parse()`.
+ *
+ * Actions map accepts array of callable as actions handlers.
+ * Key in actions map is a subject node name with optional tag in parenses
+ * without spaces (`Foo` or `Foo(bar)`). Action will be applied to nodes with
+ * given name and tag. So `Foo` would be applied either to terminals `Foo` or
+ * Non-terminals `Foo` built by rules without a tag. And so `Foo(bar)` would be applied
+ * to non-terminals `Foo` built by rules with tag `(bar)` (since terminals cannot have tags).
+ *
+ * Value in actions map is either shortcut action name (since 1.4.0) or a callable
+ * with signature (since 1.3.0):
+ *
+ * ```php
+ * function (TreeNodeInterface $subject, TreeNodeInterface ...$children): mixed`
+ * ```
+ *
+ * Arguments is not required to be variadic `...$children`. It would be much better
+ * to declare exact amount of arguments with respect to corresponding rule(s).
+ *
+ * Return value of a callback (unless it's `null`) will be used in `make()` method
+ * on a node. Callback itself should to use children nodes' `made()` values to
+ * evaluate the result. To apply `null` value to a node you need to call `make(null)`
+ * manually in action callback, but it is not necessary since default `made()` value is `null`.
+ * @package VovanVE\parser
  * @since 1.3.0
  */
 class ActionsMap extends BaseObject
@@ -82,7 +106,7 @@ class ActionsMap extends BaseObject
         if (null === $action) {
             return null;
         }
-        $value = $this->runActionHandler($action, $node);
+        $value = $this->runAction($action, $node);
         if (null === $value) {
             return false;
         }
@@ -106,7 +130,7 @@ class ActionsMap extends BaseObject
             return null;
         }
 
-        return $this->runActionHandler($action, $node);
+        return $this->runAction($action, $node);
     }
 
     /**
@@ -136,9 +160,9 @@ class ActionsMap extends BaseObject
      * @param callable|string $action Action from the map
      * @param TreeNodeInterface $node Subject node
      * @return mixed Result of the action call
-     * @since 1.4.0
+     * @since 1.5.0
      */
-    private function runActionHandler($action, $node)
+    private function runAction($action, $node)
     {
         if (is_string($action) && isset(self::$COMMANDS[$action])) {
             /** @var CommandInterface $class Just a class name, not an instance */
@@ -146,6 +170,18 @@ class ActionsMap extends BaseObject
             return $class::runForNode($node);
         }
 
+        return $this->runActionHandler($action, $node);
+    }
+
+    /**
+     * Run action handler and return its result
+     * @param callable $action Action callback from the map
+     * @param TreeNodeInterface $node Subject node
+     * @return mixed Result of the action call
+     * @since 1.5.0
+     */
+    protected function runActionHandler($action, $node)
+    {
         // REFACT: minimal PHP >= 7.0:
         // return $action($node, ...$node->getChildren());
         // REFACT: minimal PHP >= 5.6:

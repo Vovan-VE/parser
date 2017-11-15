@@ -14,6 +14,7 @@ Synopsis
 See also following example in [examples/](examples/).
 
 ```php
+use VovanVE\parser\actions\ActionsMadeMap;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
@@ -35,35 +36,23 @@ _END
 );
 
 $lexer = (new Lexer)
-    //->modifiers('xi')
+    //->modifiers('i')
     ->whitespaces(['\\s+']);
 
-$actions = [
-    'int' => function ($t) {
-        return (int) $t->getContent();
-    },
+$actions = new ActionsMadeMap([
+    'int' => function ($content) { return (int)$content; },
 
     'Value' => Parser::ACTION_BUBBLE_THE_ONLY,
-    'Value(neg)' => function ($v, $n) {
-        return -$n->made();
-    },
+    'Value(neg)' => function ($v) { return -$v; },
 
     'Product(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
-    'Product(mul)' => function ($p, $a, $b) {
-        return $a->made() * $b->made();
-    },
-    'Product(div)' => function ($p, $a, $b) {
-        return $a->made() / $b->made();
-    },
+    'Product(mul)' => function ($a, $b) { return $a * $b; },
+    'Product(div)' => function ($a, $b) { return $a / $b; },
 
     'Sum(P)' => Parser::ACTION_BUBBLE_THE_ONLY,
-    'Sum(add)' => function ($s, $a, $b) {
-        return $a->made() + $b->made();
-    },
-    'Sum(sub)' => function ($s, $a, $b) {
-        return $a->made() - $b->made();
-    },
-];
+    'Sum(add)' => function ($a, $b) { return $a + $b; },
+    'Sum(sub)' => function ($a, $b) { return $a - $b; },
+]);
 
 $parser = new Parser($lexer, $grammar);
 

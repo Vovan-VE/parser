@@ -1,6 +1,8 @@
 <?php
 namespace VovanVE\parser\tests\unit;
 
+use VovanVE\parser\actions\ActionsMadeMap;
+use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\grammar\Grammar;
@@ -460,6 +462,56 @@ _END
             $out = $parser->parse('aa', $actions)->made();
             $this->assertEquals(2, $out);
         }
+    }
+
+    public function testActionsMapDefault()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G  : S $
+            S  : int "+" int
+            int: /\d+/
+_END
+        );
+
+        $parser = new Parser(new Lexer, $grammar);
+
+        $actions = new ActionsMap([
+            'int' => function (Token $i) {
+                return (int)$i->getContent();
+            },
+            'S' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+                return $a->made() + $b->made();
+            },
+        ]);
+
+        $result = $parser->parse('42+37', $actions)->made();
+
+        $this->assertEquals(79, $result);
+    }
+
+    public function testActionsMapMade()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G  : S $
+            S  : int "+" int
+            int: /\d+/
+_END
+        );
+
+        $parser = new Parser(new Lexer, $grammar);
+
+        $actions = new ActionsMadeMap([
+            'int' => function ($i) {
+                return (int)$i;
+            },
+            'S' => function ($a, $b) {
+                return $a + $b;
+            },
+        ]);
+
+        $result = $parser->parse('42+37', $actions)->made();
+
+        $this->assertEquals(79, $result);
     }
 
     public function testConflictTerminals()

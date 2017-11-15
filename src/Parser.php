@@ -85,14 +85,26 @@ class Parser extends BaseObject
      * on a node. Callback itself should to use children nodes' `made()` values to
      * evaluate the result. To apply `null` value to a node you need to call `make(null)`
      * manually in action callback, but it is not necessary since default `made()` value is `null`.
+     *
+     * Since 1.5.0 an instance of `ActionsMap` can be passed directly to `$actions`.
      * @param string $input Input text to parse
-     * @param callable[]|string[] $actions [since 1.3.0] Actions map.
+     * @param ActionsMap|callable[]|string[] $actions [since 1.3.0] Actions map.
+     * Accepts `ActionsMap` since 1.5.0.
      * @return TreeNodeInterface
+     * @see \VovanVE\parser\actions\ActionsMadeMap
      */
     public function parse($input, $actions = [])
     {
+        if ($actions instanceof ActionsMap) {
+            $actions_map = $actions;
+        } elseif ($actions) {
+            $actions_map = new ActionsMap($actions);
+        } else {
+            $actions_map = null;
+        }
+
         $tokens_gen = $this->lexer->parse($input);
-        $stack = new Stack($this->table, $actions ? new ActionsMap($actions) : null);
+        $stack = new Stack($this->table, $actions_map);
 
         $eof_offset = strlen($input);
         $tokens_gen->rewind();

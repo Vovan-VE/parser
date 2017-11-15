@@ -11,6 +11,8 @@ LR(0) parser Change Log
 *   Add: Terminals can be defined with RegExp literal in grammar text.
 *   Add: Named fixed tokens in `VovanVE\parser\lexer\Lexer`.
 *   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
+*   Add: Class `VovanVE\parser\actions\ActionsMadeMap` to let actions to accept only
+    children' `made()` values instead of nodes.
 *   Enh: RegExp validation throws exception from `VovanVE\parser\lexer\Lexer`.
 *   Enh: Enum expected tokens in `VovanVE\parser\SyntaxException` in case of unexpected token
     in parsing text.
