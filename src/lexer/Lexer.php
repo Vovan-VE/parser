@@ -660,7 +660,7 @@ class Lexer extends BaseObject
                 $this->aliased[$name] = $text;
                 $this->hiddens[$text] = true;
             }
-            $re_map[$name] = preg_quote($text, '/');
+            $re_map[$name] = $this->textToRegExp($text);
         }
 
         return $re_map;
@@ -850,5 +850,34 @@ class Lexer extends BaseObject
     private static function convertErrorToException($level, $message, $file, $line)
     {
         throw new \ErrorException($message, 0, $level, $file, $line);
+    }
+
+    /**
+     * Escape plain text to be a RegExp matching the text
+     *
+     * Native `preg_quote()` does not care about possible `/x` modifier and does
+     * not take modifiers with delimiter. So, with `/x` modifier we use `\Q...\E`
+     * instead if `$text` contains some `/x`-mode meta characters: `#` or spaces.
+     * @param string $text Plain text
+     * @return string RegExp matching the text
+     * @since 1.5.0
+     * @see https://3v4l.org/brdeT Comparison between `preg_quote()` and `\Q...\E`
+     * when `/x` modifier is used
+     * @see https://3v4l.org/tnnap This function test
+     */
+    protected function textToRegExp($text)
+    {
+        // preg_quote() is useless with /x modifier: https://3v4l.org/brdeT
+
+        if (false === strpos($this->modifiers, 'x') || !preg_match('~[\\s/#]|\\\\E~', $text)) {
+            return preg_quote($text, '/');
+        }
+
+        // foo\Efoo --> \Qfoo\E\\\QEfoo\E
+        // ---^====       ---  ^^  ====
+        //
+        // foo/foo  --> \Qfoo\E\/\Qfoo\E
+        // ---^===        ---  ^^  ===
+        return '\\Q' . strtr($text, ['\\E' => '\\E\\\\\\QE', '/' => '\\E\\/\\Q']) . '\\E';
     }
 }

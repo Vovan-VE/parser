@@ -271,6 +271,44 @@ class LexerTest extends BaseTestCase
         }
     }
 
+    public function testXModifier()
+    {
+        $lexer = (new Lexer)
+            ->modifiers('x')
+            ->fixed([
+                'SP' => ' ',
+                'TAB' => "\t",
+                'LF' => "\n",
+                'CR' => "\r",
+            ])
+            ->inline(['#', '/', '\\', '\\Q', '\\E']);
+
+        // all items to test for
+        $items = [' ', "\t", "\n", "\r", '#', '/', '\\', '\\Q', '\\E'];
+
+        // generate expected output of the items
+        $last_index = count($items) - 1;
+        $expected = [];
+        for ($n = 100; $n-- > 0; ) {
+            $expected[] = $items[mt_rand(0, $last_index)];
+        }
+
+        foreach ($items as $item) {
+            $this->assertTrue(
+                in_array($item, $expected, true),
+                'item ' . json_encode($item) . ' was generated'
+            );
+        }
+
+        // input is generated items on order
+        $input = join('', $expected);
+        $index = 0;
+        foreach ($lexer->parse($input) as $token) {
+            $this->assertSame($expected[$index], $token->getContent());
+            ++$index;
+        }
+    }
+
     public function testParseFail()
     {
         $lexer = (new Lexer)

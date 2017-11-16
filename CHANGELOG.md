@@ -16,6 +16,7 @@ LR(0) parser Change Log
 *   Enh: RegExp validation throws exception from `VovanVE\parser\lexer\Lexer`.
 *   Enh: Enum expected tokens in `VovanVE\parser\SyntaxException` in case of unexpected token
     in parsing text.
+*   Fix: Cannot use inline/fixed spaces and `#` with `/x` modifier.
 *   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided
     in favor to corresponding extending method.
 *   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding
