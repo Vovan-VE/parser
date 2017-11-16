@@ -123,6 +123,7 @@ _REGEXP;
         (?<name> [a-z][a-z_0-9]*+ )
     )
     ^
+    (?<is_config> %? )
     (?<subj> (?&name) )
     \s*+
     (?:
@@ -245,6 +246,7 @@ _REGEXP;
                     throw new GrammarException("Invalid rule format");
                 }
 
+                $is_config = !empty($match['is_config']);
                 $subject_name = $match['subj'];
 
                 /** @var Symbol $subject */
