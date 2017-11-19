@@ -20,7 +20,12 @@ $grammar = Grammar::create(<<<'_END'
     Value       : "(" Sum ")"
     Value       : int
     int         : /\d+/
+
     %ws         : /\s+/
+    %foo        : "lorem"
+    %bar(baz)   : "bar"
+    %bar(lol)   : /#`[^`]*+`/
+    %modifiers  : "xus"
 _END
 );
 

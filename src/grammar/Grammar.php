@@ -174,6 +174,8 @@ _REGEXP;
     private $fixed = [];
     /** @var array RegExp tokens definition map */
     private $regexpMap = [];
+    /** @var GrammarConfig Extra config for Lexer */
+    private $config;
     /** @var Rule Reference to the mail rule */
     private $mainRule;
     /** @var Symbol[] Map of all Symbols from all rules. Key is a symbol name. */
@@ -235,6 +237,7 @@ _REGEXP;
 
         $non_terminals_names = [];
         $regexp_map = [];
+        $config = new GrammarConfig;
 
         foreach ($rules_strings as $rule_string) {
             if ('' === $rule_string) {
@@ -246,14 +249,36 @@ _REGEXP;
                     throw new GrammarException("Invalid rule format");
                 }
 
-                $is_config = !empty($match['is_config']);
                 $subject_name = $match['subj'];
+                $tag_name = (isset($match['tag']) && '' !== $match['tag'])
+                    ? $match['tag']
+                    : null;
+                $definition_code = $match['def'];
+                $regexp_definition = self::matchRegexpDefinition($definition_code);
+
+                if (!empty($match['is_config'])) {
+                    if (null !== $regexp_definition) {
+                        $config->setOption($subject_name, $tag_name, $regexp_definition, true);
+                    } else {
+                        $rule_inlines = [];
+                        $definition_list = self::parseDefinitionItems($definition_code,
+                            $rule_inlines);
+                        if (1 === count($definition_list) && 1 === count($rule_inlines)) {
+                            $config->setOption($subject_name, $tag_name, reset($rule_inlines));
+                        } else {
+                            throw new GrammarException(
+                                'Config value must be /regexp/ or single inline "text"'
+                            );
+                        }
+                    }
+
+                    continue;
+                }
 
                 /** @var Symbol $subject */
 
-                $regexp_definition = self::matchRegexpDefinition($match['def']);
                 if (null !== $regexp_definition) {
-                    if (isset($match['tag']) && '' !== $match['tag']) {
+                    if (null !== $tag_name) {
                         throw new GrammarException("Rule tag cannot be used in RegExp rules");
                     }
 
@@ -271,7 +296,7 @@ _REGEXP;
                 $non_terminals_names[$subject->getName()] = true;
 
                 $rule_inlines = [];
-                $definition_list = self::parseDefinitionItems($match['def'], $rule_inlines);
+                $definition_list = self::parseDefinitionItems($definition_code, $rule_inlines);
 
                 $definition = [];
                 foreach ($definition_list as $definition_item) {
@@ -286,12 +311,7 @@ _REGEXP;
                 throw new GrammarException($e->getMessage() . " - rule '$rule_string'");
             }
 
-            $rule = new Rule(
-                $subject,
-                $definition,
-                $eof,
-                isset($match['tag']) ? $match['tag'] : null
-            );
+            $rule = new Rule($subject, $definition, $eof, $tag_name);
             $rules[] = $rule;
 
             // REFACT: PHP >= 7.0: use `??`
@@ -363,7 +383,7 @@ _REGEXP;
             }
         }
 
-        return new static($rules, $inlines, $fixed, $regexp_map);
+        return new static($rules, $inlines, $fixed, $regexp_map, $config);
     }
 
     /**
@@ -374,6 +394,7 @@ _REGEXP;
      * @param string[] $inlines [since 1.4.0] List of inline token values
      * @param string[] $fixed [since 1.5.0] Fixed tokens map
      * @param string[] $regexpMap [since 1.5.0] RegExp tokens map
+     * @param GrammarConfig|null $config [since 1.5.0] Extra config
      * @throws GrammarException Errors in grammar syntax or logic
      * @see create()
      */
@@ -381,13 +402,19 @@ _REGEXP;
         array $rules,
         array $inlines = [],
         array $fixed = [],
-        array $regexpMap = []
+        array $regexpMap = [],
+        $config = null
     )
     {
+        if (null !== $config && !$config instanceof GrammarConfig) {
+            throw new \InvalidArgumentException('Config must be ' . GrammarConfig::class . ' or null');
+        }
+
         $this->rules = array_values($rules);
         $this->inlines = array_values($inlines);
         $this->fixed = $fixed;
         $this->regexpMap = $regexpMap;
+        $this->config = $config;
         $symbols = [];
         $terminals = [];
         $non_terminals = [];
