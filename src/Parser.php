@@ -103,17 +103,23 @@ class Parser extends BaseObject
             $actions_map = null;
         }
 
-        $tokens_gen = $this->lexer->parse($input);
         $stack = new Stack($this->table, $actions_map);
 
-        $eof_offset = strlen($input);
-        $tokens_gen->rewind();
+        $pos = 0;
         $token = null;
         try {
             while (true) {
-                if ($tokens_gen->valid()) {
+                while ($stack->getStateRow()->isReduceOnly()) {
+                    $stack->reduce();
+                }
+
+                $expected_terms = array_keys($stack->getStateRow()->terminalActions);
+                $match = $this->lexer->parseOne($input, $pos, $expected_terms);
+
+                if ($match) {
                     /** @var Token $token */
-                    $token = $tokens_gen->current();
+                    $token = $match->token;
+                    $pos = $match->nextOffset;
                     $symbol_name = $token->getType();
                 } else {
                     $token = null;
@@ -145,7 +151,6 @@ class Parser extends BaseObject
                 }
 
                 NEXT_SYMBOL:
-                $tokens_gen->next();
             }
             DONE:
         } catch (NoReduceException $e) {
@@ -161,7 +166,7 @@ class Parser extends BaseObject
             throw new SyntaxException(
                 'Unexpected ' . $this->dumpTokenForError($token)
                 . ($expected_terminals ? '; expected: ' . join(', ', $expected_terminals) : ''),
-                $token ? $token->getOffset() : $eof_offset
+                $token ? $token->getOffset() : strlen($input)
             );
         } catch (StateException $e) {
             throw new InternalException('Unexpected state fail', 0, $e);

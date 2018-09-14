@@ -138,7 +138,7 @@ DUMP
      */
     public function testParseFailB($parser)
     {
-        $this->setExpectedException(SyntaxException::class, 'Unexpected <add "-">');
+        $this->setExpectedException(SyntaxException::class, 'Unexpected <add "-">; expected: <id>, <int>');
         $parser->parse('A * -5');
     }
 
@@ -429,6 +429,57 @@ _END
 
         $result = $parser->parse('42 * 23 / 3  + 90 / 15 - 17 * 19 ', $actions)->made();
         $this->assertEquals(5, $result, 'calculated result');
+    }
+
+    public function testContextDependent()
+    {
+        $grammar = Grammar::create(<<<'TEXT'
+G       : Nodes $
+Nodes(L): Nodes Node
+Nodes(i): Node
+
+Node    : "{{" Sum "}}"
+Node    : text
+
+Sum(add): Sum "+" Value
+Sum(sub): Sum "-" Value
+Sum(V)  : Value
+Value   : int
+
+int     : /\d++/
+text    : /[^{}]++/
+
+TEXT
+        );
+
+        $lexer = new Lexer;
+
+        $parser = new Parser($lexer, $grammar);
+
+        $result = $parser->parse("997foo{{42+37-23}}000bar", new ActionsMadeMap([
+            'Nodes(L)' => function ($a, $b) {
+                return $a . $b;
+            },
+            'Nodes(i)' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'Node' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'Sum(add)' => function ($a, $b) {
+                return $a + $b;
+            },
+            'Sum(sub)' => function ($a, $b) {
+                return $a - $b;
+            },
+            'Sum(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'Value' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'int' => function ($s) {
+                return $s;
+            },
+            'text' => function ($s) {
+                return $s;
+            },
+        ]));
+
+        $this->assertInstanceOf(TreeNodeInterface::class, $result);
+        $this->assertEquals('997foo56000bar', $result->made());
     }
 
     public function testInlinesOrderDoesNotMatter()

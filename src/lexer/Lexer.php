@@ -107,10 +107,18 @@ class Lexer extends BaseObject
     /** @var bool Was the lexer already compiled into regexps from provided configuration */
     private $isCompiled = false;
 
+    /** @var string Compiled RegExp part for DEFINEs */
+    private $regexpDefines;
     /** @var string Compiled full RegExp for whitespaces and comments */
     private $regexpWhitespace;
     /** @var string Compiled full RegExp for tokens */
     private $regexp;
+    /** @var string[] Cache for compiled full RegExp to parse limited set of tokens */
+    private $regexpForTokens = [];
+    /** @var string[] Prepared RegExp map for fixed and aliased inlines */
+    private $regexpFixedAndInlineMap;
+    /** @var string[] Prepared RegExp map for terminals */
+    private $regexpTerminalsMap;
     /**
      * @var array Map for hidden tokens to mark output Tokens.
      * Keys are either names or inline values. Values are any non-null value. */
@@ -120,6 +128,11 @@ class Lexer extends BaseObject
      * value is source string for Symbol name
      */
     private $aliased = [];
+    /**
+     * @var array Reverse aliases map for inline tokens. Key is source string for Symbol name,
+     * value is generated name
+     */
+    private $aliasOf = [];
 
     /**
      * Constructor
@@ -400,6 +413,7 @@ class Lexer extends BaseObject
 
         $this->hiddens = $fixed_hidden + $hidden;
         $this->aliased = [];
+        $this->aliasOf = [];
 
         $fixed_and_inline_re_map = $this->buildFixedAndInlines($fixed_map, $inline);
         $same = array_intersect_key($map, $fixed_and_inline_re_map);
@@ -407,6 +421,8 @@ class Lexer extends BaseObject
             throw new \LogicException("Duplicating inline and named tokens: " . join(', ', $same));
         }
 
+        $this->regexpFixedAndInlineMap = $fixed_and_inline_re_map;
+        $this->regexpTerminalsMap = $map;
         $terminals_map = $fixed_and_inline_re_map + $map;
         if (!$terminals_map) {
             throw new \InvalidArgumentException('No terminals defined');
@@ -428,6 +444,7 @@ class Lexer extends BaseObject
         } else {
             $re_defines = '';
         }
+        $this->regexpDefines = $re_defines;
 
         foreach ($map as $name => $re_part) {
             self::validateRegExp(
@@ -471,40 +488,62 @@ class Lexer extends BaseObject
      *
      * Lexer will be compiled if didn't yet.
      *
+     * Note: Parsing in this way will be context independent. To utilize context dependent
+     * parsing use `parseOne()` in you own loop.
+     *
      * @param string $input Input text to parse
      * @return \Generator|Token[] Returns generator of `Token`s. Generator has no its own return value.
      * @throws ParseException Nothing matched in a current position
      */
     public function parse($input)
     {
-        $this->compile();
-
-        $length = strlen($input);
         $pos = 0;
-        while ($pos < $length) {
-            $whitespace_length = $this->getWhitespaceLength($input, $pos);
-            if ($whitespace_length) {
-                $pos += $whitespace_length;
-                if ($pos >= $length) {
-                    break;
-                }
-            }
-            $match = $this->match($input, $pos);
-            if (!$match) {
-                $near = substr($input, $pos, self::DUMP_NEAR_LENGTH);
-                if ("" === $near || false === $near) {
-                    $near = '<EOF>';
-                } else {
-                    $near = '"' . $near . '"';
-                }
-                throw new ParseException(
-                    "Cannot parse valid token near $near",
-                    $pos
-                );
-            }
+        while (null !== ($match = $this->parseOne($input, $pos))) {
             $pos = $match->nextOffset;
             yield $match->token;
         }
+    }
+
+    /**
+     * Parse one next token from input at the given offset
+     * @param string $input Input text to parse
+     * @param int $pos Offset to parse at
+     * @param string[] $preferredTokens Preferred tokens types to match first
+     * @return Match|null Returns match on success match. Returns `null` on EOF.
+     * @since 1.5.0
+     */
+    public function parseOne($input, $pos, $preferredTokens = [])
+    {
+        $length = strlen($input);
+        if ($pos >= $length) {
+            return null;
+        }
+
+        $this->compile();
+
+        $whitespace_length = $this->getWhitespaceLength($input, $pos);
+        if ($whitespace_length) {
+            $pos += $whitespace_length;
+            if ($pos >= $length) {
+                return null;
+            }
+        }
+
+        $match = $this->match($input, $pos, $preferredTokens);
+        if (!$match) {
+            $near = substr($input, $pos, self::DUMP_NEAR_LENGTH);
+            if ("" === $near || false === $near) {
+                $near = '<EOF>';
+            } else {
+                $near = '"' . $near . '"';
+            }
+            throw new ParseException(
+                "Cannot parse none of expected tokens near $near",
+                $pos
+            );
+        }
+
+        return $match;
     }
 
     /**
@@ -658,6 +697,7 @@ class Lexer extends BaseObject
                 $alias_name++;
 
                 $this->aliased[$name] = $text;
+                $this->aliasOf[$text] = $name;
                 $this->hiddens[$text] = true;
             }
             $re_map[$name] = $this->textToRegExp($text);
@@ -697,18 +737,21 @@ class Lexer extends BaseObject
      * exactly in the given position by `\G`.
      * @param string $input Input text to search where
      * @param int $pos Position inthe text to match where
+     * @param string[] $preferredTokens Preferred tokens types to match first
      * @return Match|null Match object on success match. `null` if no match found.
      * @throws \RuntimeException Error from PCRE
      * @throws DevException Error by end developer in lexer configuration
      * @throws InternalException Error in the package
      */
-    private function match($input, $pos)
+    private function match($input, $pos, $preferredTokens)
     {
-        if (false === preg_match($this->regexp, $input, $match, 0, $pos)) {
+        $current_regexp = $this->getRegexpForTokens($preferredTokens);
+
+        if (false === preg_match($current_regexp, $input, $match, 0, $pos)) {
             $error_code = preg_last_error();
             throw new \RuntimeException(
                 "PCRE error #" . $error_code
-                . " for token at input pos $pos; REGEXP = {$this->regexp}",
+                . " for token at input pos $pos; REGEXP = $current_regexp",
                 $error_code
             );
         }
@@ -719,7 +762,12 @@ class Lexer extends BaseObject
 
         $full_match = $match[0];
         if ('' === $full_match) {
-            throw new DevException('Tokens should not match empty string');
+            throw new DevException(
+                'Tokens should not match empty string'
+                . '; context: `' . substr($input, $pos, 10) . '`'
+                . '; expected: ' . json_encode($preferredTokens)
+                . "; REGEXP: $current_regexp"
+            );
         }
 
         // remove null, empty "" values and integer keys but [0]
@@ -791,6 +839,57 @@ class Lexer extends BaseObject
         }
 
         return 0;
+    }
+
+    /**
+     * @param string[] $preferredTokens
+     * @return string
+     */
+    private function getRegexpForTokens($preferredTokens)
+    {
+        if (!$preferredTokens) {
+            return $this->regexp;
+        }
+
+        $key = json_encode($preferredTokens);
+        if (isset($this->regexpForTokens[$key])) {
+            return $this->regexpForTokens[$key];
+        }
+
+        $fixed_names = [];
+        $terminals_names = [];
+        foreach ($preferredTokens as $type) {
+            if (isset($this->aliasOf[$type])) {
+                $fixed_names[$this->aliasOf[$type]] = true;
+            } elseif (isset($this->regexpFixedAndInlineMap[$type])) {
+                $fixed_names[$type] = true;
+            } elseif (isset($this->regexpTerminalsMap[$type])) {
+                $terminals_names[$type] = true;
+            } else {
+                throw new \InvalidArgumentException("Unknown token type: `$type`");
+            }
+        }
+
+        // enum in regexp order
+        $terminals_map =
+            array_intersect_key($this->regexpFixedAndInlineMap, $fixed_names)
+            + array_intersect_key($this->regexpTerminalsMap, $terminals_names);
+
+        // add rest regexps
+        $terminals_map += array_diff_key($this->regexpFixedAndInlineMap, $fixed_names);
+        $terminals_map += array_diff_key($this->regexpTerminalsMap, $terminals_names);
+
+        $regexps = [];
+        if ($this->regexpDefines) {
+            $regexps[] = $this->regexpDefines;
+        }
+        $alt = $this->buildMap($terminals_map, '|');
+        $regexps[] = "\\G(?:$alt)";
+        $regexp = join('', $regexps);
+        $regexp = "/$regexp/" . $this->modifiers;
+        self::validateRegExp($regexp, 'partial');
+
+        return $this->regexpForTokens[$key] = $regexp;
     }
 
     /**

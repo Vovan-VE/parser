@@ -13,10 +13,15 @@ LR(0) parser Change Log
 *   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
 *   Add: Class `VovanVE\parser\actions\ActionsMadeMap` to let actions to accept only
     children' `made()` values instead of nodes.
+*   Add: Method `VovanVE\parser\lexer\Lexer::parseOne()` to deal with complex grammar.
+*   Add method `\VovanVE\parser\table\TableRow::isReduceOnly()` to check if table row
+    is for reduce only.
 *   Enh: RegExp validation throws exception from `VovanVE\parser\lexer\Lexer`.
 *   Enh: Enum expected tokens in `VovanVE\parser\SyntaxException` in case of unexpected token
     in parsing text.
 *   Fix: Cannot use inline/fixed spaces and `#` with `/x` modifier.
+*   Fix: Could nor work with valid deterministic grammar when unexpected token could match
+    without respect to current expectations.
 *   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided
     in favor to corresponding extending method.
 *   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding

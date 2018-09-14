@@ -34,6 +34,19 @@ class TableRow extends BaseObject
     public $reduceRule;
 
     /**
+     * Whether the row is for reduce
+     * @return bool
+     * @since 1.5.0
+     */
+    public function isReduceOnly()
+    {
+        return !$this->eofAction
+            && !$this->terminalActions
+            && !$this->gotoSwitches
+            && $this->reduceRule;
+    }
+
+    /**
      * @return string
      */
     public function __toString()
