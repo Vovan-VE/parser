@@ -61,5 +61,38 @@ class ActionsMadeMapTest extends BaseTestCase
         $sum = new NonTerminal('Sum', [$foo, $bar]);
         $this->assertTrue($map->applyToNode($sum));
         $this->assertEquals(79, $sum->made());
+        $this->assertEquals(2, $sum->getChildrenCount());
+    }
+
+    public function testApplyWithPrune()
+    {
+        $map = new ActionsMadeMap([
+            'int' => function ($content) {
+                return (int)$content;
+            },
+            'Sum' => function ($a, $b) {
+                return $a + $b;
+            },
+        ]);
+        $map->prune = true;
+
+        $foo = new Token('int', '42');
+        $bar = new Token('int', '37');
+
+        $foobar = new NonTerminal('Sum', [$foo, $bar]);
+
+        $qux = new Token('int', '12');
+
+        $foobarqux = new NonTerminal('Sum', [$foobar, $qux]);
+
+        $this->assertTrue($map->applyToNode($foo));
+        $this->assertTrue($map->applyToNode($bar));
+        $this->assertTrue($map->applyToNode($foobar));
+        $this->assertTrue($map->applyToNode($qux));
+        $this->assertTrue($map->applyToNode($foobarqux));
+        $this->assertEquals(91, $foobarqux->made());
+
+        $this->assertEquals(0, $foobar->getChildrenCount());
+        $this->assertEquals(0, $foobarqux->getChildrenCount());
     }
 }

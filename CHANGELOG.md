@@ -12,7 +12,8 @@ LR(0) parser Change Log
 *   Add: Named fixed tokens in `VovanVE\parser\lexer\Lexer`.
 *   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
 *   Add: Class `VovanVE\parser\actions\ActionsMadeMap` to let actions to accept only
-    children' `made()` values instead of nodes.
+    children' `made()` values instead of nodes. It also allows you optionally to prune
+    tree just after node `made()` is done.
 *   Add: Method `VovanVE\parser\lexer\Lexer::parseOne()` to deal with complex grammar.
 *   Add method `\VovanVE\parser\table\TableRow::isReduceOnly()` to check if table row
     is for reduce only.

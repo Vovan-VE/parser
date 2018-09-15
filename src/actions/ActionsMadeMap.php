@@ -2,6 +2,7 @@
 namespace VovanVE\parser\actions;
 
 use VovanVE\parser\common\Token;
+use VovanVE\parser\tree\NonTerminal;
 
 /**
  * Actions map to deal with only made values
@@ -42,6 +43,14 @@ use VovanVE\parser\common\Token;
 class ActionsMadeMap extends ActionsMap
 {
     /**
+     * @var bool Whether to prune children nodes after parent node does `made()`
+     *
+     * In some case children nodes become useless after a parent node did `made()`.
+     * This feature is recommended for complex grammar to save memory.
+     */
+    public $prune = false;
+
+    /**
      * @inheritdoc
      */
     protected function runActionHandler($action, $node)
@@ -56,7 +65,14 @@ class ActionsMadeMap extends ActionsMap
         }
 
         // REFACT: minimal PHP >= 7.0:
-        // return $action(...$args);
-        return call_user_func_array($action, $args);
+        // $result = $action(...$args);
+        $result = call_user_func_array($action, $args);
+
+        if ($this->prune && $node instanceof NonTerminal) {
+            // REFACT: add clear() to interfaces
+            $node->children = [];
+        }
+
+        return $result;
     }
 }
