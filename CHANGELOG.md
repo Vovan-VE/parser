@@ -26,6 +26,8 @@ LR(0) parser Change Log
     in favor to corresponding extending method.
 *   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding
     extending method.
+*   Deprecated: Method `\VovanVE\parser\actions\ActionsMap::runForNode()` since it is unused
+    internally and does not cause tree recursion.
 *   Deprecated: Defining inline tokens within regexp terminals in `VovanVE\parser\lexer\Lexer`.
 
 1.4.2

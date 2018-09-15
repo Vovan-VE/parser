@@ -120,11 +120,10 @@ class ActionsMap extends BaseObject
      * Runs action for a node if action is defined. Returns result of the action.
      * @param TreeNodeInterface $node Subject node
      * @return mixed Value returned from action or `null` if no action.
+     * @deprecated >= 1.5.0: Method is unused internally and does not cause tree recursion.
      */
     public function runForNode($node)
     {
-        // REFACT: unused internally - deprecate or improve public interface
-
         $action = $this->getAction($node);
         if (null === $action) {
             return null;
