@@ -1,6 +1,7 @@
 <?php
 namespace VovanVE\parser\tests\unit;
 
+use VovanVE\parser\actions\ActionAbortException;
 use VovanVE\parser\actions\ActionsMadeMap;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\Token;
@@ -563,6 +564,51 @@ _END
         $result = $parser->parse('42+37', $actions)->made();
 
         $this->assertEquals(79, $result);
+    }
+
+    public function testActionsAbort()
+    {
+        // some tokens are hidden completely on its definition
+        $lexer = (new Lexer)
+            ->whitespaces(['\\s+']);
+
+        // some tokens are hidden locally in specific rules
+        $grammar = Grammar::create(<<<'_END'
+E      : S $
+S(add) : S "+" P
+S(sub) : S "-" P
+S(P)   : P
+P(mul) : P "*" V
+P(div) : P "/" V
+P(V)   : V
+V      : "(" S ")"
+V      : int
+int    : /\d++/
+_END
+        );
+
+        $parser = new Parser($lexer, $grammar);
+
+        $actions = new ActionsMadeMap([
+            'int' => function ($int) { return (int)$int; },
+            'V(int)' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'V' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'P(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'P(mul)' => function ($a, $b) { return $a * $b; },
+            'P(div)' => function ($a, $b) {
+                if (0 === $b || 0.0 === $b) {
+                    throw new ActionAbortException('Division by zero');
+                }
+                return $a / $b;
+            },
+            'S(P)' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'S(add)' => function ($a, $b) { return $a + $b; },
+            'S(sub)' => function ($a, $b) { return $a - $b; },
+        ]);
+
+        $this->setExpectedException(SyntaxException::class, 'Division by zero');
+
+        $parser->parse('42 / (2 * 5 - 10)', $actions);
     }
 
     public function testConflictTerminals()

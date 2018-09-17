@@ -17,6 +17,8 @@ LR(0) parser Change Log
 *   Add: Method `VovanVE\parser\lexer\Lexer::parseOne()` to deal with complex grammar.
 *   Add method `\VovanVE\parser\table\TableRow::isReduceOnly()` to check if table row
     is for reduce only.
+*   Add exception `\VovanVE\parser\actions\ActionAbortException` which should be thrown from
+    action handler to be converted to `VovanVE\parser\SyntaxException`.
 *   Enh: RegExp validation throws exception from `VovanVE\parser\lexer\Lexer`.
 *   Enh: Enum expected tokens in `VovanVE\parser\SyntaxException` in case of unexpected token
     in parsing text.

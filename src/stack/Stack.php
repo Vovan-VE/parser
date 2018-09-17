@@ -1,6 +1,7 @@
 <?php
 namespace VovanVE\parser\stack;
 
+use VovanVE\parser\actions\ActionAbortException;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
@@ -66,6 +67,7 @@ class Stack extends BaseObject
      * @param TreeNodeInterface $node Node to add into the stack
      * @param integer $stateIndex Next state index to switch to
      * @param bool $isHidden [since 1.4.0] Whether the node is hidden from the resulting tree
+     * @throws ActionAbortException
      */
     public function shift($node, $stateIndex, $isHidden = false)
     {
@@ -89,6 +91,7 @@ class Stack extends BaseObject
      * Perform the Reduce
      * @throws NoReduceException No rule to reduce by in the current state
      * @throws InternalException Internal package error
+     * @throws ActionAbortException
      */
     public function reduce()
     {

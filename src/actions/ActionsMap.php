@@ -34,6 +34,8 @@ use VovanVE\parser\common\TreeNodeInterface;
  * on a node. Callback itself should to use children nodes' `made()` values to
  * evaluate the result. To apply `null` value to a node you need to call `make(null)`
  * manually in action callback, but it is not necessary since default `made()` value is `null`.
+ *
+ * Handler may throw `ActionAbortException`. Parser will convert it into `SyntaxException.`
  * @package VovanVE\parser
  * @since 1.3.0
  */
@@ -98,6 +100,7 @@ class ActionsMap extends BaseObject
      * @return bool|null Returns `null` when no action defined. Returns `false` when
      * action result `null` and so it was not applied. Returns `true` wher action result
      * was not `null` and it was applied.
+     * @throws ActionAbortException
      * @since 1.4.0
      */
     public function applyToNode($node)
@@ -120,6 +123,7 @@ class ActionsMap extends BaseObject
      * Runs action for a node if action is defined. Returns result of the action.
      * @param TreeNodeInterface $node Subject node
      * @return mixed Value returned from action or `null` if no action.
+     * @throws ActionAbortException
      * @deprecated >= 1.5.0: Method is unused internally and does not cause tree recursion.
      */
     public function runForNode($node)
@@ -160,6 +164,7 @@ class ActionsMap extends BaseObject
      * @param TreeNodeInterface $node Subject node
      * @return mixed Result of the action call
      * @since 1.5.0
+     * @throws ActionAbortException
      */
     private function runAction($action, $node)
     {
@@ -178,6 +183,7 @@ class ActionsMap extends BaseObject
      * @param TreeNodeInterface $node Subject node
      * @return mixed Result of the action call
      * @since 1.5.0
+     * @throws ActionAbortException
      */
     protected function runActionHandler($action, $node)
     {
