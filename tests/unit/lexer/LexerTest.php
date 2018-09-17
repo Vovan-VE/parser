@@ -11,27 +11,28 @@ class LexerTest extends BaseTestCase
 {
     public function testParseBasic()
     {
-        $lexer = new Lexer(
-            [
+        $lexer = (new Lexer)
+            ->inline([
                 '--INLINE--',
-
-                'int' => '\\d++',
-                'var' => '[a-z_][a-z_0-9]*+',
-                'inc' => '\\+\\+',
-                'dec' => '--',
-                'add' => '[-+]',
-                '.mul' => '\\*',
-
                 '$',
                 '\\',
-            ],
-            ['\\s++'],
-            [],
-            'i'
-        );
+            ])
+            ->fixed([
+                'inc' => '++',
+                'dec' => '--',
+                '.mul' => '*',
+            ])
+            ->terminals([
+                'int' => '\\d++',
+                'var' => '[a-z_][a-z_0-9]*+',
+                'add' => '[-+]',
+                '.bit' => '[|&]',
+            ])
+            ->whitespaces(['\\s++'])
+            ->modifiers('i');
 
         $test_inputs = [
-            'foo  + --bar - 42 + i++-37 --INLINE-- x$\\ * y23' => [
+            'foo  + --bar - 42 + i++-37 & --INLINE-- | x$\\ * y23' => [
                 ['var', 'foo'],
                 ['add', '+'],
                 ['dec', '--'],
@@ -43,7 +44,9 @@ class LexerTest extends BaseTestCase
                 ['inc', '++'],
                 ['add', '-'],
                 ['int', '37'],
+                ['bit', '&', true],
                 ['--INLINE--', '--INLINE--', true],
+                ['bit', '|', true],
                 ['var', 'x'],
                 ['$', '$', true],
                 ['\\', '\\', true],
@@ -84,16 +87,14 @@ class LexerTest extends BaseTestCase
 
         $sub_tests = [
             [
-                new Lexer(
-                    [
+                (new Lexer)
+                    ->terminals([
                         'var' => '[a-z]',
                         'inc' => '\\+\\+',
                         'add' => '\\+',
-                    ],
-                    ['\\s++'],
-                    [],
-                    'i'
-                ),
+                    ])
+                    ->whitespaces(['\\s++'])
+                    ->modifiers('i'),
                 [
                     ['var', 'a'],
                     ['inc', '++'],
@@ -102,16 +103,14 @@ class LexerTest extends BaseTestCase
                 ],
             ],
             [
-                new Lexer(
-                    [
+                (new Lexer)
+                    ->terminals([
                         'var' => '[a-z]',
                         'add' => '\\+',
                         'inc' => '\\+\\+',
-                    ],
-                    ['\\s++'],
-                    [],
-                    'i'
-                ),
+                    ])
+                    ->whitespaces(['\\s++'])
+                    ->modifiers('i'),
                 [
                     ['var', 'a'],
                     ['add', '+'],
@@ -121,16 +120,16 @@ class LexerTest extends BaseTestCase
                 ],
             ],
             [
-                new Lexer(
-                    [
-                        'var' => '[a-z]',
+                (new Lexer)
+                    ->inline([
                         '++',
                         '+',
-                    ],
-                    ['\\s++'],
-                    [],
-                    'i'
-                ),
+                    ])
+                    ->terminals([
+                        'var' => '[a-z]',
+                    ])
+                    ->whitespaces(['\\s++'])
+                    ->modifiers('i'),
                 [
                     ['var', 'a'],
                     ['++', '++', true],
@@ -139,21 +138,58 @@ class LexerTest extends BaseTestCase
                 ],
             ],
             [
-                //order for inlines does not matter
-                new Lexer(
-                    [
-                        'var' => '[a-z]',
+                // order for inlines does not matter
+                (new Lexer)
+                    ->inline([
                         '+',
                         '++',
-                    ],
-                    ['\\s++'],
-                    [],
-                    'i'
-                ),
+                    ])
+                    ->terminals([
+                        'var' => '[a-z]',
+                    ])
+                    ->whitespaces(['\\s++'])
+                    ->modifiers('i'),
                 [
                     ['var', 'a'],
                     ['++', '++', true],
                     ['+', '+', true],
+                    ['var', 'b'],
+                ],
+            ],
+            [
+                (new Lexer)
+                    ->fixed([
+                        'inc' => '++',
+                        'add' => '+',
+                    ])
+                    ->terminals([
+                        'var' => '[a-z]',
+                    ])
+                    ->whitespaces(['\\s++'])
+                    ->modifiers('i'),
+                [
+                    ['var', 'a'],
+                    ['inc', '++'],
+                    ['add', '+'],
+                    ['var', 'b'],
+                ],
+            ],
+            [
+                // order for fixed does not matter
+                (new Lexer)
+                    ->fixed([
+                        'add' => '+',
+                        'inc' => '++',
+                    ])
+                    ->terminals([
+                        'var' => '[a-z]',
+                    ])
+                    ->whitespaces(['\\s++'])
+                    ->modifiers('i'),
+                [
+                    ['var', 'a'],
+                    ['inc', '++'],
+                    ['add', '+'],
                     ['var', 'b'],
                 ],
             ],
@@ -176,17 +212,16 @@ class LexerTest extends BaseTestCase
 
     public function testParseDefines()
     {
-        $lexer = new Lexer(
-            [
+        $lexer = (new Lexer)
+            ->terminals([
                 'var' => '(?&id)',
                 'num' => '(?&int)',
-            ],
-            ['\\s++'],
-            [
+            ])
+            ->whitespaces(['\\s++'])
+            ->defines([
                 'id' => '[a-z_][a-z_0-9]*+',
                 'int' => '\\d++',
-            ]
-        );
+            ]);
         $test_input = 'foo 42 foo42';
         $expect_tokens = [
             ['var', 'foo'],
@@ -206,14 +241,13 @@ class LexerTest extends BaseTestCase
 
     public function testParseComments()
     {
-        $lexer = new Lexer(
-            ['a' => 'A'],
-            [
+        $lexer = (new Lexer)
+            ->terminals(['a' => 'A'])
+            ->whitespaces([
                 '\\s++',
                 '(?:#|\\/\\/)[^\\r\\n]*+(?:\\z|\\r\\n?|\\n)',
                 '\\/\\*(?:[^*]++|\\*(?!\\/))*+\\*\\/',
-            ]
-        );
+            ]);
 
         $test_inputs = [
             "AA  A\nA\n\n  A" => 5,
@@ -237,12 +271,51 @@ class LexerTest extends BaseTestCase
         }
     }
 
+    public function testXModifier()
+    {
+        $lexer = (new Lexer)
+            ->modifiers('x')
+            ->fixed([
+                'SP' => ' ',
+                'TAB' => "\t",
+                'LF' => "\n",
+                'CR' => "\r",
+            ])
+            ->inline(['#', '/', '\\', '\\Q', '\\E']);
+
+        // all items to test for
+        $items = [' ', "\t", "\n", "\r", '#', '/', '\\', '\\Q', '\\E'];
+
+        // generate expected output of the items
+        $last_index = count($items) - 1;
+        $expected = [];
+        for ($n = 100; $n-- > 0; ) {
+            $expected[] = $items[mt_rand(0, $last_index)];
+        }
+
+        foreach ($items as $item) {
+            $this->assertTrue(
+                in_array($item, $expected, true),
+                'item ' . json_encode($item) . ' was generated'
+            );
+        }
+
+        // input is generated items on order
+        $input = join('', $expected);
+        $index = 0;
+        foreach ($lexer->parse($input) as $token) {
+            $this->assertSame($expected[$index], $token->getContent());
+            ++$index;
+        }
+    }
+
     public function testParseFail()
     {
-        $lexer = new Lexer([
-            'var' => '[a-z]+',
-            'int' => '\\d+',
-        ]);
+        $lexer = (new Lexer)
+            ->terminals([
+                'var' => '[a-z]+',
+                'int' => '\\d+',
+            ]);
         $test_input = 'foo42bar37?!@';
         $expected_first = [
             ['var', 'foo'],
@@ -271,59 +344,42 @@ class LexerTest extends BaseTestCase
 
     public function testFailNoTerminals()
     {
-        $lexer = new Lexer([]);
-        $this->setExpectedException(\InvalidArgumentException::class);
-        $lexer->compile();
-    }
-
-    public function testFailOverlappedNames()
-    {
-        $lexer = new Lexer(
-            [
-                'foo' => '(?&lol)',
-                'bar' => '(?&bar)',
-            ],
-            [],
-            [
-                'lol' => 'lo++l',
-                'bar' => '\\d++',
-            ]
-        );
+        $lexer = new Lexer();
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
     public function testFailBadNamesTerminals()
     {
-        $lexer = new Lexer([
-            'int' => '\\d++',
-            'bad-name' => '\\s++',
-        ]);
+        $lexer = (new Lexer)
+            ->terminals([
+                'int' => '\\d++',
+                'bad-name' => '\\s++',
+            ]);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
     public function testFailBadNamesDefined()
     {
-        $lexer = new Lexer(
-            [
+        $lexer = (new Lexer)
+            ->terminals([
                 'number' => '(?&int)',
-            ],
-            [],
-            [
+            ])
+            ->defines([
                 'int' => '\\d++',
                 'bad-name' => '\\s++',
-            ]
-        );
+            ]);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
     public function testFailEmptyMatch()
     {
-        $lexer = new Lexer([
-            'empty' => '.{0}',
-        ]);
+        $lexer = (new Lexer)
+            ->terminals([
+                'empty' => '.{0}',
+            ]);
         $this->setExpectedException(DevException::class);
         foreach ($lexer->parse('.') as $token) {
             $this->assertNotEquals('', $token->getContent());
@@ -332,7 +388,7 @@ class LexerTest extends BaseTestCase
 
     public function testExtend()
     {
-        $base = new Lexer(['a' => 'a++']);
+        $base = (new Lexer)->terminals(['a' => 'a++']);
         $ext1 = $base->extend(['b' => 'b++']);
         $ext2 = $base->extend(['c' => 'c++']);
         $this->assertNotSame($base, $ext1, 'extended lexer is new one');
@@ -350,27 +406,68 @@ class LexerTest extends BaseTestCase
 
     public function testExtendDuplicate()
     {
-        $base = new Lexer(['a' => 'a++'], [], ['x' => 'x++']);
+        $base = (new Lexer)
+            ->terminals(['a' => 'a++'])
+            ->defines(['x' => 'x++']);
         $this->setExpectedException(\InvalidArgumentException::class);
         $base->extend(['a' => 'A'], [], ['x' => 'X']);
+    }
+
+    public function testDefineDuplicate()
+    {
+        $base = (new Lexer)
+            ->defines(['x' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $base->defines(['x' => 'y']);
+    }
+
+    public function testFixedDuplicate()
+    {
+        $base = (new Lexer)
+            ->fixed(['x' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $base->fixed(['x' => 'y']);
+    }
+
+    public function testFixedDuplicateValues()
+    {
+        $base = (new Lexer)
+            ->fixed([
+                'x' => 'a',
+                'y' => 'a',
+            ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $base->compile();
+    }
+
+    public function testTerminalDuplicate()
+    {
+        $base = (new Lexer)
+            ->terminals(['x' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $base->terminals(['x' => 'y']);
     }
 
     public function testFlowCreation()
     {
         $a = new Lexer();
         $b = $a->defines(['name' => '[a-z]++']);
-        $c = $b->terminals(['var' => '$(?&name)', ',']);
+        $c = $b->terminals(['var' => '\\$(?&name)']);
         $d = $c->whitespaces(['\\s++']);
         $e = $d->modifiers('i');
+        $f = $e->inline(['+', ',']);
+        $g = $f->fixed(['inc' => '++']);
 
         $this->assertNotSame($a, $b);
         $this->assertNotSame($b, $c);
         $this->assertNotSame($c, $d);
         $this->assertNotSame($d, $e);
+        $this->assertNotSame($e, $f);
+        $this->assertNotSame($f, $g);
 
-        $this->assertNotSame($a, $e);
+        $this->assertNotSame($a, $g);
 
-        foreach ([$a, $b, $c, $d, $e] as $lexer) {
+        foreach ([$a, $b, $c, $d, $e, $f, $g] as $lexer) {
             $this->assertInstanceOf(Lexer::class, $lexer);
             $this->assertFalse($lexer->isCompiled());
         }
@@ -415,60 +512,186 @@ class LexerTest extends BaseTestCase
 
     public function testConflictVisibleHidden()
     {
-        $lexer = new Lexer([
-            'a' => 'x',
-            '.a' => 'y',
-        ]);
+        $lexer = (new Lexer)
+            ->terminals([
+                'a' => 'x',
+                '.a' => 'y',
+            ]);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
     public function testConflictHiddenVisible()
     {
-        $lexer = new Lexer([
-            '.a' => 'y',
-            'a' => 'x',
-        ]);
+        $lexer = (new Lexer)
+            ->terminals([
+                '.a' => 'y',
+                'a' => 'x',
+            ]);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
     public function testConflictVisibleInline()
     {
-        $lexer = new Lexer([
-            'a' => 'x',
-            'a',
-        ]);
-        $this->setExpectedException(\InvalidArgumentException::class);
-        $lexer->compile();
-    }
-
-    public function testConflictInlineVisible()
-    {
-        $lexer = new Lexer([
-            'a',
-            'a' => 'x',
-        ]);
+        $lexer = (new Lexer)
+            ->inline(['a'])
+            ->terminals(['a' => 'x']);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
     public function testConflictHiddenInline()
     {
-        $lexer = new Lexer([
-            '.a' => 'x',
-            'a',
-        ]);
+        $lexer = (new Lexer)
+            ->inline(['a'])
+            ->terminals(['.a' => 'x']);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
-    public function testConflictInlineHidden()
+    public function testConflictFixedVisibleHidden()
     {
-        $lexer = new Lexer([
-            'a',
-            '.a' => 'x',
-        ]);
+        $lexer = (new Lexer)
+            ->fixed([
+                'a' => 'x',
+                '.a' => 'y',
+            ]);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictFixedVisibleInline()
+    {
+        $lexer = (new Lexer)
+            ->inline(['a'])
+            ->fixed(['a' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictInlineFixedValue()
+    {
+        $lexer = (new Lexer)
+            ->inline(['a'])
+            ->fixed(['x' => 'a']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictFixedHiddenInline()
+    {
+        $lexer = (new Lexer)
+            ->inline(['a'])
+            ->fixed(['.a' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictTerminalVisibleFixedVisible()
+    {
+        $lexer = (new Lexer)
+            ->terminals(['a' => 'y'])
+            ->fixed(['a' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictTerminalVisibleFixedHidden()
+    {
+        $lexer = (new Lexer)
+            ->terminals(['a' => 'y'])
+            ->fixed(['.a' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictTerminalHiddenFixedVisible()
+    {
+        $lexer = (new Lexer)
+            ->terminals(['.a' => 'y'])
+            ->fixed(['a' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictTerminalHiddenFixedHidden()
+    {
+        $lexer = (new Lexer)
+            ->terminals(['.a' => 'y'])
+            ->fixed(['.a' => 'x']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictDefineFixedVisible()
+    {
+        $lexer = (new Lexer)
+            ->defines(['a' => 'x'])
+            ->fixed(['a' => 'y']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictDefineFixedHidden()
+    {
+        $lexer = (new Lexer)
+            ->defines(['a' => 'x'])
+            ->fixed(['.a' => 'y']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictDefineTerminalVisible()
+    {
+        $lexer = (new Lexer)
+            ->defines(['a' => 'x'])
+            ->terminals(['a' => 'y']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testConflictDefineTerminalHidden()
+    {
+        $lexer = (new Lexer)
+            ->defines(['a' => 'x'])
+            ->terminals(['.a' => 'y']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testFailRegExpErrorDefines()
+    {
+        $lexer = (new Lexer)
+            ->fixed(['a' => 'x']);
+        $lexer->compile();
+
+        $lexer = $lexer
+            ->defines(['foo' => '(*']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testFailRegExpErrorTerminals()
+    {
+        $lexer = (new Lexer)
+            ->fixed(['a' => 'x']);
+        $lexer->compile();
+
+        $lexer = $lexer
+            ->terminals(['foo' => '(*']);
+        $this->setExpectedException(\InvalidArgumentException::class);
+        $lexer->compile();
+    }
+
+    public function testFailRegExpErrorWhitespaces()
+    {
+        $lexer = (new Lexer)
+            ->fixed(['a' => 'x']);
+        $lexer->compile();
+
+        $lexer = $lexer
+            ->whitespaces(['(*']);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
     }

@@ -1,9 +1,11 @@
 <?php
 namespace VovanVE\parser;
 
+use VovanVE\parser\actions\ActionAbortException;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
+use VovanVE\parser\common\Symbol;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
 use VovanVE\parser\grammar\Grammar;
@@ -50,13 +52,10 @@ class Parser extends BaseObject
             );
         }
 
-        $my_lexer = $lexer;
-
-        $inlines = $grammar->getInlines();
-        if ($inlines) {
-            $my_lexer = $my_lexer->extend($inlines);
-        }
-        $this->lexer = $my_lexer;
+        $this->lexer = $lexer
+            ->fixed($grammar->getFixed())
+            ->terminals($grammar->getRegExpMap())
+            ->inline($grammar->getInlines());
 
         $this->table = new Table($grammar);
     }
@@ -87,23 +86,41 @@ class Parser extends BaseObject
      * on a node. Callback itself should to use children nodes' `made()` values to
      * evaluate the result. To apply `null` value to a node you need to call `make(null)`
      * manually in action callback, but it is not necessary since default `made()` value is `null`.
+     *
+     * Since 1.5.0 an instance of `ActionsMap` can be passed directly to `$actions`.
      * @param string $input Input text to parse
-     * @param callable[]|string[] $actions [since 1.3.0] Actions map.
+     * @param ActionsMap|callable[]|string[] $actions [since 1.3.0] Actions map.
+     * Accepts `ActionsMap` since 1.5.0.
      * @return TreeNodeInterface
+     * @see \VovanVE\parser\actions\ActionsMadeMap
      */
     public function parse($input, $actions = [])
     {
-        $tokens_gen = $this->lexer->parse($input);
-        $stack = new Stack($this->table, $actions ? new ActionsMap($actions) : null);
+        if ($actions instanceof ActionsMap) {
+            $actions_map = $actions;
+        } elseif ($actions) {
+            $actions_map = new ActionsMap($actions);
+        } else {
+            $actions_map = null;
+        }
 
-        $eof_offset = mb_strlen($input, '8bit');
-        $tokens_gen->rewind();
+        $stack = new Stack($this->table, $actions_map);
+
+        $pos = 0;
         $token = null;
         try {
             while (true) {
-                if ($tokens_gen->valid()) {
+                while ($stack->getStateRow()->isReduceOnly()) {
+                    $stack->reduce();
+                }
+
+                $expected_terms = array_keys($stack->getStateRow()->terminalActions);
+                $match = $this->lexer->parseOne($input, $pos, $expected_terms);
+
+                if ($match) {
                     /** @var Token $token */
-                    $token = $tokens_gen->current();
+                    $token = $match->token;
+                    $pos = $match->nextOffset;
                     $symbol_name = $token->getType();
                 } else {
                     $token = null;
@@ -125,9 +142,7 @@ class Parser extends BaseObject
                     if ($stack->getStateRow()->eofAction) {
                         if ($token) {
                             throw new SyntaxException(
-                                'Expected <EOF> but got <'
-                                . $this->dumpTokenForError($token)
-                                . '>',
+                                'Expected <EOF> but got ' . $this->dumpTokenForError($token),
                                 $token->getOffset()
                             );
                         }
@@ -137,18 +152,27 @@ class Parser extends BaseObject
                 }
 
                 NEXT_SYMBOL:
-                $tokens_gen->next();
             }
             DONE:
+        } catch (ActionAbortException $e) {
+            throw new SyntaxException(
+                $e->getMessage(),
+                $token ? $token->getOffset() : strlen($input)
+            );
         } catch (NoReduceException $e) {
             // This unexpected reduce (no rule to reduce) may happen only
             // when current terminal is not expected. So, some terminals
             // are expected here.
 
-            // TODO: what expected
+            $expected_terminals = [];
+            foreach ($stack->getStateRow()->terminalActions as $name => $_) {
+                $expected_terminals[] = Symbol::dumpType($name);
+            }
+
             throw new SyntaxException(
-                'Unexpected <' . $this->dumpTokenForError($token) . '>',
-                $token ? $token->getOffset() : $eof_offset
+                'Unexpected ' . $this->dumpTokenForError($token)
+                . ($expected_terminals ? '; expected: ' . join(', ', $expected_terminals) : ''),
+                $token ? $token->getOffset() : strlen($input)
             );
         } catch (StateException $e) {
             throw new InternalException('Unexpected state fail', 0, $e);
@@ -164,9 +188,12 @@ class Parser extends BaseObject
      */
     private function dumpTokenForError($token)
     {
-        if ($token) {
-            return $token->getType() . ' "' . $token->getContent() . '"';
+        if (!$token) {
+            return '<EOF>';
         }
-        return '<EOF>';
+        if ($token->isInline()) {
+            return Symbol::dumpInline($token->getType());
+        }
+        return '<' . $token->getType() . ' "' . $token->getContent() . '">';
     }
 }

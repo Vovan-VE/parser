@@ -1,6 +1,38 @@
 LR(0) parser Change Log
 =======================
 
+1.5.0
+-----
+
+*   BC break: Non-terminal in `VovanVE\parser\grammar\Grammar` with the only definition
+    which consists of the only inline token like `name: "text"` can be converted from rule
+    into fixed terminal. This may cause problems if you rely that the rules subjects are
+    always non-terminal or rely either on rules count or specific rules.
+*   Add: Terminals can be defined with RegExp literal in grammar text.
+*   Add: Named fixed tokens in `VovanVE\parser\lexer\Lexer`.
+*   Add: Separate definition for inline tokens in `VovanVE\parser\lexer\Lexer`.
+*   Add: Class `VovanVE\parser\actions\ActionsMadeMap` to let actions to accept only
+    children' `made()` values instead of nodes. It also allows you optionally to prune
+    tree just after node `made()` is done.
+*   Add: Method `VovanVE\parser\lexer\Lexer::parseOne()` to deal with complex grammar.
+*   Add method `\VovanVE\parser\table\TableRow::isReduceOnly()` to check if table row
+    is for reduce only.
+*   Add exception `\VovanVE\parser\actions\ActionAbortException` which should be thrown from
+    action handler to be converted to `VovanVE\parser\SyntaxException`.
+*   Enh: RegExp validation throws exception from `VovanVE\parser\lexer\Lexer`.
+*   Enh: Enum expected tokens in `VovanVE\parser\SyntaxException` in case of unexpected token
+    in parsing text.
+*   Fix: Cannot use inline/fixed spaces and `#` with `/x` modifier.
+*   Fix: Could nor work with valid deterministic grammar when unexpected token could match
+    without respect to current expectations.
+*   Deprecated: `VovanVE\parser\lexer\Lexer` constructor arguments should be avoided
+    in favor to corresponding extending method.
+*   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding
+    extending method.
+*   Deprecated: Method `\VovanVE\parser\actions\ActionsMap::runForNode()` since it is unused
+    internally and does not cause tree recursion.
+*   Deprecated: Defining inline tokens within regexp terminals in `VovanVE\parser\lexer\Lexer`.
+
 1.4.2
 -----
 
@@ -76,7 +108,7 @@ LR(0) parser Change Log
 1.0.1
 -----
 
-*   Fix: broken exmple code in README.
+*   Fix: broken example code in README.
 
 
 1.0.0

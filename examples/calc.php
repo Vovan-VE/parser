@@ -1,7 +1,6 @@
 <?php
-
-use VovanVE\parser\common\Token;
-use VovanVE\parser\common\TreeNodeInterface as INode;
+/* @formatter:off */
+use VovanVE\parser\actions\ActionsMadeMap;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
@@ -20,42 +19,28 @@ $grammar = Grammar::create(<<<'_END'
     Value       : "+" Value
     Value       : "(" Sum ")"
     Value       : int
+    int         : /\d+/
 _END
 );
 
 $lexer = (new Lexer)
-    ->terminals([
-        'int' => '\\d+',
-    ])
     //->modifiers('i')
     ->whitespaces(['\\s+']);
 
-$actions = [
-    'int' => function (Token $t) {
-        return (int)$t->getContent();
-    },
+$actions = new ActionsMadeMap([
+    'int' => function ($content) { return (int)$content; },
 
     'Value' => Parser::ACTION_BUBBLE_THE_ONLY,
-    'Value(neg)' => function ($v, INode $n) {
-        return -$n->made();
-    },
+    'Value(neg)' => function ($v) { return -$v; },
 
     'Product(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
-    'Product(mul)' => function ($p, INode $a, INode $b) {
-        return $a->made() * $b->made();
-    },
-    'Product(div)' => function ($p, INode $a, INode $b) {
-        return $a->made() / $b->made();
-    },
+    'Product(mul)' => function ($a, $b) { return $a * $b; },
+    'Product(div)' => function ($a, $b) { return $a / $b; },
 
     'Sum(P)' => Parser::ACTION_BUBBLE_THE_ONLY,
-    'Sum(add)' => function ($s, INode $a, INode $b) {
-        return $a->made() + $b->made();
-    },
-    'Sum(sub)' => function ($s, INode $a, INode $b) {
-        return $a->made() - $b->made();
-    },
-];
+    'Sum(add)' => function ($a, $b) { return $a + $b; },
+    'Sum(sub)' => function ($a, $b) { return $a - $b; },
+]);
 
 $parser = new Parser($lexer, $grammar);
 

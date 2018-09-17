@@ -47,6 +47,7 @@ class Table extends BaseObject
     {
         /** @var TableRow[] $rows */
         $rows = [];
+        /** @var ItemSet[] $states */
         $states = [];
         $item = Item::createFromRule($grammar->getMainRule());
         $item_set = ItemSet::createFromItems([$item], $grammar);

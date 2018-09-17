@@ -17,6 +17,15 @@
     "require-dev": {
         "phpunit/phpunit": "~4.8"
     },
+    "scripts": {
+        "test": "vendor/bin/phpunit --verbose"
+    },
+    "archive": {
+        "exclude": [
+            "/tests/",
+            "/phpunit.xml.dist"
+        ]
+    },
     "autoload": {
         "psr-4": {
             "VovanVE\\parser\\": "src/"

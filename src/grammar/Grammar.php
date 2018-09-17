@@ -34,6 +34,7 @@ use VovanVE\parser\common\Symbol;
  *     Value       : "+" Value
  *     Value       : "(" Sum ")"
  *     Value       : int
+ *     int         : /\d+/
  * _END
  * );
  * ```
@@ -44,6 +45,8 @@ use VovanVE\parser\common\Symbol;
  *
  * ```
  * Subject ( tag ) : foo "+" .bar
+ * Subject         : "+"
+ * Subject         : /regexp/
  * ```
  *
  * Explanation:
@@ -56,6 +59,8 @@ use VovanVE\parser\common\Symbol;
  *         or something similar. So, you cannot use `"` inside `"..."`, `'` inside `'...'`
  *         and `<` or `>` inside `<...>`.
  *     *   `.bar` - hidden symbol
+ * *   `/regexp/` - RegExp definition for terminal. Usage of NOWDOC for grammar text
+ *         lets you to avoid double escaping. RegExp definition introduced since 1.5.0.
  * *   `$` - EOF marker for main rule.
  *
  * Here is some terms:
@@ -74,6 +79,11 @@ use VovanVE\parser\common\Symbol;
  * *   Named symbols can be marked as hidden too. Add a dot `.` in front of name: `.foo`.
  *     This can be done locally in a rule (both for terminals and non-terminals) or "globally"
  *     in Lexer (for terminals only).
+ * *   Rule with the only inline token and without tag like `name: "text"` can be removed
+ *     internally to define fixed terminal in Lexer instead when the inline has no other
+ *     references and subject symbol has no other rules. This feature is introduced since 1.5.0.
+ * *   RegExp definition must be the only item in a rule: `name: /regexp/`
+ * *   RegExp subject symbol must not have any definitions in another rules.
  *
  * @package VovanVE\parser
  * @link https://en.wikipedia.org/wiki/LR_parser
@@ -83,72 +93,86 @@ class Grammar extends BaseObject
     // REFACT: minimal PHP >= 7.0: const expression: extract and reuse defines
 
     // REFACT: minimal PHP >= 7.1: private const
-    const RE_RULE_LINE = '/
-        \\G
-        \\h*+
-        (?<rule>
-            (?:
-                [^\\v;"\'<>]++
-            |
-                " [^\\v"]*+
-                (?: " | $ )
-            |
-                \' [^\\v\']*+
-                (?: \' | $ )
-            |
-                < [^\\v<>]*+
-                (?: > | $ )
+    const RE_RULE_LINE = <<<'_REGEXP'
+~
+    \G
+    \h*+
+    (?<rule>
+        (?: [^\v;"'<>/]++
+        |   " [^\v"]*+   (?: " | $ )
+        |   ' [^\v']*+   (?: ' | $ )
+        |   < [^\v<>]*+  (?: > | $ )
+        |   /
+            (?: [^\v/\\]++
+            |   \\ [^\v]
             )*+
-        )
-        (?= $ | [\\v;])
-        [\\v;]*+
-        (?<eof> $ )?
-    /xD';
+            \\?+
+            (?: / | $ )
+        )*+
+    )
+    (?= $ | [\v;])
+    [\v;]*+
+    (?<eof> $ )?
+~xD
+_REGEXP;
 
     // REFACT: minimal PHP >= 7.1: private const
-    const RE_INPUT_RULE = '/
-        (?(DEFINE)
-            (?<name> [a-z][a-z_0-9]*+ )
-        )
-        ^
-        (?<subj> (?&name) )
-        \\s*+
-        (?:
-            \(
-            \\s*+
-            (?<tag> (?&name) )
-            \\s*+
-            \)
-            \\s*+
-        )?
-        :
-        \\s*+
-        (?<def> (?: [^$] | \\$ (?! \\s*+ $ ) )++ )
-        (?<eof> \\$ )?
-        $
-    /xi';
+    const RE_INPUT_RULE = <<<'_REGEXP'
+/
+    (?(DEFINE)
+        (?<name> [a-z][a-z_0-9]*+ )
+    )
+    ^
+    (?<subj> (?&name) )
+    \s*+
+    (?:
+        \(
+        \s*+
+        (?<tag> (?&name) )
+        \s*+
+        \)
+        \s*+
+    )?
+    :
+    \s*+
+    (?<def>
+        (?: [^$]++
+        |   \$ (?! \s*+ $ )
+        )++
+    )
+    (?<eof> \$ )?
+    $
+/xi
+_REGEXP;
 
     // REFACT: minimal PHP >= 7.1: private const
-    const RE_RULE_DEF_ITEM = '/
-        \\G
-        \\s*+
-        (?:
-            (?:
-                (?<word> \\.? [a-z][a-z_0-9]*+  )
-            |   (?<q>    " [^"]+ "
-                |       \' [^\']+ \'
-                |        < [^<>]+ >  )
-            )
-            \\s*+
+    const RE_RULE_DEF_ITEM = <<<'_REGEXP'
+/
+    \G
+    \s*+
+    (?:
+        (?: (?<word> \.? [a-z][a-z_0-9]*+  )
         |
-            (?<end> $ )
+            (?<q> " [^"]+ "
+            |     ' [^']+ '
+            |     < [^<>]+ >
+            )
         )
-    /xi';
+        \s*+
+    |
+        (?<end> $ )
+    )
+/xi
+_REGEXP;
 
     /** @var Rule[] Rules in the grammar */
     private $rules;
     /** @var string[] Strings list of defined inline tokens, unquoted */
     private $inlines = [];
+    /** @var array Fixed tokens definition map */
+    private $fixed = [];
+    /** @var array RegExp tokens definition map */
+    private $regexpMap = [];
     /** @var Rule Reference to the mail rule */
     private $mainRule;
     /** @var Symbol[] Map of all Symbols from all rules. Key is a symbol name. */
@@ -173,6 +197,11 @@ class Grammar extends BaseObject
         $inlines = [];
         $rules = [];
 
+        $inline_ref_count = [];
+        /** @var Rule[] $inline_ref_rule */
+        $inline_ref_rule = [];
+        $subject_rules_count = [];
+
         /** @var Symbol[][] $symbols */
         $symbols = [];
         $get_symbol = function ($name, $isInline = false) use (&$symbols, &$inlines) {
@@ -186,9 +215,9 @@ class Grammar extends BaseObject
                 $plain_name = $name;
                 $is_hidden = true;
             } else {
-                $is_hidden = '.' === mb_substr($name, 0, 1, '8bit');
+                $is_hidden = '.' === substr($name, 0, 1);
                 $plain_name = $is_hidden
-                    ? mb_substr($name, 1, null, '8bit')
+                    ? substr($name, 1)
                     : $name;
 
                 if (isset($inlines[$plain_name])) {
@@ -204,6 +233,7 @@ class Grammar extends BaseObject
         };
 
         $non_terminals_names = [];
+        $regexp_map = [];
 
         foreach ($rules_strings as $rule_string) {
             if ('' === $rule_string) {
@@ -215,8 +245,26 @@ class Grammar extends BaseObject
                     throw new GrammarException("Invalid rule format");
                 }
 
+                $subject_name = $match['subj'];
+
                 /** @var Symbol $subject */
-                $subject = $get_symbol($match['subj']);
+
+                $regexp_definition = self::matchRegexpDefinition($match['def']);
+                if (null !== $regexp_definition) {
+                    if (isset($match['tag']) && '' !== $match['tag']) {
+                        throw new GrammarException("Rule tag cannot be used in RegExp rules");
+                    }
+
+                    if (isset($regexp_map[$subject_name])) {
+                        throw new GrammarException("Duplicate RegExp rule for symbol `$subject_name`");
+                    }
+
+                    $get_symbol($subject_name);
+                    $regexp_map[$subject_name] = $regexp_definition;
+                    continue;
+                }
+
+                $subject = $get_symbol($subject_name);
                 $subject->setIsTerminal(false);
                 $non_terminals_names[$subject->getName()] = true;
 
@@ -236,12 +284,33 @@ class Grammar extends BaseObject
                 throw new GrammarException($e->getMessage() . " - rule '$rule_string'");
             }
 
-            $rules[] = new Rule(
+            $rule = new Rule(
                 $subject,
                 $definition,
                 $eof,
                 isset($match['tag']) ? $match['tag'] : null
             );
+            $rules[] = $rule;
+
+            // REFACT: PHP >= 7.0: use `??`
+            if (isset($subject_rules_count[$subject_name])) {
+                ++$subject_rules_count[$subject_name];
+            } else {
+                $subject_rules_count[$subject_name] = 1;
+            }
+
+            foreach ($rule_inlines as $inline_token) {
+                // REFACT: PHP >= 7.0: use `??`
+                if (isset($inline_ref_count[$inline_token])) {
+                    ++$inline_ref_count[$inline_token];
+                } else {
+                    $inline_ref_count[$inline_token] = 1;
+                }
+
+                // it is needed in case of the only reference,
+                // so array of an subject is not needed
+                $inline_ref_rule[$inline_token] = $rule;
+            }
         }
 
         // Hidden symbols all are terminals still
@@ -251,7 +320,48 @@ class Grammar extends BaseObject
             }
         }
 
-        return new static($rules, $inlines);
+        // RegExp tokens cannot be non-terminals in the same time
+        // since there is no anonymous RegExp terminals
+        foreach (array_intersect_key($regexp_map, $non_terminals_names) as $name => $_) {
+            throw new GrammarException(
+                "Symbol `$name` defined as non-terminal and as regexp terminal in the same time"
+            );
+        }
+
+        // Convert non-terminals defined only once with inline tokens
+        // `Subject: "inline"`
+        // into fixed terminals
+        $fixed = [];
+        foreach ($inline_ref_count as $inline_token => $ref_count) {
+            if (1 === $ref_count) {
+                $rule = $inline_ref_rule[$inline_token];
+                if (1 === count($rule->getDefinition()) && null === $rule->getTag()) {
+                    $subject = $rule->getSubject();
+                    $name = $subject->getName();
+
+                    if (1 === $subject_rules_count[$name]) {
+                        // remove rule
+                        $key = array_search($rule, $rules, true);
+                        if (false !== $key) {
+                            unset($rules[$key]);
+                        }
+
+                        // remove inline
+                        unset($inlines[$inline_token]);
+
+                        // make terminal
+                        $subject->setIsTerminal(true);
+                        if (isset($symbols[$name][true])) {
+                            $symbols[$name][true]->setIsTerminal(true);
+                        }
+
+                        $fixed[$name] = $inline_token;
+                    }
+                }
+            }
+        }
+
+        return new static($rules, $inlines, $fixed, $regexp_map);
     }
 
     /**
@@ -260,13 +370,22 @@ class Grammar extends BaseObject
      * You should to use `create()` instead.
      * @param Rule[] $rules Manually constructed rules
      * @param string[] $inlines [since 1.4.0] List of inline token values
+     * @param string[] $fixed [since 1.5.0] Fixed tokens map
+     * @param string[] $regexpMap [since 1.5.0] RegExp tokens map
      * @throws GrammarException Errors in grammar syntax or logic
      * @see create()
      */
-    public function __construct(array $rules, array $inlines = [])
+    public function __construct(
+        array $rules,
+        array $inlines = [],
+        array $fixed = [],
+        array $regexpMap = []
+    )
     {
-        $this->rules = $rules;
+        $this->rules = array_values($rules);
         $this->inlines = array_values($inlines);
+        $this->fixed = $fixed;
+        $this->regexpMap = $regexpMap;
         $symbols = [];
         $terminals = [];
         $non_terminals = [];
@@ -318,6 +437,26 @@ class Grammar extends BaseObject
     public function getInlines()
     {
         return $this->inlines;
+    }
+
+    /**
+     * Fixed tokens definition map
+     * @return string[]
+     * @since 1.5.0
+     */
+    public function getFixed()
+    {
+        return $this->fixed;
+    }
+
+    /**
+     * RegExp tokens definition map
+     * @return string[]
+     * @since 1.5.0
+     */
+    public function getRegExpMap()
+    {
+        return $this->regexpMap;
     }
 
     /**
@@ -448,7 +587,7 @@ class Grammar extends BaseObject
         $items = [];
         foreach ($matches as $match) {
             if (isset($match['q'])) {
-                $inline = mb_substr($match['q'], 1, -1, '8bit');
+                $inline = substr($match['q'], 1, -1);
                 if (!isset($inlines[$inline]) && in_array($inline, $items, true)) {
                     throw new GrammarException(
                         "Inline token {$match['q']} conflicts with token <$inline>"
@@ -473,5 +612,67 @@ class Grammar extends BaseObject
         }
 
         return $items;
+    }
+
+    // REFACT: minimal PHP >= 7.1: private const
+    const RE_RULE_DEF_REGEXP = '~
+        ^
+        /
+        (?<re>
+            (?:
+                [^/\\\\]++
+            |
+                \\\\.
+            )*+
+        )
+        (?<closed> / )?+
+        (?<end> $ )?
+    ~x';
+
+    /**
+     * Try to parse rule definition as RegExp rule
+     *
+     * RegExp rule must to consist of a RegExp only: `/.../`.
+     *
+     * If input definition does not begin with delimiter `/`,
+     * parsing is successfully discarded with returning `null`.
+     *
+     * Otherwise parsed RegExp given between delimiters will
+     * be returned is it parsed successfully. In case of error
+     * an `GrammarException` will be thrown.
+     *
+     * > Note: RegExp body itself will not be checked or parsed
+     * > in details.
+     *
+     * > Note: Escaped slash `\/` (`'\\/'` in string literal) **can** be used.
+     * @param string $input Input rule body from grammar text
+     * @return string|null RegExp body without delimiters. `null` will be returned
+     * when input definition does not begin with RegExp delimiter `/`.
+     * @throws GrammarException RegExp syntax is started with delimiter but then comes an error.
+     */
+    private static function matchRegexpDefinition($input)
+    {
+        if (!preg_match(self::RE_RULE_DEF_REGEXP, $input, $match)) {
+            // self failure check
+            if ('' !== $input && '/' === $input[0]) {
+                throw new InternalException('RegExp definition start `/...` did not match');
+            }
+
+            return null;
+        }
+
+        if (!isset($match['closed']) || '' === $match['closed']) {
+            throw new GrammarException('RegExp definition is not terminated with final delimiter');
+        }
+        if (!isset($match['end'])) {
+            throw new GrammarException('RegExp definition must be the only in a rule');
+        }
+
+        $regexp_part = $match['re'];
+        if ('' === $regexp_part) {
+            throw new GrammarException('Empty RegExp definition');
+        }
+
+        return $regexp_part;
     }
 }

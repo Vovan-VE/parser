@@ -120,6 +120,61 @@ class Symbol extends BaseObject
      */
     public function __toString()
     {
-        return ($this->isHidden ? '.' : '') . $this->name;
+        return ($this->isHidden ? '.' : '') . self::dumpName($this->name);
+    }
+
+    /**
+     * Dump symbol name for debug purpose
+     * @param string $name
+     * @return string
+     * @since 1.5.0
+     */
+    public static function dumpName($name)
+    {
+        if (self::isLikeName($name)) {
+            return $name;
+        }
+        return self::dumpInline($name);
+    }
+
+    /**
+     * Dump symbol type for debug purpose
+     * @param string $type
+     * @return string
+     * @since 1.5.0
+     */
+    public static function dumpType($type)
+    {
+        if (self::isLikeName($type)) {
+            return "<$type>";
+        }
+        return self::dumpInline($type);
+    }
+
+    /**
+     * Dump inline symbol for debug purpose
+     * @param string $inline
+     * @return string
+     * @since 1.5.0
+     */
+    public static function dumpInline($inline)
+    {
+        if (false === strpos($inline, '"')) {
+            return '"' . $inline . '"';
+        }
+        if (false === strpos($inline, "'")) {
+            return "'$inline'";
+        }
+        return "<$inline>";
+    }
+
+    /**
+     * @param string $type
+     * @return bool
+     * @since 1.5.0
+     */
+    protected static function isLikeName($type)
+    {
+        return (bool)preg_match('/^[a-z][a-z_0-9]*$/i', $type);
     }
 }

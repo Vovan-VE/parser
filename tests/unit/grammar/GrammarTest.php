@@ -11,15 +11,21 @@ class GrammarTest extends BaseTestCase
 {
     public function testCreateSuccess()
     {
-        $grammar = Grammar::create("
-            E: A \$;  A(end):a;  A ( loop ) :A a
+        $grammar = Grammar::create(<<<'_END'
+            E: A $;  A(end):a;  A ( loop ) :A a
             A(ref) : B ; ;
             ;
+            A : "AAA"
 
-            B : b"
+            B : b
+            B : c
+            B : d
+            c : "cc"
+            d : /\d+/
+_END
         );
         $this->assertInstanceOf(Grammar::class, $grammar, 'is Grammar object');
-        $this->assertCount(5, $grammar->getRules(), 'rules count');
+        $this->assertCount(8, $grammar->getRules(), 'rules count');
         $this->assertEquals(
             0,
             Rule::compare(
@@ -31,9 +37,12 @@ class GrammarTest extends BaseTestCase
 
         $terminals = $grammar->getTerminals();
         $this->assertInternalType('array', $terminals);
-        $this->assertCount(2, $terminals, 'Terminals count');
+        $this->assertCount(5, $terminals, 'Terminals count');
         $this->assertArrayHasKey('a', $terminals, 'Has terminal "a"');
         $this->assertArrayHasKey('b', $terminals, 'Has terminal "b"');
+        $this->assertArrayHasKey('c', $terminals, 'Has terminal "c"');
+        $this->assertArrayHasKey('d', $terminals, 'Has terminal "d"');
+        $this->assertArrayHasKey('AAA', $terminals, 'Has terminal "AAA"');
 
         $non_terminals = $grammar->getNonTerminals();
         $this->assertInternalType('array', $non_terminals);
@@ -42,6 +51,21 @@ class GrammarTest extends BaseTestCase
         $this->assertArrayHasKey('B', $non_terminals, 'Has non-terminal "B"');
         $this->assertArrayHasKey('E', $non_terminals, 'Has non-terminal "E"');
 
+        $inlines = $grammar->getInlines();
+        $this->assertInternalType('array', $inlines);
+        $this->assertCount(1, $inlines, 'Inline count');
+        $this->assertTrue(in_array('AAA', $inlines, true), 'Has inline "AAA"');
+
+        $fixed = $grammar->getFixed();
+        $this->assertInternalType('array', $fixed);
+        $this->assertCount(1, $fixed, 'Fixed count');
+        $this->assertArrayHasKey('c', $fixed, 'Has fixed "c"');
+
+        $regexp_map = $grammar->getRegExpMap();
+        $this->assertInternalType('array', $regexp_map);
+        $this->assertCount(1, $regexp_map, 'RegExp count');
+        $this->assertArrayHasKey('d', $regexp_map, 'Has RegExp "d"');
+
         $symbol_b = $grammar->getSymbol('b');
         $this->assertInstanceOf(Symbol::class, $symbol_b, 'getSymbol(b) is Symbol');
         $unknown_symbol = $grammar->getSymbol('unknown');
@@ -49,7 +73,7 @@ class GrammarTest extends BaseTestCase
 
         $a_rules = $grammar->getRulesFor(new Symbol('A', false));
         $this->assertInternalType('array', $a_rules);
-        $this->assertCount(3, $a_rules, 'Rules count for "A"');
+        $this->assertCount(4, $a_rules, 'Rules count for "A"');
 
         $terminal_rules = $grammar->getRulesFor(new Symbol('a', true));
         $this->assertInternalType('array', $terminal_rules);
@@ -202,6 +226,7 @@ _END
         );
         $this->assertCount(5, $grammar->getTerminals(), 'total terminals');
         $this->assertCount(2, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
 
         $rules = $grammar->getRules();
 
@@ -214,6 +239,66 @@ _END
 
         $quote = $rules[8]->getDefinition()[1];
         $this->assertEquals('"', $quote->getName(), 'is quote from angle brackets');
+    }
+
+    public function testCreateWithFixed()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: a b $
+            a: "+"
+            b: "-"
+_END
+        );
+        $this->assertCount(2, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(0, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(2, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(1, $grammar->getRules(), 'rules count');
+
+    }
+
+    public function testCreateNoFixedDueToDefinitionItems()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: A $
+            A: "+" "-"
+_END
+        );
+        $this->assertCount(2, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(2, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(2, $grammar->getRules(), 'rules count');
+
+    }
+
+    public function testCreateNoFixedDueToMultiRef()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: A "+" $
+            A: "+"
+_END
+        );
+        $this->assertCount(1, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(1, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(2, $grammar->getRules(), 'rules count');
+
+    }
+
+    public function testCreateNoFixedDueToTag()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G   : A $
+            A(x): "+"
+_END
+        );
+        $this->assertCount(1, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(1, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+
+        $this->assertCount(2, $grammar->getRules(), 'rules count');
     }
 
     public function testCreateInlineWithConflictSingle()
@@ -286,6 +371,182 @@ _END
             G: E $
             E: .a
             E: 'a'
+_END
+        );
+    }
+
+    public function testCreateWithRegExp()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: a b c $
+            a: /a+/
+            b: /b+/
+            c: /\//
+_END
+        );
+        $this->assertCount(3, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(0, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+        $this->assertCount(3, $grammar->getRegExpMap(), 'total RegExps');
+
+        $this->assertCount(1, $grammar->getRules(), 'rules count');
+    }
+
+    public function testCreateWithRegExpHidden()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G: a .b c $
+            a: /a+/
+            b: /b+/
+            c: /c+/
+_END
+        );
+        $this->assertCount(3, $grammar->getTerminals(), 'total terminals');
+        $this->assertCount(0, $grammar->getInlines(), 'total inlines');
+        $this->assertCount(0, $grammar->getFixed(), 'total fixed');
+        $this->assertCount(3, $grammar->getRegExpMap(), 'total RegExps');
+
+        $this->assertCount(1, $grammar->getRules(), 'rules count');
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosedEmpty()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: /
+_END
+        );
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosedEmptyAndMore()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: A $
+            A: a
+            a: /
+            A: b
+_END
+        );
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosed()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: /a+
+_END
+        );
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosedAndMore()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: A $
+            A: a
+            a: /a+
+            A: b
+_END
+        );
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosedEscapedNothing()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: /a+\
+_END
+        );
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosedEscapedNothingAndMore()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: A $
+            A: a
+            a: /a+\
+            A: b
+_END
+        );
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosedEscapedDelimiter()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: /a+\/
+_END
+        );
+    }
+
+    public function testFailCreateRegExpSyntaxNotClosedEscapedDelimiterAndMore()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: A $
+            A: a
+            a: /a+\/
+            A: b
+_END
+        );
+    }
+
+    public function testFailCreateRegExpNotInPlace()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: foo /a+/ bar
+_END
+        );
+    }
+
+    public function testFailCreateRegExpConflictRegExp()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: /a+/
+            a: /b+/
+_END
+        );
+    }
+
+    public function testFailCreateRegExpConflictNonTerminal()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: A $
+            A: "foo"
+            A: /a+/
+_END
+        );
+    }
+
+    public function testFailCreateRegExpConflictFixedAfter()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: /a+/
+            a: "b"
+_END
+        );
+    }
+
+    public function testFailCreateRegExpConflictFixedBefore()
+    {
+        $this->setExpectedException(GrammarException::class);
+        Grammar::create(<<<'_END'
+            G: a $
+            a: "b"
+            a: /a+/
 _END
         );
     }
