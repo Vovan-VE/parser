@@ -1,6 +1,11 @@
 LR(0) parser Change Log
 =======================
 
+1.6.0 (next)
+-----
+
+No changes yet.
+
 1.5.0
 -----
 
