@@ -1,7 +1,7 @@
 LR(0) parser
 ============
 
-[![Latest Stable Version](https://poser.pugx.org/vovan-ve/lr0-parser/v/stable)](https://packagist.org/packages/vovan-ve/lr0-parser)
+[![Latest Stable Version](https://img.shields.io/packagist/v/vovan-ve/lr0-parser.svg)](https://packagist.org/packages/vovan-ve/lr0-parser)
 [![Build Status](https://travis-ci.org/Vovan-VE/parser.svg)](https://travis-ci.org/Vovan-VE/parser)
 [![License](https://poser.pugx.org/vovan-ve/lr0-parser/license)](https://packagist.org/packages/vovan-ve/lr0-parser)
 
