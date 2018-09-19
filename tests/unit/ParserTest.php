@@ -40,6 +40,7 @@ P(div): P div V
 P     : V
 V(int): int
 V(var): id
+V(S)  : "(" S ")"
 int   : /\d++/
 mul   : "*"
 _END
@@ -139,7 +140,7 @@ DUMP
      */
     public function testParseFailB($parser)
     {
-        $this->setExpectedException(SyntaxException::class, 'Unexpected <add "-">; expected: <id>, <int>');
+        $this->setExpectedException(SyntaxException::class, 'Unexpected <add "-">; expected: "(", <id> or <int>');
         $parser->parse('A * -5');
     }
 
