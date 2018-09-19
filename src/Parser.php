@@ -169,6 +169,11 @@ class Parser extends BaseObject
                 $expected_terminals[] = Symbol::dumpType($name);
             }
 
+            if (count($expected_terminals) >= 2) {
+                $last = array_pop($expected_terminals);
+                $expected_terminals[count($expected_terminals) - 1] .= " or $last";
+            }
+
             throw new SyntaxException(
                 'Unexpected ' . $this->dumpTokenForError($token)
                 . ($expected_terminals ? '; expected: ' . join(', ', $expected_terminals) : ''),

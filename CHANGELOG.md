@@ -1,6 +1,12 @@
 LR(0) parser Change Log
 =======================
 
+1.5.1
+-----
+
+*   Enh: Enumerate expected tokens in `VovanVE\parser\SyntaxException` in more human-friendly
+    manner like `X, Y or Z` instead of `X, Y, Z`.
+
 1.5.0
 -----
 
