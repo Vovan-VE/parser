@@ -95,4 +95,45 @@ class ActionsMadeMapTest extends BaseTestCase
         $this->assertEquals(0, $foobar->getChildrenCount());
         $this->assertEquals(0, $foobarqux->getChildrenCount());
     }
+
+    public function testThrowingInTerminal()
+    {
+        $map = new ActionsMadeMap([
+            'foo' => function ($foo) {
+                throw new \DomainException('Something was wrong in userland code');
+            },
+        ]);
+        $foo = new Token('foo', 'lorem ipsum');
+
+        $this->setExpectedException(\RuntimeException::class, "Action failure in `foo`");
+        $map->applyToNode($foo);
+    }
+
+    public function testThrowingInNonTerminal()
+    {
+        $map = new ActionsMadeMap([
+            'Baz' => function () {
+                throw new \DomainException('Something was wrong in userland code');
+            },
+        ]);
+        $foo = new Token('foo', 'lorem ipsum');
+        $baz = new NonTerminal('Baz', [$foo]);
+
+        $this->setExpectedException(\RuntimeException::class, "Action failure in `Baz`");
+        $map->applyToNode($baz);
+    }
+
+    public function testThrowingInNonTerminalTag()
+    {
+        $map = new ActionsMadeMap([
+            'Baz(tag)' => function () {
+                throw new \DomainException('Something was wrong in userland code');
+            },
+        ]);
+        $foo = new Token('foo', 'lorem ipsum');
+        $baz = new NonTerminal('Baz', [$foo], 'tag');
+
+        $this->setExpectedException(\RuntimeException::class, "Action failure in `Baz(tag)`");
+        $map->applyToNode($baz);
+    }
 }

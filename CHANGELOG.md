@@ -6,6 +6,12 @@ LR(0) parser Change Log
 
 No changes yet.
 
+1.5.2
+-----
+
+*   Enh: Wrap and rethrow unexpected exceptions and errors from action handlers to show action target
+    for debug purpose.
+
 1.5.1
 -----
 

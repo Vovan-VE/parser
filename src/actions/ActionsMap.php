@@ -62,6 +62,21 @@ class ActionsMap extends BaseObject
     ];
 
     /**
+     * @param TreeNodeInterface $node
+     * @return string
+     * @since 1.5.2
+     */
+    protected static function buildActionName($node)
+    {
+        $name = $node->getNodeName();
+        $tag = $node->getNodeTag();
+        if (null !== $tag) {
+            $name .= '(' . $tag . ')';
+        }
+        return $name;
+    }
+
+    /**
      * @param callable[]|string[] $actions Map of actions. Keys are node reference like
      * `Name` or `Name(tag)`. Values are either callable (since 1.3.0)
      * or command name (since 1.4.0).
@@ -144,11 +159,7 @@ class ActionsMap extends BaseObject
      */
     private function getAction($node)
     {
-        $name = $node->getNodeName();
-        $tag = $node->getNodeTag();
-        if (null !== $tag) {
-            $name .= '(' . $tag . ')';
-        }
+        $name = self::buildActionName($node);
 
         // REFACT: minimal PHP >= 7.0: $var ?? null
         if (!isset($this->actions[$name])) {
@@ -193,6 +204,15 @@ class ActionsMap extends BaseObject
         // return call_user_func($action, $node, ...$node->getChildren());
         $args = $node->getChildren();
         array_unshift($args, $node);
-        return call_user_func_array($action, $args);
+        try {
+            return call_user_func_array($action, $args);
+        } catch (ActionAbortException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            // REFACT: PHP >= 7.0: simplify
+            throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
+        }
     }
 }
