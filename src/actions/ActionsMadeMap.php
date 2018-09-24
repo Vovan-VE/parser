@@ -56,7 +56,16 @@ class ActionsMadeMap extends ActionsMap
     protected function runActionHandler($action, $node)
     {
         if ($node instanceof Token) {
-            return call_user_func($action, $node->getContent());
+            try {
+                return call_user_func($action, $node->getContent());
+            } catch (ActionAbortException $e) {
+                throw $e;
+            } catch (\Exception $e) {
+                // REFACT: PHP >= 7.0: simplify
+                throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
+            } catch (\Throwable $e) {
+                throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
+            }
         }
 
         $args = [];
@@ -66,7 +75,16 @@ class ActionsMadeMap extends ActionsMap
 
         // REFACT: minimal PHP >= 7.0:
         // $result = $action(...$args);
-        $result = call_user_func_array($action, $args);
+        try {
+            $result = call_user_func_array($action, $args);
+        } catch (ActionAbortException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            // REFACT: PHP >= 7.0: simplify
+            throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
+        }
 
         if ($this->prune && $node instanceof NonTerminal) {
             // REFACT: add clear() to interfaces
