@@ -4,6 +4,7 @@ namespace VovanVE\parser\tests\unit\lexer;
 use VovanVE\parser\common\DevException;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\lexer\Lexer;
+use VovanVE\parser\lexer\Match;
 use VovanVE\parser\lexer\ParseException;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 
@@ -694,5 +695,34 @@ class LexerTest extends BaseTestCase
             ->whitespaces(['(*']);
         $this->setExpectedException(\InvalidArgumentException::class);
         $lexer->compile();
+    }
+
+    /**
+     * @dataProvider parseOneDataProvider
+     */
+    public function testParseOne($input, $preferredTokens, $nextOffset, $type, $content)
+    {
+        $lexer = (new Lexer)
+            ->terminals([
+                'ba' => 'BA[A-Z]',
+                'baz' => 'BAZ',
+            ])
+            ->whitespaces(['\\s++']);
+
+        $match = $lexer->parseOne($input, 0, $preferredTokens);
+        $this->assertInstanceOf(Match::class, $match, 'match instance');
+        $this->assertEquals($nextOffset, $match->nextOffset, 'next offset');
+        $this->assertEquals($type, $match->token->getType(), 'token type');
+        $this->assertEquals($content, $match->token->getContent(), 'token content');
+    }
+
+    public function parseOneDataProvider()
+    {
+        return [
+            [' BAZ.', ['baz'], 4, 'baz', 'BAZ'],
+            [' BAZ.', ['ba'], 4, 'ba', 'BAZ'],
+            [' BAZ.', ['baz', 'ba'], 4, 'baz', 'BAZ'],
+            [' BAZ.', ['ba', 'baz'], 4, 'ba', 'BAZ'],
+        ];
     }
 }

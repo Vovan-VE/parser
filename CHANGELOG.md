@@ -6,6 +6,12 @@ LR(0) parser Change Log
 
 No changes yet.
 
+1.5.3
+-----
+
+*   Fix: Preferred RegExp terminals under `Lexer::parseOne()` did not sort in specified order
+    and could not give correct expected match in specific cases.
+
 1.5.2
 -----
 
