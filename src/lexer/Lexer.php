@@ -864,16 +864,18 @@ class Lexer extends BaseObject
             } elseif (isset($this->regexpFixedAndInlineMap[$type])) {
                 $fixed_names[$type] = true;
             } elseif (isset($this->regexpTerminalsMap[$type])) {
-                $terminals_names[$type] = true;
+                $terminals_names[$type] = $this->regexpTerminalsMap[$type];
             } else {
                 throw new \InvalidArgumentException("Unknown token type: `$type`");
             }
         }
 
-        // enum in regexp order
         $terminals_map =
+            // enum in regexp order
             array_intersect_key($this->regexpFixedAndInlineMap, $fixed_names)
-            + array_intersect_key($this->regexpTerminalsMap, $terminals_names);
+            // enum in expectation order, so subject non-terminal
+            // can define order by its alternatives
+            + $terminals_names;
 
         // add rest regexps
         $terminals_map += array_diff_key($this->regexpFixedAndInlineMap, $fixed_names);
