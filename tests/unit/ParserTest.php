@@ -6,10 +6,12 @@ use VovanVE\parser\actions\ActionsMadeMap;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
+use VovanVE\parser\errors\AbortedException;
+use VovanVE\parser\errors\UnexpectedInputAfterEndException;
+use VovanVE\parser\errors\UnexpectedTokenException;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
-use VovanVE\parser\SyntaxException;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 use VovanVE\parser\tree\NonTerminal;
 
@@ -130,7 +132,10 @@ DUMP
      */
     public function testParseFailA($parser)
     {
-        $this->setExpectedException(SyntaxException::class, 'Expected <EOF> but got <id "B">');
+        $this->setExpectedException(
+            UnexpectedInputAfterEndException::class,
+            'Expected <EOF> but got <id "B">'
+        );
         $parser->parse('A * 2 B');
     }
 
@@ -140,7 +145,10 @@ DUMP
      */
     public function testParseFailB($parser)
     {
-        $this->setExpectedException(SyntaxException::class, 'Unexpected <add "-">; expected: "(", <id> or <int>');
+        $this->setExpectedException(
+            UnexpectedTokenException::class,
+            'Unexpected <add "-">; expected: "(", <id> or <int>'
+        );
         $parser->parse('A * -5');
     }
 
@@ -607,7 +615,7 @@ _END
             'S(sub)' => function ($a, $b) { return $a - $b; },
         ]);
 
-        $this->setExpectedException(SyntaxException::class, 'Division by zero');
+        $this->setExpectedException(AbortedException::class, 'Division by zero');
 
         $parser->parse('42 / (2 * 5 - 10)', $actions);
     }
@@ -626,5 +634,43 @@ _END
 
         $this->setExpectedException(\InvalidArgumentException::class);
         new Parser($lexer, $grammar);
+    }
+
+    public function testPreferredMatching()
+    {
+        $grammar = Grammar::create(<<<'_END'
+            G           : Nodes $
+            Nodes(list) : Nodes Node
+            Nodes(first): Node
+
+            Node(var)   : "${" VarName "}"
+            Node(elem)  : "<" ElementName ">"
+            Node(text)  : Text
+
+            Text        : /[^$<>]++/
+            VarName     : /[a-z][a-z0-9]*+/
+            ElementName : /[a-z]++/
+_END
+);
+        $lexer = new Lexer;
+
+        $actions = new ActionsMadeMap([
+            'Nodes(list)' => function ($nodes, $node) { $nodes[] = $node; return $nodes; },
+            'Nodes(first)' => function ($node) { return [$node]; },
+
+            'Node(var)' => function ($name) { return "html(\$$name)"; },
+            'Node(elem)' => function ($name) { return 'element(' . var_export($name, true) . ')'; },
+            'Node(text)' => function ($text) { return 'text(' . var_export($text, true) . ')'; },
+
+            'VarName' => function ($name) { return $name; },
+            'ElementName' => function ($name) { return $name; },
+            'Text' => function ($content) { return $content; },
+        ]);
+
+        $parser = new Parser($lexer, $grammar);
+
+        $result = $parser->parse('Lorem ${ipsum} dolor <sit> amet', $actions)->made();
+
+        $this->assertEquals(["text('Lorem ')", 'html($ipsum)', "text(' dolor ')", "element('sit')", "text(' amet')"], $result);
     }
 }

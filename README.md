@@ -1,7 +1,8 @@
 LR(0) parser
 ============
 
-[![Latest Stable Version](https://poser.pugx.org/vovan-ve/lr0-parser/v/stable)](https://packagist.org/packages/vovan-ve/lr0-parser)
+[![Latest Stable Version](https://img.shields.io/packagist/v/vovan-ve/lr0-parser.svg)](https://packagist.org/packages/vovan-ve/lr0-parser)
+[![Latest Dev Version](https://img.shields.io/packagist/vpre/vovan-ve/lr0-parser.svg)](https://packagist.org/packages/vovan-ve/lr0-parser)
 [![Build Status](https://travis-ci.org/Vovan-VE/parser.svg)](https://travis-ci.org/Vovan-VE/parser)
 [![License](https://poser.pugx.org/vovan-ve/lr0-parser/license)](https://packagist.org/packages/vovan-ve/lr0-parser)
 
@@ -109,7 +110,7 @@ Install through [composer][]:
 
 or add to `require` section in your composer.json:
 
-    "vovan-ve/lr0-parser": "~1.5.0"
+    "vovan-ve/lr0-parser": "~1.6.0"
 
 Theory
 ------

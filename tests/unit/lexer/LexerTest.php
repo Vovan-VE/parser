@@ -3,9 +3,9 @@ namespace VovanVE\parser\tests\unit\lexer;
 
 use VovanVE\parser\common\DevException;
 use VovanVE\parser\common\Token;
+use VovanVE\parser\errors\UnknownCharacterException;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\lexer\Match;
-use VovanVE\parser\lexer\ParseException;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 
 class LexerTest extends BaseTestCase
@@ -336,7 +336,7 @@ class LexerTest extends BaseTestCase
             $this->assertEquals($expect_type, $token->getType(), "token[$i]->type");
             $this->assertEquals($expect_content, $token->getContent(), "token[$i]->content");
             if ($last_valid_index === $i) {
-                $this->setExpectedException(ParseException::class);
+                $this->setExpectedException(UnknownCharacterException::class);
             }
             $tokens->next();
         }
