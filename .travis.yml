@@ -16,7 +16,7 @@ matrix:
 branches:
   only:
     - master
-    - /^v\d+\./
+    - /^v\d+\.\d+$/
 
 sudo: false
 
@@ -29,7 +29,7 @@ install:
   - composer install --prefer-dist --no-interaction
 
 script:
-- composer run-script test
+  - composer run-script --timeout=0 test
 
 notifications:
   email:
