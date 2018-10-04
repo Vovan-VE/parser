@@ -113,7 +113,7 @@ class ActionsMap extends BaseObject
      * is `null`.
      * @param TreeNodeInterface $node Subject node
      * @return bool|null Returns `null` when no action defined. Returns `false` when
-     * action result `null` and so it was not applied. Returns `true` wher action result
+     * action result `null` and so it was not applied. Returns `true` when action result
      * was not `null` and it was applied.
      * @throws ActionAbortException
      * @since 1.4.0

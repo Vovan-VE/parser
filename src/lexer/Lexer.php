@@ -6,6 +6,7 @@ use VovanVE\parser\common\DevException;
 use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\common\Token;
+use VovanVE\parser\errors\UnknownCharacterException;
 
 /**
  * Lexer parses input text into tokens stream
@@ -493,7 +494,7 @@ class Lexer extends BaseObject
      *
      * @param string $input Input text to parse
      * @return \Generator|Token[] Returns generator of `Token`s. Generator has no its own return value.
-     * @throws ParseException Nothing matched in a current position
+     * @throws UnknownCharacterException Nothing matched in a current position
      */
     public function parse($input)
     {
@@ -511,6 +512,7 @@ class Lexer extends BaseObject
      * @param string[] $preferredTokens Preferred tokens types to match first
      * @return Match|null Returns match on success match. Returns `null` on EOF.
      * @since 1.5.0
+     * @throws UnknownCharacterException
      */
     public function parseOne($input, $pos, $preferredTokens = [])
     {
@@ -537,7 +539,7 @@ class Lexer extends BaseObject
             } else {
                 $near = '"' . $near . '"';
             }
-            throw new ParseException(
+            throw new UnknownCharacterException(
                 "Cannot parse none of expected tokens near $near",
                 $pos
             );

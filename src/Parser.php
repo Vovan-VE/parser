@@ -8,6 +8,10 @@ use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\common\TreeNodeInterface;
+use VovanVE\parser\errors\AbortedException;
+use VovanVE\parser\errors\UnexpectedInputAfterEndException;
+use VovanVE\parser\errors\UnexpectedTokenException;
+use VovanVE\parser\errors\UnknownCharacterException;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\stack\NoReduceException;
@@ -92,6 +96,10 @@ class Parser extends BaseObject
      * @param ActionsMap|callable[]|string[] $actions [since 1.3.0] Actions map.
      * Accepts `ActionsMap` since 1.5.0.
      * @return TreeNodeInterface
+     * @throws UnknownCharacterException
+     * @throws UnexpectedTokenException
+     * @throws UnexpectedInputAfterEndException
+     * @throws AbortedException
      * @see \VovanVE\parser\actions\ActionsMadeMap
      */
     public function parse($input, $actions = [])
@@ -141,8 +149,8 @@ class Parser extends BaseObject
                     }
                     if ($stack->getStateRow()->eofAction) {
                         if ($token) {
-                            throw new SyntaxException(
-                                'Expected <EOF> but got ' . $this->dumpTokenForError($token),
+                            throw new UnexpectedInputAfterEndException(
+                                $this->dumpTokenForError($token),
                                 $token->getOffset()
                             );
                         }
@@ -155,7 +163,7 @@ class Parser extends BaseObject
             }
             DONE:
         } catch (ActionAbortException $e) {
-            throw new SyntaxException(
+            throw new AbortedException(
                 $e->getMessage(),
                 $token ? $token->getOffset() : strlen($input)
             );
@@ -169,14 +177,9 @@ class Parser extends BaseObject
                 $expected_terminals[] = Symbol::dumpType($name);
             }
 
-            if (count($expected_terminals) >= 2) {
-                $last = array_pop($expected_terminals);
-                $expected_terminals[count($expected_terminals) - 1] .= " or $last";
-            }
-
-            throw new SyntaxException(
-                'Unexpected ' . $this->dumpTokenForError($token)
-                . ($expected_terminals ? '; expected: ' . join(', ', $expected_terminals) : ''),
+            throw new UnexpectedTokenException(
+                $this->dumpTokenForError($token),
+                $expected_terminals,
                 $token ? $token->getOffset() : strlen($input)
             );
         } catch (StateException $e) {
