@@ -1,7 +1,7 @@
 LR(0) parser Change Log
 =======================
 
-1.6.0 (next)
+1.6.0
 -----
 
 *   Deprecated: `\VovanVE\parser\lexer\ParseException` now replaced with
