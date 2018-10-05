@@ -6,7 +6,7 @@ LR(0) parser Change Log
 
 *   Deprecated: `\VovanVE\parser\lexer\ParseException` now replaced with
     `\VovanVE\parser\errors\UnknownCharacterException`.
-*   End: `\VovanVE\parser\SyntaxException` divided into more detailed exceptions
+*   Enh: `\VovanVE\parser\SyntaxException` divided into more detailed exceptions
     to be explained to end-user easily.
 
 1.5.3
