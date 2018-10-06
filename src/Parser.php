@@ -1,7 +1,7 @@
 <?php
 namespace VovanVE\parser;
 
-use VovanVE\parser\actions\ActionAbortException;
+use VovanVE\parser\actions\AbortParsingException;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
@@ -162,11 +162,8 @@ class Parser extends BaseObject
                 NEXT_SYMBOL:
             }
             DONE:
-        } catch (ActionAbortException $e) {
-            throw new AbortedException(
-                $e->getMessage(),
-                $token ? $token->getOffset() : strlen($input)
-            );
+        } catch (AbortParsingException $e) {
+            throw new AbortedException($e->getMessage(), $e->getOffset());
         } catch (NoReduceException $e) {
             // This unexpected reduce (no rule to reduce) may happen only
             // when current terminal is not expected. So, some terminals

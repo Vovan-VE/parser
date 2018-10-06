@@ -58,8 +58,15 @@ class ActionsMadeMap extends ActionsMap
         if ($node instanceof Token) {
             try {
                 return call_user_func($action, $node->getContent());
-            } catch (ActionAbortException $e) {
+            } catch (AbortParsingException $e) {
+                if (null === $e->getOffset()) {
+                    throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
+                }
                 throw $e;
+            } catch (AbortNodeException $e) {
+                throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
+            } catch (ActionAbortException $e) {
+                throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
             } catch (\Exception $e) {
                 // REFACT: PHP >= 7.0: simplify
                 throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
@@ -77,8 +84,15 @@ class ActionsMadeMap extends ActionsMap
         // $result = $action(...$args);
         try {
             $result = call_user_func_array($action, $args);
-        } catch (ActionAbortException $e) {
+        } catch (AbortNodeException $e) {
+            throw new AbortParsingException($e->getMessage(), $node->getChild($e->getNodeIndex() - 1)->getOffset(), $e);
+        } catch (AbortParsingException $e) {
+            if (null === $e->getOffset()) {
+                throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
+            }
             throw $e;
+        } catch (ActionAbortException $e) {
+            throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
         } catch (\Exception $e) {
             // REFACT: PHP >= 7.0: simplify
             throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);

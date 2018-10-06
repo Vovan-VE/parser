@@ -1,6 +1,21 @@
 LR(0) parser Change Log
 =======================
 
+1.7.0 (dev)
+-----
+
+*   Deprecated: exception `\VovanVE\parser\actions\ActionAbortException` - use
+    new exceptions `\VovanVE\parser\actions\AbortParsingException` or
+    `\VovanVE\parser\actions\AbortNodeException` instead.
+*   Add: exception `\VovanVE\parser\actions\AbortNodeException` to abort
+    parsing from actions pointing to offset of the given node in source text.
+*   Add: exception `\VovanVE\parser\actions\AbortParsingException` to abort
+    parsing from actions pointing to given offset in source text.
+*   Add: method `\VovanVE\parser\common\TreeNodeInterface::getOffset()` to get node
+    offset in input text. _This would be BC break change, but why do you ever need to
+    implement this interface yourself?_
+*   Add: 4th argument `$offset` to `\VovanVE\parser\tree\NonTerminal` constructor.
+
 1.6.0
 -----
 
