@@ -3,7 +3,7 @@ namespace VovanVE\parser\tests\unit\actions\commands;
 
 use VovanVE\parser\actions\commands\BubbleTheOnly;
 use VovanVE\parser\common\Token;
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 use VovanVE\parser\tests\helpers\BaseTestCase;
@@ -36,7 +36,7 @@ class BubbleTheOnlyTest extends BaseTestCase
 
     public function testUsage()
     {
-        $grammar = Grammar::create('
+        $grammar = TextLoader::createGrammar('
             G: E $
             E: "(" E ")"
             E: "[" E "]"

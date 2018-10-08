@@ -2,13 +2,13 @@
 /* @formatter:off */
 
 use VovanVE\parser\actions\ActionsMadeMap;
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$grammar = Grammar::create(<<<'TEXT'
+$grammar = TextLoader::createGrammar(<<<'TEXT'
 G       : Nodes $
 Nodes(L): Nodes Node
 Nodes(i): Node

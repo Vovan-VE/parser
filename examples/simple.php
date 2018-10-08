@@ -1,7 +1,7 @@
 <?php
 /* @formatter:off */
 
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
@@ -18,7 +18,7 @@ $lexer = (new Lexer)
     ->whitespaces(['\\s+'])
     ->modifiers('i');
 
-$grammar = Grammar::create(<<<'_END'
+$grammar = TextLoader::createGrammar(<<<'_END'
 E     : S $
 S(add): S add P
 S     : P

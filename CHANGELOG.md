@@ -7,6 +7,8 @@ LR(0) parser Change Log
 *   Deprecated: exception `\VovanVE\parser\actions\ActionAbortException` - use
     new exceptions `\VovanVE\parser\actions\AbortParsingException` or
     `\VovanVE\parser\actions\AbortNodeException` instead.
+*   Deprecated: method `\VovanVE\parser\grammar\Grammar::create()` - use
+    `\VovanVE\parser\grammar\loaders\TextLoader::createGrammar()` instead.
 *   Add: exception `\VovanVE\parser\actions\AbortNodeException` to abort
     parsing from actions pointing to offset of the given node in source text.
 *   Add: exception `\VovanVE\parser\actions\AbortParsingException` to abort

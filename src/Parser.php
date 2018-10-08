@@ -13,6 +13,7 @@ use VovanVE\parser\errors\UnexpectedInputAfterEndException;
 use VovanVE\parser\errors\UnexpectedTokenException;
 use VovanVE\parser\errors\UnknownCharacterException;
 use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\stack\NoReduceException;
 use VovanVE\parser\stack\Stack;
@@ -38,7 +39,7 @@ class Parser extends BaseObject
     /**
      * @param Lexer $lexer lexer to parse input text into tokens stream
      * @param Grammar|string $grammar Grammar object or text. Text will be passed to `Grammar::create()`
-     * @see Grammar::create()
+     * @see TextLoader
      */
     public function __construct($lexer, $grammar)
     {
@@ -49,7 +50,7 @@ class Parser extends BaseObject
         }
 
         if (is_string($grammar)) {
-            $grammar = Grammar::create($grammar);
+            $grammar = TextLoader::createGrammar($grammar);
         } elseif (!$grammar instanceof Grammar) {
             throw new \InvalidArgumentException(
                 'Argument $grammar must be string or ' . Grammar::class

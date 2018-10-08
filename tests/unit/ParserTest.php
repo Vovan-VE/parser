@@ -9,7 +9,7 @@ use VovanVE\parser\common\TreeNodeInterface as INode;
 use VovanVE\parser\errors\AbortedException;
 use VovanVE\parser\errors\UnexpectedInputAfterEndException;
 use VovanVE\parser\errors\UnexpectedTokenException;
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 use VovanVE\parser\tests\helpers\BaseTestCase;
@@ -33,7 +33,7 @@ class ParserTest extends BaseTestCase
             ->whitespaces(['\\s+'])
             ->modifiers('i');
 
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E     : S $
 S(add): S add P
 S     : P
@@ -167,7 +167,7 @@ DUMP
             ->whitespaces(['\\s+'])
             ->modifiers('i');
 
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S add P
 S(sub) : S sub P
@@ -229,7 +229,7 @@ _END
             ->modifiers('i');
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S .add P
 S(sub) : S .sub P
@@ -284,7 +284,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S '+' P
 S(sub) : S "-" P
@@ -339,7 +339,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S .add P
 S(sub) : S .sub P
@@ -395,7 +395,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S '+' P
 S(sub) : S "-" P
@@ -443,7 +443,7 @@ _END
 
     public function testContextDependent()
     {
-        $grammar = Grammar::create(<<<'TEXT'
+        $grammar = TextLoader::createGrammar(<<<'TEXT'
 G       : Nodes $
 Nodes(L): Nodes Node
 Nodes(i): Node
@@ -506,12 +506,12 @@ TEXT
 
         foreach (
             [
-                Grammar::create('
+                TextLoader::createGrammar('
                     G    : A $
                     A(aa): "aa"
                     A(a) : "a" "a"
                 '),
-                Grammar::create('
+                TextLoader::createGrammar('
                     G    : A $
                     A(a) : "a" "a"
                     A(aa): "aa"
@@ -527,7 +527,7 @@ TEXT
 
     public function testActionsMapDefault()
     {
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G  : S $
             S  : int "+" int
             int: /\d+/
@@ -552,7 +552,7 @@ _END
 
     public function testActionsMapMade()
     {
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G  : S $
             S  : int "+" int
             int: /\d+/
@@ -582,7 +582,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S "+" P
 S(sub) : S "-" P
@@ -630,7 +630,7 @@ _END
             ->terminals([
                 'int' => '\\d+',
             ]);
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G: int $
             int: /\d+/
 _END
@@ -642,7 +642,7 @@ _END
 
     public function testPreferredMatching()
     {
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G           : Nodes $
             Nodes(list) : Nodes Node
             Nodes(first): Node
