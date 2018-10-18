@@ -17,6 +17,7 @@ LR(0) parser Change Log
     offset in input text. _This would be BC break change, but why do you ever need to
     implement this interface yourself?_
 *   Add: 4th argument `$offset` to `\VovanVE\parser\tree\NonTerminal` constructor.
+*   Add: ability to export/import `Grammar` object to/from array or JSON.
 
 1.6.0
 -----
