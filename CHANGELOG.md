@@ -17,7 +17,13 @@ LR(0) parser Change Log
     offset in input text. _This would be BC break change, but why do you ever need to
     implement this interface yourself?_
 *   Add: 4th argument `$offset` to `\VovanVE\parser\tree\NonTerminal` constructor.
-*   Add: ability to export/import `Grammar` object to/from array or JSON.
+*   Add: ability to export/load `Grammar` object to/from array or JSON.
+*   Notice: Text grammar should not be used for production anymore, but it
+    can be used for dev phase. New array/JSON grammar should be used for production.
+    Automatic conversion to JSON can be done with CLI tool:
+    ```sh
+    $ vendor/bin/grammar-text-to-json < grammar.txt > grammar.json
+    ```
 
 1.6.0
 -----

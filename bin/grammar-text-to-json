@@ -1,0 +1,34 @@
+#!/usr/bin/env php
+<?php
+
+$autoloaded = false;
+foreach (
+    [
+        // project/vendor/developer/package/bin/this
+        __DIR__ . '/../../../autoload.php',
+        // this package is root
+        __DIR__ . '/../vendor/autoload.php',
+    ]
+    as $file
+) {
+    if (file_exists($file)) {
+        $autoloaded = true;
+        require $file;
+        break;
+    }
+}
+
+if (!$autoloaded) {
+    fwrite(STDERR, 'E! Could not find autoload.php provided by composer' . PHP_EOL);
+    die;
+}
+
+$input = stream_get_contents(STDIN);
+if (false === $input) {
+    fwrite(STDERR, 'E! Could not read from input' . PHP_EOL);
+    die;
+}
+
+$grammar = \VovanVE\parser\grammar\loaders\TextLoader::createGrammar($input);
+
+echo (new \VovanVE\parser\grammar\exporter\JsonExporter)->exportGrammar($grammar), PHP_EOL;
