@@ -8,7 +8,7 @@ This is the last minor version of 1.* branch. This version well prepare you to
 future upgrade to next 2.0 version.
 
 *   Deprecated: setup parsing process with `Lexer`. Now `Grammar` can do everything
-    that `Lexer` does, but with new JSON grammar. The `Lexer` class either will
+    that `Lexer` does, but with new array/JSON grammar. The `Lexer` class either will
     become internal, will be removed or will be "eaten" by `Grammar` class in next
     major version 2.0.
 *   Deprecated: exception `\VovanVE\parser\actions\ActionAbortException` - use
@@ -17,7 +17,7 @@ future upgrade to next 2.0 version.
 *   Deprecated: method `\VovanVE\parser\grammar\Grammar::create()` - use
     `\VovanVE\parser\grammar\loaders\TextLoader::createGrammar()` instead.
 *   Add: `Grammar` now can do everything that `Lexer` does, but temporarily
-    in ugly way. Just use new JSON grammar to setup `Grammar` object.
+    in ugly way. Just use new array/JSON grammar to setup `Grammar` object.
 *   Add: exception `\VovanVE\parser\actions\AbortNodeException` to abort
     parsing from actions pointing to offset of the given node in source text.
 *   Add: exception `\VovanVE\parser\actions\AbortParsingException` to abort
