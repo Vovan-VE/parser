@@ -1,10 +1,10 @@
 LR(0) parser Change Log
 =======================
 
-1.7.0 (dev)
+1.7.0
 -----
 
-This is the last minor version of 1.* branch. This version well prepare you to
+This is the last minor version of 1.* branch. This version will prepare you to
 future upgrade to next 2.0 version.
 
 *   Deprecated: setup parsing process with `Lexer`. Now `Grammar` can do everything
