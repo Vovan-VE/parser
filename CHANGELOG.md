@@ -1,12 +1,45 @@
 LR(0) parser Change Log
 =======================
 
+1.7.0
+-----
+
+This is the last minor version of 1.* branch. This version will prepare you to
+future upgrade to next 2.0 version.
+
+*   Deprecated: setup parsing process with `Lexer`. Now `Grammar` can do everything
+    that `Lexer` does, but with new array/JSON grammar. The `Lexer` class either will
+    become internal, will be removed or will be "eaten" by `Grammar` class in next
+    major version 2.0.
+*   Deprecated: exception `\VovanVE\parser\actions\ActionAbortException` - use
+    new exceptions `\VovanVE\parser\actions\AbortParsingException` or
+    `\VovanVE\parser\actions\AbortNodeException` instead.
+*   Deprecated: method `\VovanVE\parser\grammar\Grammar::create()` - use
+    `\VovanVE\parser\grammar\loaders\TextLoader::createGrammar()` instead.
+*   Add: `Grammar` now can do everything that `Lexer` does, but temporarily
+    in ugly way. Just use new array/JSON grammar to setup `Grammar` object.
+*   Add: exception `\VovanVE\parser\actions\AbortNodeException` to abort
+    parsing from actions pointing to offset of the given node in source text.
+*   Add: exception `\VovanVE\parser\actions\AbortParsingException` to abort
+    parsing from actions pointing to given offset in source text.
+*   Add: method `\VovanVE\parser\common\TreeNodeInterface::getOffset()` to get node
+    offset in input text. _This would be BC break change, but why do you ever need to
+    implement this interface yourself?_
+*   Add: 4th argument `$offset` to `\VovanVE\parser\tree\NonTerminal` constructor.
+*   Add: ability to export/load `Grammar` object to/from array or JSON.
+*   Notice: Text grammar should not be used for production anymore, but it
+    can be used for dev phase. New array/JSON grammar should be used for production.
+    Automatic conversion to JSON can be done with CLI tool:
+    ```sh
+    $ vendor/bin/grammar-text-to-json < grammar.txt > grammar.json
+    ```
+
 1.6.0
 -----
 
 *   Deprecated: `\VovanVE\parser\lexer\ParseException` now replaced with
     `\VovanVE\parser\errors\UnknownCharacterException`.
-*   End: `\VovanVE\parser\SyntaxException` divided into more detailed exceptions
+*   Enh: `\VovanVE\parser\SyntaxException` divided into more detailed exceptions
     to be explained to end-user easily.
 
 1.5.3

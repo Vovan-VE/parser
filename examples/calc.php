@@ -1,13 +1,14 @@
 <?php
 /* @formatter:off */
+
 use VovanVE\parser\actions\ActionsMadeMap;
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$grammar = Grammar::create(<<<'_END'
+$grammar = TextLoader::createGrammar(<<<'_END'
     Goal        : Sum $
     Sum(add)    : Sum "+" Product
     Sum(sub)    : Sum "-" Product

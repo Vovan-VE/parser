@@ -57,6 +57,9 @@ use VovanVE\parser\errors\UnknownCharacterException;
  * ```
  *
  * @package VovanVE\parser
+ * @deprecated >= 1.7.0: Avoid to setup it - use new JSON grammar instead.
+ * This class either will become internal, will be removed or will be "eaten"
+ * by `Grammar` class in next major version 2.0.
  */
 class Lexer extends BaseObject
 {

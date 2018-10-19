@@ -16,11 +16,11 @@ See also following example in [examples/](examples/).
 
 ```php
 use VovanVE\parser\actions\ActionsMadeMap;
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
-$grammar = Grammar::create(<<<'_END'
+$grammar = TextLoader::createGrammar(<<<'_END'
     Goal        : Sum $
     Sum(add)    : Sum "+" Product
     Sum(sub)    : Sum "-" Product
@@ -110,7 +110,7 @@ Install through [composer][]:
 
 or add to `require` section in your composer.json:
 
-    "vovan-ve/lr0-parser": "~1.6.0"
+    "vovan-ve/lr0-parser": "~1.7.0"
 
 Theory
 ------

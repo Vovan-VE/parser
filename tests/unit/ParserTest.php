@@ -1,15 +1,15 @@
 <?php
 namespace VovanVE\parser\tests\unit;
 
-use VovanVE\parser\actions\ActionAbortException;
+use VovanVE\parser\actions\AbortNodeException;
 use VovanVE\parser\actions\ActionsMadeMap;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\Token;
-use VovanVE\parser\common\TreeNodeInterface;
+use VovanVE\parser\common\TreeNodeInterface as INode;
 use VovanVE\parser\errors\AbortedException;
 use VovanVE\parser\errors\UnexpectedInputAfterEndException;
 use VovanVE\parser\errors\UnexpectedTokenException;
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 use VovanVE\parser\tests\helpers\BaseTestCase;
@@ -33,7 +33,7 @@ class ParserTest extends BaseTestCase
             ->whitespaces(['\\s+'])
             ->modifiers('i');
 
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E     : S $
 S(add): S add P
 S     : P
@@ -167,7 +167,7 @@ DUMP
             ->whitespaces(['\\s+'])
             ->modifiers('i');
 
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S add P
 S(sub) : S sub P
@@ -185,25 +185,25 @@ _END
             'int' => function (Token $int) {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, TreeNodeInterface $int) {
+            'V(int)' => function ($v, INode $int) {
                 return $int->made();
             },
-            'P(V)' => function ($p, TreeNodeInterface $v) {
+            'P(V)' => function ($p, INode $v) {
                 return $v->made();
             },
-            'P(mul)' => function ($p, TreeNodeInterface $a, $mul, TreeNodeInterface $b) {
+            'P(mul)' => function ($p, INode $a, $mul, INode $b) {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, TreeNodeInterface $a, $div, TreeNodeInterface $b) {
+            'P(div)' => function ($p, INode $a, $div, INode $b) {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, TreeNodeInterface $p) {
+            'S(P)' => function ($s, INode $p) {
                 return $p->made();
             },
-            'S(add)' => function ($s, TreeNodeInterface $a, $add, TreeNodeInterface $b) {
+            'S(add)' => function ($s, INode $a, $add, INode $b) {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, TreeNodeInterface $a, $sub, TreeNodeInterface $b) {
+            'S(sub)' => function ($s, INode $a, $sub, INode $b) {
                 return $a->made() - $b->made();
             },
         ];
@@ -229,7 +229,7 @@ _END
             ->modifiers('i');
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S .add P
 S(sub) : S .sub P
@@ -247,25 +247,25 @@ _END
             'int' => function (Token $int) {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, TreeNodeInterface $int) {
+            'V(int)' => function ($v, INode $int) {
                 return $int->made();
             },
-            'P(V)' => function ($p, TreeNodeInterface $v) {
+            'P(V)' => function ($p, INode $v) {
                 return $v->made();
             },
-            'P(mul)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'P(mul)' => function ($p, INode $a, INode $b) {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'P(div)' => function ($p, INode $a, INode $b) {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, TreeNodeInterface $p) {
+            'S(P)' => function ($s, INode $p) {
                 return $p->made();
             },
-            'S(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(add)' => function ($s, INode $a, INode $b) {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(sub)' => function ($s, INode $a, INode $b) {
                 return $a->made() - $b->made();
             },
         ];
@@ -284,7 +284,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S '+' P
 S(sub) : S "-" P
@@ -302,25 +302,25 @@ _END
             'int' => function (Token $int) {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, TreeNodeInterface $int) {
+            'V(int)' => function ($v, INode $int) {
                 return $int->made();
             },
-            'P(V)' => function ($p, TreeNodeInterface $v) {
+            'P(V)' => function ($p, INode $v) {
                 return $v->made();
             },
-            'P(mul)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'P(mul)' => function ($p, INode $a, INode $b) {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'P(div)' => function ($p, INode $a, INode $b) {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, TreeNodeInterface $p) {
+            'S(P)' => function ($s, INode $p) {
                 return $p->made();
             },
-            'S(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(add)' => function ($s, INode $a, INode $b) {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(sub)' => function ($s, INode $a, INode $b) {
                 return $a->made() - $b->made();
             },
         ];
@@ -339,7 +339,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S .add P
 S(sub) : S .sub P
@@ -361,25 +361,25 @@ _END
             'int' => function (Token $int) {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, TreeNodeInterface $int) {
+            'V(int)' => function ($v, INode $int) {
                 return $int->made();
             },
-            'P(V)' => function ($p, TreeNodeInterface $v) {
+            'P(V)' => function ($p, INode $v) {
                 return $v->made();
             },
-            'P(mul)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+            'P(mul)' => function ($p, INode $a, $op, INode $b) {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, TreeNodeInterface $a, $op, TreeNodeInterface $b) {
+            'P(div)' => function ($p, INode $a, $op, INode $b) {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, TreeNodeInterface $p) {
+            'S(P)' => function ($s, INode $p) {
                 return $p->made();
             },
-            'S(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(add)' => function ($s, INode $a, INode $b) {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(sub)' => function ($s, INode $a, INode $b) {
                 return $a->made() - $b->made();
             },
         ];
@@ -395,7 +395,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S '+' P
 S(sub) : S "-" P
@@ -414,25 +414,25 @@ _END
             'int' => function (Token $int) {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, TreeNodeInterface $int) {
+            'V(int)' => function ($v, INode $int) {
                 return $int->made();
             },
-            'P(V)' => function ($p, TreeNodeInterface $v) {
+            'P(V)' => function ($p, INode $v) {
                 return $v->made();
             },
-            'P(mul)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'P(mul)' => function ($p, INode $a, INode $b) {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'P(div)' => function ($p, INode $a, INode $b) {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, TreeNodeInterface $p) {
+            'S(P)' => function ($s, INode $p) {
                 return $p->made();
             },
-            'S(add)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(add)' => function ($s, INode $a, INode $b) {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S(sub)' => function ($s, INode $a, INode $b) {
                 return $a->made() - $b->made();
             },
         ];
@@ -443,7 +443,7 @@ _END
 
     public function testContextDependent()
     {
-        $grammar = Grammar::create(<<<'TEXT'
+        $grammar = TextLoader::createGrammar(<<<'TEXT'
 G       : Nodes $
 Nodes(L): Nodes Node
 Nodes(i): Node
@@ -488,7 +488,7 @@ TEXT
             },
         ]));
 
-        $this->assertInstanceOf(TreeNodeInterface::class, $result);
+        $this->assertInstanceOf(INode::class, $result);
         $this->assertEquals('997foo56000bar', $result->made());
     }
 
@@ -506,12 +506,12 @@ TEXT
 
         foreach (
             [
-                Grammar::create('
+                TextLoader::createGrammar('
                     G    : A $
                     A(aa): "aa"
                     A(a) : "a" "a"
                 '),
-                Grammar::create('
+                TextLoader::createGrammar('
                     G    : A $
                     A(a) : "a" "a"
                     A(aa): "aa"
@@ -527,7 +527,7 @@ TEXT
 
     public function testActionsMapDefault()
     {
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G  : S $
             S  : int "+" int
             int: /\d+/
@@ -540,7 +540,7 @@ _END
             'int' => function (Token $i) {
                 return (int)$i->getContent();
             },
-            'S' => function ($s, TreeNodeInterface $a, TreeNodeInterface $b) {
+            'S' => function ($s, INode $a, INode $b) {
                 return $a->made() + $b->made();
             },
         ]);
@@ -552,7 +552,7 @@ _END
 
     public function testActionsMapMade()
     {
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G  : S $
             S  : int "+" int
             int: /\d+/
@@ -582,7 +582,7 @@ _END
             ->whitespaces(['\\s+']);
 
         // some tokens are hidden locally in specific rules
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S "+" P
 S(sub) : S "-" P
@@ -606,7 +606,7 @@ _END
             'P(mul)' => function ($a, $b) { return $a * $b; },
             'P(div)' => function ($a, $b) {
                 if (0 === $b || 0.0 === $b) {
-                    throw new ActionAbortException('Division by zero');
+                    throw new AbortNodeException('Division by zero', 2);
                 }
                 return $a / $b;
             },
@@ -615,9 +615,13 @@ _END
             'S(sub)' => function ($a, $b) { return $a - $b; },
         ]);
 
-        $this->setExpectedException(AbortedException::class, 'Division by zero');
-
-        $parser->parse('42 / (2 * 5 - 10)', $actions);
+        try {
+            $parser->parse('42 / (2 * 5 - 10)', $actions);
+            $this->fail('Did not abort action');
+        } catch (AbortedException $e) {
+            $this->assertEquals('Division by zero', $e->getMessage());
+            $this->assertEquals(5, $e->getOffset());
+        }
     }
 
     public function testConflictTerminals()
@@ -626,7 +630,7 @@ _END
             ->terminals([
                 'int' => '\\d+',
             ]);
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G: int $
             int: /\d+/
 _END
@@ -638,7 +642,7 @@ _END
 
     public function testPreferredMatching()
     {
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
             G           : Nodes $
             Nodes(list) : Nodes Node
             Nodes(first): Node

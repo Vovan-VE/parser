@@ -35,7 +35,7 @@ use VovanVE\parser\common\TreeNodeInterface;
  * evaluate the result. To apply `null` value to a node you need to call `make(null)`
  * manually in action callback, but it is not necessary since default `made()` value is `null`.
  *
- * Handler may throw `ActionAbortException`. Parser will convert it into `SyntaxException.`
+ * Handler may throw `ActionAbortException` or `AbortParsingException`. Parser will convert it into `SyntaxException.`
  * @package VovanVE\parser
  * @since 1.3.0
  */
@@ -115,7 +115,7 @@ class ActionsMap extends BaseObject
      * @return bool|null Returns `null` when no action defined. Returns `false` when
      * action result `null` and so it was not applied. Returns `true` when action result
      * was not `null` and it was applied.
-     * @throws ActionAbortException
+     * @throws AbortParsingException
      * @since 1.4.0
      */
     public function applyToNode($node)
@@ -138,7 +138,7 @@ class ActionsMap extends BaseObject
      * Runs action for a node if action is defined. Returns result of the action.
      * @param TreeNodeInterface $node Subject node
      * @return mixed Value returned from action or `null` if no action.
-     * @throws ActionAbortException
+     * @throws AbortParsingException
      * @deprecated >= 1.5.0: Method is unused internally and does not cause tree recursion.
      */
     public function runForNode($node)
@@ -174,8 +174,8 @@ class ActionsMap extends BaseObject
      * @param callable|string $action Action from the map
      * @param TreeNodeInterface $node Subject node
      * @return mixed Result of the action call
+     * @throws AbortParsingException
      * @since 1.5.0
-     * @throws ActionAbortException
      */
     private function runAction($action, $node)
     {
@@ -194,7 +194,7 @@ class ActionsMap extends BaseObject
      * @param TreeNodeInterface $node Subject node
      * @return mixed Result of the action call
      * @since 1.5.0
-     * @throws ActionAbortException
+     * @throws AbortParsingException
      */
     protected function runActionHandler($action, $node)
     {
@@ -202,12 +202,20 @@ class ActionsMap extends BaseObject
         // return $action($node, ...$node->getChildren());
         // REFACT: minimal PHP >= 5.6:
         // return call_user_func($action, $node, ...$node->getChildren());
+        /** @var TreeNodeInterface[] $args */
         $args = $node->getChildren();
         array_unshift($args, $node);
         try {
             return call_user_func_array($action, $args);
-        } catch (ActionAbortException $e) {
+        } catch (AbortNodeException $e) {
+            throw new AbortParsingException($e->getMessage(), $args[$e->getNodeIndex()]->getOffset(), $e);
+        } catch (AbortParsingException $e) {
+            if (null === $e->getOffset()) {
+                throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
+            }
             throw $e;
+        } catch (ActionAbortException $e) {
+            throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
         } catch (\Exception $e) {
             // REFACT: PHP >= 7.0: simplify
             throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);

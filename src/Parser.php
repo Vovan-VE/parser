@@ -1,7 +1,7 @@
 <?php
 namespace VovanVE\parser;
 
-use VovanVE\parser\actions\ActionAbortException;
+use VovanVE\parser\actions\AbortParsingException;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
@@ -13,6 +13,7 @@ use VovanVE\parser\errors\UnexpectedInputAfterEndException;
 use VovanVE\parser\errors\UnexpectedTokenException;
 use VovanVE\parser\errors\UnknownCharacterException;
 use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\stack\NoReduceException;
 use VovanVE\parser\stack\Stack;
@@ -38,7 +39,7 @@ class Parser extends BaseObject
     /**
      * @param Lexer $lexer lexer to parse input text into tokens stream
      * @param Grammar|string $grammar Grammar object or text. Text will be passed to `Grammar::create()`
-     * @see Grammar::create()
+     * @see TextLoader
      */
     public function __construct($lexer, $grammar)
     {
@@ -49,7 +50,7 @@ class Parser extends BaseObject
         }
 
         if (is_string($grammar)) {
-            $grammar = Grammar::create($grammar);
+            $grammar = TextLoader::createGrammar($grammar);
         } elseif (!$grammar instanceof Grammar) {
             throw new \InvalidArgumentException(
                 'Argument $grammar must be string or ' . Grammar::class
@@ -57,6 +58,9 @@ class Parser extends BaseObject
         }
 
         $this->lexer = $lexer
+            ->defines($grammar->getDefines())
+            ->whitespaces($grammar->getWhitespaces())
+            ->modifiers($grammar->getModifiers())
             ->fixed($grammar->getFixed())
             ->terminals($grammar->getRegExpMap())
             ->inline($grammar->getInlines());
@@ -162,11 +166,8 @@ class Parser extends BaseObject
                 NEXT_SYMBOL:
             }
             DONE:
-        } catch (ActionAbortException $e) {
-            throw new AbortedException(
-                $e->getMessage(),
-                $token ? $token->getOffset() : strlen($input)
-            );
+        } catch (AbortParsingException $e) {
+            throw new AbortedException($e->getMessage(), $e->getOffset());
         } catch (NoReduceException $e) {
             // This unexpected reduce (no rule to reduce) may happen only
             // when current terminal is not expected. So, some terminals

@@ -1,7 +1,7 @@
 <?php
 namespace VovanVE\parser\stack;
 
-use VovanVE\parser\actions\ActionAbortException;
+use VovanVE\parser\actions\AbortParsingException;
 use VovanVE\parser\actions\ActionsMap;
 use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
@@ -67,7 +67,7 @@ class Stack extends BaseObject
      * @param TreeNodeInterface $node Node to add into the stack
      * @param integer $stateIndex Next state index to switch to
      * @param bool $isHidden [since 1.4.0] Whether the node is hidden from the resulting tree
-     * @throws ActionAbortException
+     * @throws AbortParsingException
      */
     public function shift($node, $stateIndex, $isHidden = false)
     {
@@ -91,7 +91,7 @@ class Stack extends BaseObject
      * Perform the Reduce
      * @throws NoReduceException No rule to reduce by in the current state
      * @throws InternalException Internal package error
-     * @throws ActionAbortException
+     * @throws AbortParsingException
      */
     public function reduce()
     {
@@ -105,6 +105,7 @@ class Stack extends BaseObject
             throw new InternalException('Not enough items in stack');
         }
         $nodes = [];
+        $offset = null;
         $reduce_items = array_slice($this->items, -$reduce_count);
         foreach ($rule->getDefinition() as $i => $symbol) {
             $item = $reduce_items[$i];
@@ -113,6 +114,9 @@ class Stack extends BaseObject
             }
             if (!($symbol->isHidden() || $item->isHidden)) {
                 $nodes[] = $item->node;
+            }
+            if (null === $offset) {
+                $offset = $item->node->getOffset();
             }
         }
 
@@ -123,7 +127,7 @@ class Stack extends BaseObject
 
         $new_symbol_name = $rule->getSubject()->getName();
 
-        $new_node = new NonTerminal($new_symbol_name, $nodes, $rule->getTag());
+        $new_node = new NonTerminal($new_symbol_name, $nodes, $rule->getTag(), $offset);
 
         $goto = $base_state_row->gotoSwitches;
         if (!isset($goto[$new_symbol_name])) {

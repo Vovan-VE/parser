@@ -3,7 +3,7 @@ namespace VovanVE\parser\tests\unit\stack;
 
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\common\Token;
-use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\stack\Stack;
 use VovanVE\parser\table\Item;
 use VovanVE\parser\table\Table;
@@ -20,7 +20,7 @@ class StackTest extends BaseTestCase
      */
     public function testInitTable()
     {
-        $grammar = Grammar::create(<<<'_END'
+        $grammar = TextLoader::createGrammar(<<<'_END'
 E: S $
 S: S add P
 S: P

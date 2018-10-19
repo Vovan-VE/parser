@@ -17,6 +17,9 @@
     "require-dev": {
         "phpunit/phpunit": "~4.8"
     },
+    "bin": [
+        "bin/grammar-text-to-json"
+    ],
     "scripts": {
         "test": "vendor/bin/phpunit --verbose"
     },

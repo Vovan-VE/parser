@@ -24,6 +24,13 @@ interface TreeNodeInterface
     public function getNodeTag();
 
     /**
+     * Position of the node in the input text
+     * @return integer
+     * @since 1.7.0
+     */
+    public function getOffset();
+
+    /**
      * Counts children nodes
      * @return integer
      * @since 1.1.0

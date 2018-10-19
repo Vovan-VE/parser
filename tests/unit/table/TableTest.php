@@ -3,6 +3,7 @@ namespace VovanVE\parser\tests\unit\table;
 
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\Grammar;
+use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\grammar\Rule;
 use VovanVE\parser\table\ItemSet;
 use VovanVE\parser\table\Table;
@@ -21,7 +22,7 @@ class TableTest extends BaseTestCase
      */
     public function testCreateGrammar()
     {
-        $grammar = Grammar::create(<<<'_GRAMMAR'
+        $grammar = TextLoader::createGrammar(<<<'_GRAMMAR'
 S: E $
 E: E mul B
 E: E add B

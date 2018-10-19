@@ -24,14 +24,17 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
     public $children;
     /** @var mixed Value evaluated with actions */
     private $made;
+    /** @var int Offset in the source text */
+    private $offset;
 
     /**
      * @param string $name Symbol name from the grammar
      * @param TreeNodeInterface[] $children Children nodes
      * @param string|null $tag Tag from corresponding grammar rule if one was defined
+     * @param int $offset >= 1.7.0
      * @since 1.3.0
      */
-    public function __construct($name, $children, $tag = null)
+    public function __construct($name, $children, $tag = null, $offset = null)
     {
         $this->name = $name;
         $this->children = $children;
@@ -41,6 +44,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
                 $this->tag = $tag;
             }
         }
+        $this->offset = $offset;
     }
 
     /**
@@ -58,6 +62,16 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
     public function getNodeTag()
     {
         return $this->tag;
+    }
+
+    /**
+     * Position of the token in the input text
+     * @return integer
+     * @since 1.7.0
+     */
+    public function getOffset()
+    {
+        return $this->offset;
     }
 
     /**
