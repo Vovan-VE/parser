@@ -33,6 +33,33 @@ class ArrayLoader
             throw new \InvalidArgumentException('Unexpected data type: rules, terminals');
         }
 
+        if (isset($array['defines'])) {
+            if (!is_array($array['defines'])) {
+                throw new \InvalidArgumentException('Unexpected data type: defines');
+            }
+            $defines = static::loadRegexps($array['defines'], 'defines');
+        } else {
+            $defines = [];
+        }
+
+        if (isset($array['whitespaces'])) {
+            if (!is_array($array['whitespaces'])) {
+                throw new \InvalidArgumentException('Unexpected data type: whitespaces');
+            }
+            $whitespaces = static::loadRegexps($array['whitespaces'], 'whitespaces');
+        } else {
+            $whitespaces = [];
+        }
+
+        if (isset($array['modifiers'])) {
+            if (!is_string($array['modifiers'])) {
+                throw new \InvalidArgumentException('Unexpected data type: modifiers');
+            }
+            $modifiers = $array['modifiers'];
+        } else {
+            $modifiers = '';
+        }
+
         /** @var bool[] $terminals */
         /** @var string[] $inlines */
         /** @var string[] $fixed */
@@ -41,7 +68,7 @@ class ArrayLoader
 
         $rules = static::loadRules($array['rules'], $terminals);
 
-        return new Grammar($rules, $inlines, $fixed, $regexpMap);
+        return new Grammar($rules, $inlines, $fixed, $regexpMap, $whitespaces, $defines, $modifiers);
     }
 
     /**
@@ -173,5 +200,19 @@ class ArrayLoader
         }
 
         return $result;
+    }
+
+    /**
+     * @param array $regexps
+     * @return array
+     */
+    protected static function loadRegexps(array $regexps, $section)
+    {
+        foreach ($regexps as $name => $regexp) {
+            if (!is_string($regexp)) {
+                throw new \InvalidArgumentException("Unexpected data type: {$section}[$name]");
+            }
+        }
+        return $regexps;
     }
 }

@@ -37,6 +37,12 @@ class ArrayLoaderTest extends BaseTestCase
                             'match' => '\\d+',
                         ],
                     ],
+                    'defines' => [
+                        'int' => '\\d+',
+                        'var' => '[a-z]+',
+                    ],
+                    'whitespaces' => ['\\s+'],
+                    'modifiers' => 'u',
                 ]
             ],
             [

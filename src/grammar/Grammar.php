@@ -52,6 +52,26 @@ class Grammar extends BaseObject
     private $fixed = [];
     /** @var array RegExp tokens definition map */
     private $regexpMap = [];
+    /**
+     * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
+     * Key is name and value is a part of RegExp
+     */
+    private $defines;
+    /**
+     * @var array List of RegExp parts to define whitespaces to ignore in an input text.
+     * DEFINEs can be referred with `(?&name)` regexp recursion.
+     */
+    private $whitespaces = [];
+    /**
+     * @var string Modifiers to whole regexp.
+     *
+     * Same modifiers will be applied both to tokens and whitespaces regexps.
+     *
+     * Here only "global" modifiers like `u`, `x`, `D`, etc.
+     * should be used. Other modifiers like `i` should (but not required) be used locally
+     * in specific parts like `(?i)[a-z]` or `(?i:[a-z])`.
+     */
+    private $modifiers = '';
     /** @var Rule Reference to the mail rule */
     private $mainRule;
     /** @var Symbol[] Map of all Symbols from all rules. Key is a symbol name. */
@@ -78,11 +98,16 @@ class Grammar extends BaseObject
     /**
      * Constructor
      *
-     * You should to use `create()` instead.
+     * You should to use a loader instead.
+     *
+     * **_DON'T USE CONSTRUCTOR DIRECTLY WITH TONS OF ARGUMENTS. USE A LOADER INSTEAD._**
      * @param Rule[] $rules Manually constructed rules
      * @param string[] $inlines [since 1.4.0] List of inline token values
      * @param string[] $fixed [since 1.5.0] Fixed tokens map
      * @param string[] $regexpMap [since 1.5.0] RegExp tokens map
+     * @param string[] $whitespaces [since 1.7.0] List of RegExp for whitespaces to skip
+     * @param string[] $defines [since 1.7.0] RegExp DEFINEs map
+     * @param string $modifiers [since 1.7.0] Top RegExp modifiers
      * @throws GrammarException Errors in grammar syntax or logic
      * @see TextLoader
      */
@@ -90,13 +115,18 @@ class Grammar extends BaseObject
         array $rules,
         array $inlines = [],
         array $fixed = [],
-        array $regexpMap = []
-    )
-    {
+        array $regexpMap = [],
+        array $whitespaces = [],
+        array $defines = [],
+        $modifiers = ''
+    ) {
         $this->rules = array_values($rules);
         $this->inlines = array_values($inlines);
         $this->fixed = $fixed;
         $this->regexpMap = $regexpMap;
+        $this->whitespaces = $whitespaces;
+        $this->defines = $defines;
+        $this->modifiers = $modifiers;
         $symbols = [];
         $terminals = [];
         $non_terminals = [];
@@ -168,6 +198,36 @@ class Grammar extends BaseObject
     public function getRegExpMap()
     {
         return $this->regexpMap;
+    }
+
+    /**
+     * RegExp map for DEFINEs
+     * @return string[]
+     * @since 1.7.0
+     */
+    public function getDefines()
+    {
+        return $this->defines;
+    }
+
+    /**
+     * RegExp list for whitespaces
+     * @return string[]
+     * @since 1.7.0
+     */
+    public function getWhitespaces()
+    {
+        return $this->whitespaces;
+    }
+
+    /**
+     * Top RegExp modifiers
+     * @return string
+     * @since 1.7.0
+     */
+    public function getModifiers()
+    {
+        return $this->modifiers;
     }
 
     /**

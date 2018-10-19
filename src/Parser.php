@@ -58,6 +58,9 @@ class Parser extends BaseObject
         }
 
         $this->lexer = $lexer
+            ->defines($grammar->getDefines())
+            ->whitespaces($grammar->getWhitespaces())
+            ->modifiers($grammar->getModifiers())
             ->fixed($grammar->getFixed())
             ->terminals($grammar->getRegExpMap())
             ->inline($grammar->getInlines());

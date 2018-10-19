@@ -91,9 +91,28 @@ class ArrayExporter extends BaseObject
 
         ksort($terminals);
 
-        return [
+        $result = [
             'rules' => $rules,
             'terminals' => array_values($terminals),
         ];
+
+        $defines = $grammar->getDefines();
+        if ($defines) {
+            ksort($defines);
+            $result['defines'] = $defines;
+        }
+
+        $whitespaces = $grammar->getWhitespaces();
+        if ($whitespaces) {
+            sort($whitespaces);
+            $result['whitespaces'] = $whitespaces;
+        }
+
+        $modifiers = $grammar->getModifiers();
+        if ('' !== $modifiers) {
+            $result['modifiers'] = $modifiers;
+        }
+
+        return $result;
     }
 }
