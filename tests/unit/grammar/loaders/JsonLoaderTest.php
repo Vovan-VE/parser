@@ -12,14 +12,14 @@ class JsonLoaderTest extends BaseTestCase
      * @param string $json
      * @dataProvider jsonDataProvider
      */
-    public function testCreateGrammar($json)
+    public function testCreateGrammar(string $json)
     {
         $grammar = JsonLoader::createGrammar($json);
         $this->assertInstanceOf(Grammar::class, $grammar);
         $this->assertEquals($json, (new JsonExporter)->exportGrammar($grammar));
     }
 
-    public function jsonDataProvider()
+    public function jsonDataProvider(): array
     {
         return [
             ['{"rules":[{"name":"G","eof":true,"definition":["a"]}],"terminals":[{"name":"a","match":"\\\\d+"}],"defines":{"int":"\\\\d+","var":"[a-z]+"},"whitespaces":["\\\\s+"],"modifiers":"u"}'],

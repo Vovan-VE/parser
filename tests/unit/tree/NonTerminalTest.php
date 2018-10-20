@@ -11,7 +11,7 @@ class NonTerminalTest extends BaseTestCase
     /**
      * @return NonTerminal
      */
-    public function testVInt()
+    public function testVInt(): NonTerminal
     {
         $token = new Token('int', '42');
 
@@ -63,7 +63,7 @@ DUMP
         return $node;
     }
 
-    public function testVTagInt()
+    public function testVTagInt(): NonTerminal
     {
         $token = new Token('int', '37');
 
@@ -89,7 +89,7 @@ DUMP
      * @return NonTerminal
      * @depends testVInt
      */
-    public function testPVInt($v)
+    public function testPVInt(NonTerminal $v): NonTerminal
     {
         $node = new NonTerminal('P', [$v]);
 
@@ -118,11 +118,11 @@ DUMP
     /**
      * @param NonTerminal $p
      * @param NonTerminal $v
+     * @return NonTerminal
      * @depends testPVInt
      * @depends testVTagInt
-     * @return NonTerminal
      */
-    public function testEVMulInt($p, $v)
+    public function testEVMulInt(NonTerminal $p, NonTerminal $v): NonTerminal
     {
         $mul = new Token('mul', '*');
 
@@ -163,7 +163,7 @@ DUMP
      * @param NonTerminal $node
      * @depends testEVMulInt
      */
-    public function testGetChild($node)
+    public function testGetChild(NonTerminal $node)
     {
         $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(0));
         $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(1));

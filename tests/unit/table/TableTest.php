@@ -20,7 +20,7 @@ class TableTest extends BaseTestCase
     /**
      * @return Grammar
      */
-    public function testCreateGrammar()
+    public function testCreateGrammar(): Grammar
     {
         $grammar = TextLoader::createGrammar(<<<'_GRAMMAR'
 S: E $
@@ -40,16 +40,16 @@ _GRAMMAR
      * @return TableRow[]
      * @depends testCreateGrammar
      */
-    public function testCreateTable($grammar)
+    public function testCreateTable(Grammar $grammar): array
     {
         $table = new Table($grammar);
 
-        $rows = $table->rows;
+        $rows = $table->getRows();
         $this->assertInternalType('array', $rows);
         $this->assertCount(self::EXPECTED_STATES_COUNT, $rows);
         $this->assertContainsOnlyInstancesOf(TableRow::class, $rows);
 
-        $states = $table->states;
+        $states = $table->getStates();
         $this->assertInternalType('array', $states);
         $this->assertCount(self::EXPECTED_STATES_COUNT, $states);
         $this->assertContainsOnlyInstancesOf(ItemSet::class, $states);
@@ -59,10 +59,10 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @return integer[]
+     * @return int[]
      * @depends testCreateTable
      */
-    public function testRow0($rows)
+    public function testRow0(array $rows): array
     {
         $row = $rows[0];
 
@@ -95,11 +95,11 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer[] $map
+     * @param int[] $map
      * @depends testCreateTable
      * @depends testRow0
      */
-    public function testRowBIsZero($rows, $map)
+    public function testRowBIsZero(array $rows, array $map)
     {
         $row = $rows[$map['zero']];
         $expectRule = new Rule(new Symbol('B'), [new Symbol('zero', true)]);
@@ -109,11 +109,11 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer[] $map
+     * @param int[] $map
      * @depends testCreateTable
      * @depends testRow0
      */
-    public function testRowBIsOne($rows, $map)
+    public function testRowBIsOne(array $rows, array $map)
     {
         $row = $rows[$map['one']];
         $expectRule = new Rule(new Symbol('B'), [new Symbol('one', true)]);
@@ -123,11 +123,11 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer[] $map
+     * @param int[] $map
      * @depends testCreateTable
      * @depends testRow0
      */
-    public function testRowEIsB($rows, $map)
+    public function testRowEIsB(array $rows, array $map)
     {
         $row = $rows[$map['B']];
         $expectRule = new Rule(new Symbol('E'), [new Symbol('B')]);
@@ -137,12 +137,12 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer[] $map
-     * @return integer[]
+     * @param int[] $map
+     * @return int[]
      * @depends testCreateTable
      * @depends testRow0
      */
-    public function testRowSIsEEof($rows, $map)
+    public function testRowSIsEEof(array $rows, array $map): array
     {
         $row = $rows[$map['E']];
 
@@ -175,14 +175,14 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer[] $map0
-     * @param integer[] $mapE
-     * @return integer
+     * @param int[] $map0
+     * @param int[] $mapE
+     * @return int
      * @depends testCreateTable
      * @depends testRow0
      * @depends testRowSIsEEof
      */
-    public function testRowEIsEMulWantB($rows, $map0, $mapE)
+    public function testRowEIsEMulWantB(array $rows, array $map0, array $mapE): int
     {
         $row = $rows[$mapE['mul']];
 
@@ -213,11 +213,11 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer $stateB
+     * @param int $stateB
      * @depends testCreateTable
      * @depends testRowEIsEMulWantB
      */
-    public function testRowEIsEMulB($rows, $stateB)
+    public function testRowEIsEMulB(array $rows, int $stateB)
     {
         $row = $rows[$stateB];
 
@@ -244,14 +244,14 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer[] $map0
-     * @param integer[] $mapE
-     * @return integer
+     * @param int[] $map0
+     * @param int[] $mapE
+     * @return int
      * @depends testCreateTable
      * @depends testRow0
      * @depends testRowSIsEEof
      */
-    public function testRowEIsEAddWantB($rows, $map0, $mapE)
+    public function testRowEIsEAddWantB(array $rows, array $map0, array $mapE): int
     {
         $row = $rows[$mapE['add']];
 
@@ -282,11 +282,11 @@ _GRAMMAR
 
     /**
      * @param TableRow[] $rows
-     * @param integer $stateB
+     * @param int $stateB
      * @depends testCreateTable
      * @depends testRowEIsEAddWantB
      */
-    public function testRowEIsEAddB($rows, $stateB)
+    public function testRowEIsEAddB(array $rows, int $stateB)
     {
         $row = $rows[$stateB];
 
@@ -315,7 +315,7 @@ _GRAMMAR
      * @param TableRow $row
      * @param Rule $expectRule
      */
-    private function _testReduceOnly($row, $expectRule)
+    private function _testReduceOnly(TableRow $row, Rule $expectRule)
     {
         $this->assertNull($row->eofAction);
 

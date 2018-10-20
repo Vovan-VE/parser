@@ -15,17 +15,17 @@ class SyntaxException extends \RuntimeException
      * @param int $offset Error code
      * @param \Throwable|null $previous Previous exception
      */
-    public function __construct($message, $offset, \Throwable $previous = null)
+    public function __construct(string $message, int $offset, \Throwable $previous = null)
     {
         parent::__construct($message, 0, $previous);
-        $this->offset = (int)$offset;
+        $this->offset = $offset;
     }
 
     /**
      * Position of the error in the source text
      * @return int
      */
-    public function getOffset()
+    public function getOffset(): int
     {
         return $this->offset;
     }

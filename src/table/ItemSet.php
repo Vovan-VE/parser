@@ -29,7 +29,7 @@ class ItemSet extends BaseObject
      * @throws ConflictShiftReduceException Shift-reduce conflict is detected
      * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      */
-    public static function createFromItems(array $items, $grammar)
+    public static function createFromItems(array $items, Grammar $grammar): self
     {
         $final_items = [];
         $new_items = $items;
@@ -82,7 +82,7 @@ class ItemSet extends BaseObject
      * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      * @uses Item::compare()
      */
-    public function __construct(array $items, array $initialItems, $grammar)
+    public function __construct(array $items, array $initialItems, Grammar $grammar)
     {
         $items_list = array_values($items);
 
@@ -109,7 +109,7 @@ class ItemSet extends BaseObject
      * @param Grammar $grammar Source grammar
      * @return static[] New Sets for other states
      */
-    public function getNextSets($grammar): array
+    public function getNextSets(Grammar $grammar): array
     {
         $next_map = [];
         foreach ($this->items as $item) {
@@ -146,7 +146,7 @@ class ItemSet extends BaseObject
      * @param bool $initialOnly Whether to search in initial items only
      * @return bool Returns `true` when the set contains equal item
      */
-    public function hasItem($item, $initialOnly = true)
+    public function hasItem(Item $item, bool $initialOnly = true): bool
     {
         $list = ($initialOnly) ? $this->initialItems : $this->items;
         foreach ($list as $my_item) {
@@ -161,7 +161,7 @@ class ItemSet extends BaseObject
      * Check if this set has item where the next token must be EOF
      * @return bool
      */
-    public function hasFinalItem()
+    public function hasFinalItem(): bool
     {
         foreach ($this->items as $item) {
             if ($item->hasEofMark() && !$item->further) {
@@ -175,7 +175,7 @@ class ItemSet extends BaseObject
      * Get reduction rule of this set if any
      * @return Rule|null
      */
-    public function getReduceRule()
+    public function getReduceRule(): ?Rule
     {
         foreach ($this->items as $item) {
             if (!$item->further) {
@@ -193,7 +193,7 @@ class ItemSet extends BaseObject
      * @param ItemSet $that Another set to compare with
      * @return bool Returns `true` when both sets are equal
      */
-    public function isSame($that)
+    public function isSame(ItemSet $that): bool
     {
         if (count($this->items) !== count($that->items)) {
             return false;
@@ -245,7 +245,7 @@ class ItemSet extends BaseObject
      * @throws ConflictShiftReduceException Shift-reduce conflict is detected
      * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      */
-    private function validateDeterministic($grammar)
+    private function validateDeterministic(Grammar $grammar): void
     {
         /** @var Item[] */
         $finite = [];
@@ -280,11 +280,11 @@ class ItemSet extends BaseObject
      * @throws ConflictShiftReduceException Shift-reduce conflict is detected
      */
     private function validateDeterministicShiftReduce(
-        $finite,
-        $terminals,
-        $nonTerminals,
-        $grammar
-    ) {
+        array $finite,
+        array $terminals,
+        array $nonTerminals,
+        Grammar $grammar
+    ): void {
         if ($finite && $terminals) {
             $left_terminals = $grammar->getTerminals();
             foreach ($terminals as $item) {
@@ -303,7 +303,7 @@ class ItemSet extends BaseObject
      * @param Item[] $finite Items where all symbols are already passed
      * @throws ConflictReduceReduceException Reduce-reduce conflict is detected
      */
-    private function validateDeterministicReduceReduce($finite)
+    private function validateDeterministicReduceReduce(array $finite): void
     {
         if (count($finite) > 1) {
             throw new ConflictReduceReduceException($finite);

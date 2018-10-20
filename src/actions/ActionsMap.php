@@ -65,7 +65,7 @@ class ActionsMap extends BaseObject
      * @return string
      * @since 1.5.2
      */
-    protected static function buildActionName($node)
+    protected static function buildActionName(TreeNodeInterface $node): string
     {
         $name = $node->getNodeName();
         $tag = $node->getNodeTag();
@@ -117,7 +117,7 @@ class ActionsMap extends BaseObject
      * @throws AbortParsingException
      * @since 1.4.0
      */
-    public function applyToNode($node)
+    public function applyToNode(TreeNodeInterface $node): ?bool
     {
         $action = $this->getAction($node);
         if (null === $action) {
@@ -137,7 +137,7 @@ class ActionsMap extends BaseObject
      * @return callable|string|null Action handler or `null`.
      * @since 1.4.0
      */
-    private function getAction($node)
+    private function getAction(TreeNodeInterface $node)
     {
         $name = self::buildActionName($node);
 
@@ -152,7 +152,7 @@ class ActionsMap extends BaseObject
      * @throws AbortParsingException
      * @since 1.5.0
      */
-    private function runAction($action, $node)
+    private function runAction($action, TreeNodeInterface $node)
     {
         if (is_string($action) && isset(self::COMMANDS[$action])) {
             /** @var CommandInterface $class Just a class name, not an instance */
@@ -171,7 +171,7 @@ class ActionsMap extends BaseObject
      * @since 1.5.0
      * @throws AbortParsingException
      */
-    protected function runActionHandler($action, $node)
+    protected function runActionHandler($action, TreeNodeInterface $node)
     {
         $children = $node->getChildren();
         try {

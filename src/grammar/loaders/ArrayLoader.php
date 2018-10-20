@@ -21,7 +21,7 @@ class ArrayLoader
      * @return Grammar Grammar object
      * @throws GrammarException Errors in grammar syntax or logic
      */
-    public static function createGrammar($array)
+    public static function createGrammar($array): Grammar
     {
         if (!is_array($array)) {
             throw new \InvalidArgumentException('Unexpected data type');
@@ -79,7 +79,7 @@ class ArrayLoader
      * @param array $regexpMap
      * @return void
      */
-    protected static function loadTerminals(array $terminals, &$names, &$inlines, &$fixed, &$regexpMap)
+    protected static function loadTerminals(array $terminals, &$names, &$inlines, &$fixed, &$regexpMap): void
     {
         $inlines = [];
         $fixed = [];
@@ -127,7 +127,7 @@ class ArrayLoader
      * @param bool[] $terminals
      * @return Rule[]
      */
-    protected static function loadRules(array $rules, array $terminals)
+    protected static function loadRules(array $rules, array $terminals): array
     {
         /** @var Rule[] $result */
         $result = [];
@@ -140,10 +140,9 @@ class ArrayLoader
          * @param bool $isHidden
          * @return Symbol
          */
-        $get_symbol = function ($name, $isHidden = false) use (&$symbols, $terminals) {
-            return (isset($symbols[$name][$isHidden]))
-                ? $symbols[$name][$isHidden]
-                : ($symbols[$name][$isHidden] = new Symbol($name, isset($terminals[$name]), $isHidden));
+        $get_symbol = function (string $name, bool $isHidden = false) use (&$symbols, $terminals): Symbol {
+            return $symbols[$name][$isHidden]
+                ?? ($symbols[$name][$isHidden] = new Symbol($name, isset($terminals[$name]), $isHidden));
         };
 
         $non_terminals_names = [];
@@ -204,9 +203,10 @@ class ArrayLoader
 
     /**
      * @param array $regexps
+     * @param string $section
      * @return array
      */
-    protected static function loadRegexps(array $regexps, $section)
+    protected static function loadRegexps(array $regexps, string $section): array
     {
         foreach ($regexps as $name => $regexp) {
             if (!is_string($regexp)) {

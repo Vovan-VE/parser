@@ -41,14 +41,8 @@ class Parser extends BaseObject
      * @param Grammar|string $grammar Grammar object or text. Text will be passed to `Grammar::create()`
      * @see TextLoader
      */
-    public function __construct($lexer, $grammar)
+    public function __construct(Lexer $lexer, $grammar)
     {
-        if (!$lexer instanceof Lexer) {
-            throw new \InvalidArgumentException(
-                'Argument $lexer must be ' . Lexer::class
-            );
-        }
-
         if (is_string($grammar)) {
             $grammar = TextLoader::createGrammar($grammar);
         } elseif (!$grammar instanceof Grammar) {
@@ -106,7 +100,7 @@ class Parser extends BaseObject
      * @throws AbortedException
      * @see \VovanVE\parser\actions\ActionsMadeMap
      */
-    public function parse($input, $actions = [])
+    public function parse(string $input, $actions = []): TreeNodeInterface
     {
         if ($actions instanceof ActionsMap) {
             $actions_map = $actions;
@@ -195,9 +189,9 @@ class Parser extends BaseObject
      * @param Token|null $token
      * @return string
      */
-    private function dumpTokenForError($token)
+    private function dumpTokenForError(?Token $token): string
     {
-        if (!$token) {
+        if (null === $token) {
             return '<EOF>';
         }
         if ($token->isInline()) {

@@ -12,14 +12,14 @@ class ArrayLoaderTest extends BaseTestCase
      * @param array $array
      * @dataProvider arrayDataProvider
      */
-    public function testCreateGrammar($array)
+    public function testCreateGrammar(array $array)
     {
         $grammar = ArrayLoader::createGrammar($array);
         $this->assertInstanceOf(Grammar::class, $grammar);
         $this->assertEquals($array, (new ArrayExporter)->exportGrammar($grammar));
     }
 
-    public function arrayDataProvider()
+    public function arrayDataProvider(): array
     {
         return [
             [

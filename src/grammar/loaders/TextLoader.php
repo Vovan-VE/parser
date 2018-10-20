@@ -174,7 +174,7 @@ _REGEXP;
      * @return Grammar Grammar object
      * @throws GrammarException Errors in grammar syntax or logic
      */
-    public static function createGrammar($text)
+    public static function createGrammar(string $text): Grammar
     {
         $rules_strings = self::splitIntoRules($text);
 
@@ -188,7 +188,7 @@ _REGEXP;
 
         /** @var Symbol[][] $symbols */
         $symbols = [];
-        $get_symbol = function ($name, $isInline = false) use (&$symbols, &$inlines) {
+        $get_symbol = function (string $name, bool $isInline = false) use (&$symbols, &$inlines): Symbol {
             if ($isInline) {
                 if (!isset($inlines[$name]) && isset($symbols[$name])) {
                     throw new GrammarException(
@@ -211,9 +211,8 @@ _REGEXP;
                 }
             }
 
-            return (isset($symbols[$plain_name][$is_hidden]))
-                ? $symbols[$plain_name][$is_hidden]
-                : ($symbols[$plain_name][$is_hidden] = new Symbol($plain_name, true, $is_hidden));
+            return $symbols[$plain_name][$is_hidden]
+                ?? ($symbols[$plain_name][$is_hidden] = new Symbol($plain_name, true, $is_hidden));
         };
 
         $non_terminals_names = [];
@@ -340,9 +339,9 @@ _REGEXP;
 
     /**
      * @param string $grammarText
-     * @return array|false|mixed|string[]
+     * @return string[]
      */
-    private static function splitIntoRules($grammarText)
+    private static function splitIntoRules(string $grammarText): array
     {
         if (false === preg_match_all(self::RE_RULE_LINE, $grammarText, $matches, PREG_SET_ORDER)) {
             throw new InternalException('PCRE error', preg_last_error());
@@ -375,7 +374,7 @@ _REGEXP;
      * @param array $inlines Variable to store values of inline tokens. Key are same as values
      * @return string[] List of tokens strings
      */
-    private static function parseDefinitionItems($input, array &$inlines)
+    private static function parseDefinitionItems(string $input, array &$inlines): array
     {
         if (!preg_match_all(self::RE_RULE_DEF_ITEM, $input, $matches, PREG_SET_ORDER)) {
             throw new GrammarException("Invalid rule definition");
@@ -437,7 +436,7 @@ _REGEXP;
      * when input definition does not begin with RegExp delimiter `/`.
      * @throws GrammarException RegExp syntax is started with delimiter but then comes an error.
      */
-    private static function matchRegexpDefinition($input)
+    private static function matchRegexpDefinition(string $input): ?string
     {
         if (!preg_match(self::RE_RULE_DEF_REGEXP, $input, $match)) {
             // self failure check

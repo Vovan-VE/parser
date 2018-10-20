@@ -16,12 +16,12 @@ class ArrayExporter extends BaseObject
      * @param Grammar $grammar
      * @return array
      */
-    public function exportGrammar($grammar)
+    public function exportGrammar(Grammar $grammar)
     {
         $rules = [];
         $terminals = [];
 
-        $add_symbol = function (Symbol $symbol) use (&$terminals) {
+        $add_symbol = function (Symbol $symbol) use (&$terminals): void {
             $name = $symbol->getName();
 
             if ($symbol->isTerminal()) {

@@ -24,7 +24,7 @@ class Rule extends BaseRule
      * Default is false to ignore tags
      * @return int Returns 0 when rules are equal
      */
-    public static function compare($a, $b, $checkTag = false)
+    public static function compare(Rule $a, Rule $b, bool $checkTag = false): int
     {
         return Symbol::compare($a->subject, $b->subject)
             ?: Symbol::compareList($a->definition, $b->definition)
@@ -38,7 +38,7 @@ class Rule extends BaseRule
      * @param bool $eof Must EOF be found in the end of input text
      * @param string|null $tag [since 1.3.0] Optional tag name in addition to subject
      */
-    public function __construct($subject, array $definition, $eof = false, $tag = null)
+    public function __construct(Symbol $subject, array $definition, bool $eof = false, ?string $tag = null)
     {
         parent::__construct($subject, $eof, $tag);
 
@@ -49,7 +49,7 @@ class Rule extends BaseRule
      * Definition body symbols
      * @return Symbol[]
      */
-    public function getDefinition()
+    public function getDefinition(): array
     {
         return $this->definition;
     }
@@ -57,7 +57,7 @@ class Rule extends BaseRule
     /**
      * @inheritdoc
      */
-    protected function toStringContent()
+    protected function toStringContent(): string
     {
         return join(self::DUMP_SPACE, $this->definition);
     }

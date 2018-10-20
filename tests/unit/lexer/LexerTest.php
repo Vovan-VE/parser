@@ -671,8 +671,13 @@ class LexerTest extends BaseTestCase
 
     /**
      * @dataProvider parseOneDataProvider
+     * @param string $input
+     * @param array $preferredTokens
+     * @param int $nextOffset
+     * @param string $type
+     * @param string $content
      */
-    public function testParseOne($input, $preferredTokens, $nextOffset, $type, $content)
+    public function testParseOne(string $input, array $preferredTokens, int $nextOffset, string $type, string $content)
     {
         $lexer = (new Lexer)
             ->terminals([
@@ -688,7 +693,7 @@ class LexerTest extends BaseTestCase
         $this->assertEquals($content, $match->token->getContent(), 'token content');
     }
 
-    public function parseOneDataProvider()
+    public function parseOneDataProvider(): array
     {
         return [
             [' BAZ.', ['baz'], 4, 'baz', 'BAZ'],

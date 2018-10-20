@@ -58,7 +58,7 @@ class ActionsMadeMap extends ActionsMap
      * @since 1.5.0
      * @throws AbortParsingException
      */
-    protected function runActionHandler($action, $node)
+    protected function runActionHandler($action, TreeNodeInterface $node)
     {
         if ($node instanceof Token) {
             try {

@@ -17,7 +17,7 @@ class ItemSetTest extends BaseTestCase
     /**
      * @return Grammar
      */
-    public function testCreateGrammar()
+    public function testCreateGrammar(): Grammar
     {
         $grammar = TextLoader::createGrammar(<<<'_GRAMMAR'
 S: E $
@@ -37,7 +37,7 @@ _GRAMMAR
      * @return ItemSet
      * @depends testCreateGrammar
      */
-    public function testCreateFromItemsInitial($grammar)
+    public function testCreateFromItemsInitial(Grammar $grammar)
     {
         $item = Item::createFromRule($grammar->getMainRule());
         $item_set = ItemSet::createFromItems([$item], $grammar);
@@ -96,7 +96,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testCreateFromItemsInitial
      */
-    public function testGetNextSetsFromInitial($grammar, $initialItemSet)
+    public function testGetNextSetsFromInitial(Grammar $grammar, ItemSet $initialItemSet): array
     {
         $next_map = $initialItemSet->getNextSets($grammar);
         $this->assertInternalType('array', $next_map, 'next map is array');
@@ -114,7 +114,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testGetNextSetsFromInitial
      */
-    public function testNextZeroFromInitial($grammar, $nextMap)
+    public function testNextZeroFromInitial(Grammar $grammar, array $nextMap)
     {
         $terminalSymbolName = 'zero';
         $this->_testTerminalTheOnly($grammar, $nextMap[$terminalSymbolName], $terminalSymbolName);
@@ -126,7 +126,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testGetNextSetsFromInitial
      */
-    public function testNextOneFromInitial($grammar, $nextMap)
+    public function testNextOneFromInitial(Grammar $grammar, array $nextMap)
     {
         $terminalSymbolName = 'one';
         $this->_testTerminalTheOnly($grammar, $nextMap[$terminalSymbolName], $terminalSymbolName);
@@ -137,7 +137,7 @@ _GRAMMAR
      * @param ItemSet $itemSet
      * @param string $terminalSymbolName
      */
-    private function _testTerminalTheOnly($grammar, $itemSet, $terminalSymbolName)
+    private function _testTerminalTheOnly(Grammar $grammar, ItemSet $itemSet, string $terminalSymbolName)
     {
         $subject = new Symbol('B');
         $definition = [new Symbol($terminalSymbolName, true)];
@@ -151,7 +151,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testGetNextSetsFromInitial
      */
-    public function testNextBFromInitial($grammar, $nextMap)
+    public function testNextBFromInitial(Grammar $grammar, array $nextMap)
     {
         $subject = new Symbol('E');
         $definition = [new Symbol('B')];
@@ -166,7 +166,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testGetNextSetsFromInitial
      */
-    public function testNextEFromInitial($grammar, $nextMap)
+    public function testNextEFromInitial(Grammar $grammar, array $nextMap): array
     {
         $item_set = $nextMap['E'];
 
@@ -216,7 +216,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextEFromInitial
      */
-    public function testNextMulFromE($grammar, $nextMap)
+    public function testNextMulFromE(Grammar $grammar, array $nextMap): array
     {
         $item_set = $nextMap['mul'];
 
@@ -265,7 +265,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextMulFromE
      */
-    public function testNextZeroFromEMul($grammar, $nextMap)
+    public function testNextZeroFromEMul(Grammar $grammar, array $nextMap)
     {
         $item_set = $nextMap['zero'];
         $this->_testSimpleReducing($grammar, $item_set, new Symbol('B'), [new Symbol('zero', true)]);
@@ -277,7 +277,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextMulFromE
      */
-    public function testNextOneFromEMul($grammar, $nextMap)
+    public function testNextOneFromEMul(Grammar $grammar, array $nextMap)
     {
         $item_set = $nextMap['one'];
         $this->_testSimpleReducing($grammar, $item_set, new Symbol('B'), [new Symbol('one', true)]);
@@ -289,7 +289,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextMulFromE
      */
-    public function testNextBFromEMul($grammar, $nextMap)
+    public function testNextBFromEMul(Grammar $grammar, array $nextMap)
     {
         $item_set = $nextMap['B'];
         $E = new Symbol('E');
@@ -305,7 +305,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextEFromInitial
      */
-    public function testNextAddFromE($grammar, $nextMap)
+    public function testNextAddFromE(Grammar $grammar, array $nextMap): array
     {
         $item_set = $nextMap['add'];
 
@@ -354,7 +354,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextAddFromE
      */
-    public function testNextZeroFromEAdd($grammar, $nextMap)
+    public function testNextZeroFromEAdd(Grammar $grammar, array $nextMap)
     {
         $item_set = $nextMap['zero'];
         $this->_testSimpleReducing($grammar, $item_set, new Symbol('B'), [new Symbol('zero', true)]);
@@ -366,7 +366,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextAddFromE
      */
-    public function testNextOneFromEAdd($grammar, $nextMap)
+    public function testNextOneFromEAdd(Grammar $grammar, array $nextMap)
     {
         $item_set = $nextMap['one'];
         $this->_testSimpleReducing($grammar, $item_set, new Symbol('B'), [new Symbol('one', true)]);
@@ -378,7 +378,7 @@ _GRAMMAR
      * @depends testCreateGrammar
      * @depends testNextAddFromE
      */
-    public function testNextBFromEAdd($grammar, $nextMap)
+    public function testNextBFromEAdd(Grammar $grammar, array $nextMap)
     {
         $item_set = $nextMap['B'];
         $E = new Symbol('E');
@@ -394,7 +394,7 @@ _GRAMMAR
      * @param Symbol[] $definition
      * @param bool $eof
      */
-    private function _testSimpleReducing($grammar, $itemSet, $subject, $definition, $eof = false)
+    private function _testSimpleReducing(Grammar $grammar, ItemSet $itemSet, Symbol $subject, array $definition, bool $eof = false)
     {
         $expect_item = new Item($subject, $definition, [], $eof);
 

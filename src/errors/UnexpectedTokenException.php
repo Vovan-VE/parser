@@ -15,7 +15,14 @@ class UnexpectedTokenException extends SyntaxException
     /** @var string[] */
     protected $expected;
 
-    public function __construct($found, array $expected, $offset, \Throwable $previous = null)
+    /**
+     * UnexpectedTokenException constructor.
+     * @param string $found
+     * @param string[] $expected
+     * @param int $offset
+     * @param \Throwable|null $previous
+     */
+    public function __construct(string $found, array $expected, int $offset, \Throwable $previous = null)
     {
         $this->found = $found;
         $this->expected = $expected;
@@ -36,7 +43,7 @@ class UnexpectedTokenException extends SyntaxException
     /**
      * @return string
      */
-    public function getFound()
+    public function getFound(): string
     {
         return $this->found;
     }
@@ -44,7 +51,7 @@ class UnexpectedTokenException extends SyntaxException
     /**
      * @return string[]
      */
-    public function getExpected()
+    public function getExpected(): array
     {
         return $this->expected;
     }

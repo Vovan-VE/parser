@@ -17,7 +17,7 @@ class AbortParsingException extends \Exception
      * @param int|null $offset Offset in the input text to point error at
      * @param \Throwable|null $previous
      */
-    public function __construct($message = "", $offset = null, \Throwable $previous = null)
+    public function __construct(string $message = "", ?int $offset = null, \Throwable $previous = null)
     {
         parent::__construct($message, 0, $previous);
         $this->offset = $offset;
@@ -26,7 +26,7 @@ class AbortParsingException extends \Exception
     /**
      * @return int|null
      */
-    public function getOffset()
+    public function getOffset(): ?int
     {
         return $this->offset;
     }

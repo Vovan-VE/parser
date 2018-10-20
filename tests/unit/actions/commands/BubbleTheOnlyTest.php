@@ -11,7 +11,7 @@ use VovanVE\parser\tree\NonTerminal;
 
 class BubbleTheOnlyTest extends BaseTestCase
 {
-    public function testRun()
+    public function testRun(): void
     {
         $token = new Token('t', '');
         $node = new NonTerminal('N', [$token]);
@@ -34,7 +34,7 @@ class BubbleTheOnlyTest extends BaseTestCase
         }
     }
 
-    public function testUsage()
+    public function testUsage(): void
     {
         $grammar = TextLoader::createGrammar('
             G: E $

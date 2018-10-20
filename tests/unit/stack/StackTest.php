@@ -18,7 +18,7 @@ class StackTest extends BaseTestCase
     /**
      * @return Table
      */
-    public function testInitTable()
+    public function testInitTable(): Table
     {
         $grammar = TextLoader::createGrammar(<<<'_END'
 E: S $
@@ -36,14 +36,14 @@ _END
 
     /**
      * @param Table $table
-     * @return integer[]
+     * @return int[]
      * @depends testInitTable
      */
-    public function testGetStatesMap($table)
+    public function testGetStatesMap(Table $table)
     {
         $index_map = [];
 
-        $real_states = $table->states;
+        $real_states = $table->getStates();
         unset($real_states[0]);
 
         $E = new Symbol('E');
@@ -89,7 +89,7 @@ _END
      * @return Stack
      * @depends testInitTable
      */
-    public function testCreateStack($table)
+    public function testCreateStack(Table $table)
     {
         $this->expectNotToPerformAssertions();
         return new Stack($table);
@@ -97,11 +97,11 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      */
-    public function testInputStep0($stack, $indexMap)
+    public function testInputStep0(Stack $stack, array $indexMap)
     {
         $this->assertEquals(0, $stack->getStateIndex());
         $stack->shift(new Token('id', 'A'), $indexMap[9]);
@@ -109,12 +109,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep0
      */
-    public function testInputStep1($stack, $indexMap)
+    public function testInputStep1(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[9], $stack->getStateIndex());
         $stack->reduce();
@@ -122,12 +122,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep1
      */
-    public function testInputStep2($stack, $indexMap)
+    public function testInputStep2(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[7], $stack->getStateIndex());
         $stack->reduce();
@@ -135,12 +135,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep2
      */
-    public function testInputStep3($stack, $indexMap)
+    public function testInputStep3(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[4], $stack->getStateIndex());
         $stack->shift(new Token('mul', '*'), $indexMap[5]);
@@ -148,12 +148,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep3
      */
-    public function testInputStep4($stack, $indexMap)
+    public function testInputStep4(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[5], $stack->getStateIndex());
         $stack->shift(new Token('int', '2'), $indexMap[8]);
@@ -161,12 +161,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep4
      */
-    public function testInputStep5($stack, $indexMap)
+    public function testInputStep5(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[8], $stack->getStateIndex());
         $stack->reduce();
@@ -174,12 +174,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep5
      */
-    public function testInputStep6($stack, $indexMap)
+    public function testInputStep6(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[6], $stack->getStateIndex());
         $stack->reduce();
@@ -187,12 +187,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep6
      */
-    public function testInputStep7($stack, $indexMap)
+    public function testInputStep7(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[4], $stack->getStateIndex());
         $stack->reduce();
@@ -200,12 +200,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep7
      */
-    public function testInputStep8($stack, $indexMap)
+    public function testInputStep8(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[1], $stack->getStateIndex());
         $stack->shift(new Token('add', '+'), $indexMap[2]);
@@ -213,12 +213,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep8
      */
-    public function testInputStep9($stack, $indexMap)
+    public function testInputStep9(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[2], $stack->getStateIndex());
         $stack->shift(new Token('int', '1'), $indexMap[8]);
@@ -226,12 +226,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep9
      */
-    public function testInputStep10($stack, $indexMap)
+    public function testInputStep10(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[8], $stack->getStateIndex());
         $stack->reduce();
@@ -239,12 +239,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep10
      */
-    public function testInputStep11($stack, $indexMap)
+    public function testInputStep11(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[7], $stack->getStateIndex());
         $stack->reduce();
@@ -252,12 +252,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep11
      */
-    public function testInputStep12($stack, $indexMap)
+    public function testInputStep12(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[3], $stack->getStateIndex());
         $stack->reduce();
@@ -265,12 +265,12 @@ _END
 
     /**
      * @param Stack $stack
-     * @param integer[] $indexMap
+     * @param int[] $indexMap
      * @depends testCreateStack
      * @depends testGetStatesMap
      * @depends testInputStep12
      */
-    public function testInputStep13($stack, $indexMap)
+    public function testInputStep13(Stack $stack, array $indexMap)
     {
         $this->assertEquals($indexMap[1], $stack->getStateIndex());
         $tree = $stack->done();

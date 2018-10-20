@@ -1,6 +1,8 @@
 <?php
 namespace VovanVE\parser\grammar\exporter;
 
+use VovanVE\parser\grammar\Grammar;
+
 /**
  * Class JsonExporter
  * @package VovanVE\parser
@@ -13,7 +15,11 @@ class JsonExporter extends ArrayExporter
      */
     public $jsonOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
-    public function exportGrammar($grammar)
+    /**
+     * @param Grammar $grammar
+     * @return string
+     */
+    public function exportGrammar(Grammar $grammar)
     {
         return json_encode(parent::exportGrammar($grammar), $this->jsonOptions);
     }

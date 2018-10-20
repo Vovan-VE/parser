@@ -20,7 +20,7 @@ class ParserTest extends BaseTestCase
     /**
      * @return Parser
      */
-    public function testCreate()
+    public function testCreate(): Parser
     {
         $lexer = (new Lexer)
             ->fixed([
@@ -57,7 +57,7 @@ _END
      * @param Parser $parser
      * @depends testCreate
      */
-    public function testParseValidA($parser)
+    public function testParseValidA(Parser $parser): void
     {
         $tree = $parser->parse('A * 2  +1 ');
         $this->assertInstanceOf(NonTerminal::class, $tree);
@@ -86,7 +86,7 @@ DUMP
      * @param Parser $parser
      * @depends testCreate
      */
-    public function testParseValidB($parser)
+    public function testParseValidB(Parser $parser): void
     {
         $tree = $parser->parse('A * B / 23  + B / 37 - 42 * C ');
         $this->assertInstanceOf(NonTerminal::class, $tree);
@@ -132,7 +132,7 @@ DUMP
      * @param Parser $parser
      * @depends testCreate
      */
-    public function testParseFailA($parser)
+    public function testParseFailA(Parser $parser): void
     {
         $this->expectException(UnexpectedInputAfterEndException::class);
         $this->expectExceptionMessage('Expected <EOF> but got <id "B">');
@@ -143,14 +143,14 @@ DUMP
      * @param Parser $parser
      * @depends testCreate
      */
-    public function testParseFailB($parser)
+    public function testParseFailB(Parser $parser): void
     {
         $this->expectException(UnexpectedTokenException::class);
         $this->expectExceptionMessage('Unexpected <add "-">; expected: "(", <id> or <int>');
         $parser->parse('A * -5');
     }
 
-    public function testParseWithActions()
+    public function testParseWithActions(): void
     {
         $lexer = (new Lexer)
             ->fixed([
@@ -180,28 +180,28 @@ _END
         $parser = new Parser($lexer, $grammar);
 
         $actions = [
-            'int' => function (Token $int) {
+            'int' => function (Token $int): int {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, INode $int) {
+            'V(int)' => function ($v, INode $int): int {
                 return $int->made();
             },
-            'P(V)' => function ($p, INode $v) {
+            'P(V)' => function ($p, INode $v): int {
                 return $v->made();
             },
-            'P(mul)' => function ($p, INode $a, $mul, INode $b) {
+            'P(mul)' => function ($p, INode $a, $mul, INode $b): int {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, INode $a, $div, INode $b) {
+            'P(div)' => function ($p, INode $a, $div, INode $b): int {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, INode $p) {
+            'S(P)' => function ($s, INode $p): int {
                 return $p->made();
             },
-            'S(add)' => function ($s, INode $a, $add, INode $b) {
+            'S(add)' => function ($s, INode $a, $add, INode $b): int {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, INode $a, $sub, INode $b) {
+            'S(sub)' => function ($s, INode $a, $sub, INode $b): int {
                 return $a->made() - $b->made();
             },
         ];
@@ -210,7 +210,7 @@ _END
         $this->assertEquals(5, $result, 'calculated result');
     }
 
-    public function testParseWithHiddensAndActions()
+    public function testParseWithHiddensAndActions(): void
     {
         // some tokens are hidden completely on its definition
         $lexer = (new Lexer)
@@ -242,28 +242,28 @@ _END
         $parser = new Parser($lexer, $grammar);
 
         $actions = [
-            'int' => function (Token $int) {
+            'int' => function (Token $int): int {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, INode $int) {
+            'V(int)' => function ($v, INode $int): int {
                 return $int->made();
             },
-            'P(V)' => function ($p, INode $v) {
+            'P(V)' => function ($p, INode $v): int {
                 return $v->made();
             },
-            'P(mul)' => function ($p, INode $a, INode $b) {
+            'P(mul)' => function ($p, INode $a, INode $b): int {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, INode $a, INode $b) {
+            'P(div)' => function ($p, INode $a, INode $b): int {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, INode $p) {
+            'S(P)' => function ($s, INode $p): int {
                 return $p->made();
             },
-            'S(add)' => function ($s, INode $a, INode $b) {
+            'S(add)' => function ($s, INode $a, INode $b): int {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, INode $a, INode $b) {
+            'S(sub)' => function ($s, INode $a, INode $b): int {
                 return $a->made() - $b->made();
             },
         ];
@@ -272,7 +272,7 @@ _END
         $this->assertEquals(5, $result, 'calculated result');
     }
 
-    public function testParseWithInlinesAndActions()
+    public function testParseWithInlinesAndActions(): void
     {
         // some tokens are hidden completely on its definition
         $lexer = (new Lexer)
@@ -297,28 +297,28 @@ _END
         $parser = new Parser($lexer, $grammar);
 
         $actions = [
-            'int' => function (Token $int) {
+            'int' => function (Token $int): int {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, INode $int) {
+            'V(int)' => function ($v, INode $int): int {
                 return $int->made();
             },
-            'P(V)' => function ($p, INode $v) {
+            'P(V)' => function ($p, INode $v): int {
                 return $v->made();
             },
-            'P(mul)' => function ($p, INode $a, INode $b) {
+            'P(mul)' => function ($p, INode $a, INode $b): int {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, INode $a, INode $b) {
+            'P(div)' => function ($p, INode $a, INode $b): int {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, INode $p) {
+            'S(P)' => function ($s, INode $p): int {
                 return $p->made();
             },
-            'S(add)' => function ($s, INode $a, INode $b) {
+            'S(add)' => function ($s, INode $a, INode $b): int {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, INode $a, INode $b) {
+            'S(sub)' => function ($s, INode $a, INode $b): int {
                 return $a->made() - $b->made();
             },
         ];
@@ -327,7 +327,7 @@ _END
         $this->assertEquals(5, $result, 'calculated result');
     }
 
-    public function testParseWithInlinesAndFixedAndActions()
+    public function testParseWithInlinesAndFixedAndActions(): void
     {
         // some tokens are hidden completely on its definition
         $lexer = (new Lexer)
@@ -356,28 +356,28 @@ _END
         $parser = new Parser($lexer, $grammar);
 
         $actions = [
-            'int' => function (Token $int) {
+            'int' => function (Token $int): int {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, INode $int) {
+            'V(int)' => function ($v, INode $int): int {
                 return $int->made();
             },
-            'P(V)' => function ($p, INode $v) {
+            'P(V)' => function ($p, INode $v): int {
                 return $v->made();
             },
-            'P(mul)' => function ($p, INode $a, $op, INode $b) {
+            'P(mul)' => function ($p, INode $a, $op, INode $b): int {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, INode $a, $op, INode $b) {
+            'P(div)' => function ($p, INode $a, $op, INode $b): int {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, INode $p) {
+            'S(P)' => function ($s, INode $p): int {
                 return $p->made();
             },
-            'S(add)' => function ($s, INode $a, INode $b) {
+            'S(add)' => function ($s, INode $a, INode $b): int {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, INode $a, INode $b) {
+            'S(sub)' => function ($s, INode $a, INode $b): int {
                 return $a->made() - $b->made();
             },
         ];
@@ -386,7 +386,7 @@ _END
         $this->assertEquals(5, $result, 'calculated result');
     }
 
-    public function testParseWithAllInlineAndActions()
+    public function testParseWithAllInlineAndActions(): void
     {
         // some tokens are hidden completely on its definition
         $lexer = (new Lexer)
@@ -409,28 +409,28 @@ _END
         $parser = new Parser($lexer, $grammar);
 
         $actions = [
-            'int' => function (Token $int) {
+            'int' => function (Token $int): int {
                 return (int)$int->getContent();
             },
-            'V(int)' => function ($v, INode $int) {
+            'V(int)' => function ($v, INode $int): int {
                 return $int->made();
             },
-            'P(V)' => function ($p, INode $v) {
+            'P(V)' => function ($p, INode $v): int {
                 return $v->made();
             },
-            'P(mul)' => function ($p, INode $a, INode $b) {
+            'P(mul)' => function ($p, INode $a, INode $b): int {
                 return $a->made() * $b->made();
             },
-            'P(div)' => function ($p, INode $a, INode $b) {
+            'P(div)' => function ($p, INode $a, INode $b): int {
                 return $a->made() / $b->made();
             },
-            'S(P)' => function ($s, INode $p) {
+            'S(P)' => function ($s, INode $p): int {
                 return $p->made();
             },
-            'S(add)' => function ($s, INode $a, INode $b) {
+            'S(add)' => function ($s, INode $a, INode $b): int {
                 return $a->made() + $b->made();
             },
-            'S(sub)' => function ($s, INode $a, INode $b) {
+            'S(sub)' => function ($s, INode $a, INode $b): int {
                 return $a->made() - $b->made();
             },
         ];
@@ -439,7 +439,7 @@ _END
         $this->assertEquals(5, $result, 'calculated result');
     }
 
-    public function testContextDependent()
+    public function testContextDependent(): void
     {
         $grammar = TextLoader::createGrammar(<<<'TEXT'
 G       : Nodes $
@@ -465,23 +465,23 @@ TEXT
         $parser = new Parser($lexer, $grammar);
 
         $result = $parser->parse("997foo{{42+37-23}}000bar", new ActionsMadeMap([
-            'Nodes(L)' => function ($a, $b) {
+            'Nodes(L)' => function (string $a, string $b): string {
                 return $a . $b;
             },
             'Nodes(i)' => Parser::ACTION_BUBBLE_THE_ONLY,
             'Node' => Parser::ACTION_BUBBLE_THE_ONLY,
-            'Sum(add)' => function ($a, $b) {
+            'Sum(add)' => function (int $a, int $b): int {
                 return $a + $b;
             },
-            'Sum(sub)' => function ($a, $b) {
+            'Sum(sub)' => function (int $a, int $b): int {
                 return $a - $b;
             },
             'Sum(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
             'Value' => Parser::ACTION_BUBBLE_THE_ONLY,
-            'int' => function ($s) {
-                return $s;
+            'int' => function (string $s): int {
+                return (int)$s;
             },
-            'text' => function ($s) {
+            'text' => function (string $s): string {
                 return $s;
             },
         ]));
@@ -490,7 +490,7 @@ TEXT
         $this->assertEquals('997foo56000bar', $result->made());
     }
 
-    public function testInlinesOrderDoesNotMatter()
+    public function testInlinesOrderDoesNotMatter(): void
     {
         $lexer = new Lexer();
         $actions = [
@@ -523,7 +523,7 @@ TEXT
         }
     }
 
-    public function testActionsMapDefault()
+    public function testActionsMapDefault(): void
     {
         $grammar = TextLoader::createGrammar(<<<'_END'
             G  : S $
@@ -535,10 +535,10 @@ _END
         $parser = new Parser(new Lexer, $grammar);
 
         $actions = new ActionsMap([
-            'int' => function (Token $i) {
+            'int' => function (Token $i): int {
                 return (int)$i->getContent();
             },
-            'S' => function ($s, INode $a, INode $b) {
+            'S' => function ($s, INode $a, INode $b): int {
                 return $a->made() + $b->made();
             },
         ]);
@@ -548,7 +548,7 @@ _END
         $this->assertEquals(79, $result);
     }
 
-    public function testActionsMapMade()
+    public function testActionsMapMade(): void
     {
         $grammar = TextLoader::createGrammar(<<<'_END'
             G  : S $
@@ -560,10 +560,10 @@ _END
         $parser = new Parser(new Lexer, $grammar);
 
         $actions = new ActionsMadeMap([
-            'int' => function ($i) {
+            'int' => function (string $i): int {
                 return (int)$i;
             },
-            'S' => function ($a, $b) {
+            'S' => function (int $a, int $b): int {
                 return $a + $b;
             },
         ]);
@@ -573,7 +573,7 @@ _END
         $this->assertEquals(79, $result);
     }
 
-    public function testActionsAbort()
+    public function testActionsAbort(): void
     {
         // some tokens are hidden completely on its definition
         $lexer = (new Lexer)
@@ -597,7 +597,7 @@ _END
         $parser = new Parser($lexer, $grammar);
 
         $actions = new ActionsMadeMap([
-            'int' => function ($int) { return (int)$int; },
+            'int' => function (string $int): int { return (int)$int; },
             'V(int)' => Parser::ACTION_BUBBLE_THE_ONLY,
             'V' => Parser::ACTION_BUBBLE_THE_ONLY,
             'P(V)' => Parser::ACTION_BUBBLE_THE_ONLY,
@@ -622,7 +622,7 @@ _END
         }
     }
 
-    public function testConflictTerminals()
+    public function testConflictTerminals(): void
     {
         $lexer = (new Lexer)
             ->terminals([
@@ -638,7 +638,7 @@ _END
         new Parser($lexer, $grammar);
     }
 
-    public function testPreferredMatching()
+    public function testPreferredMatching(): void
     {
         $grammar = TextLoader::createGrammar(<<<'_END'
             G           : Nodes $

@@ -13,14 +13,14 @@ class JsonExporterTest extends BaseTestCase
      * @param array $expected
      * @dataProvider jsonDataProvider
      */
-    public function testExportGrammar($grammar, $expected)
+    public function testExportGrammar(Grammar $grammar, string $expected)
     {
         $exporter = new JsonExporter();
         $actual = $exporter->exportGrammar($grammar);
         $this->assertEquals($expected, $actual);
     }
 
-    public function jsonDataProvider()
+    public function jsonDataProvider(): array
     {
         return [
             [

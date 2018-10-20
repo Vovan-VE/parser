@@ -19,7 +19,7 @@ class JsonLoader extends ArrayLoader
      * @return Grammar Grammar object
      * @throws GrammarException Errors in grammar syntax or logic
      */
-    public static function createGrammar($json)
+    public static function createGrammar($json): Grammar
     {
         $array = json_decode($json, true);
         if (null === $array && 'null' !== $json) {

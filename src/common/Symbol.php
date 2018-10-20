@@ -11,9 +11,9 @@ class Symbol extends BaseObject
 {
     /** @var string Name of the symbol, case sensitive */
     private $name;
-    /** @var boolean Is symbol terminal or not */
+    /** @var bool Is symbol terminal or not */
     private $isTerminal;
-    /** @var boolean Is symbol defined as hidden to not produce resulting tree node */
+    /** @var bool Is symbol defined as hidden to not produce resulting tree node */
     private $isHidden = false;
 
     /**
@@ -24,9 +24,9 @@ class Symbol extends BaseObject
      * Note: Value of `$isHidden` is not used for comparison.
      * @param Symbol $a
      * @param Symbol $b
-     * @return integer Returns 0 when both symbols are equal.
+     * @return int Returns 0 when both symbols are equal.
      */
-    public static function compare($a, $b)
+    public static function compare(Symbol $a, Symbol $b): int
     {
         return ($a->isTerminal - $b->isTerminal)
             ?: strcmp($a->name, $b->name);
@@ -38,9 +38,9 @@ class Symbol extends BaseObject
      * Lists are equal when both contains equal symbols in the same order.
      * @param Symbol[] $a
      * @param Symbol[] $b
-     * @return integer Returns 0 then lists are equals
+     * @return int Returns 0 then lists are equals
      */
-    public static function compareList($a, $b)
+    public static function compareList(array $a, array $b): int
     {
         foreach ($a as $i => $symbol) {
             // $b finished, but $a not yet
@@ -71,10 +71,10 @@ class Symbol extends BaseObject
      * @param bool $isHidden [since 1.4.0] Whether the symbol is hidden or not.
      * Hidden symbols does not produce nodes in the resulting tree.
      */
-    public function __construct($name, $isTerminal = false, $isHidden = false)
+    public function __construct(string $name, bool $isTerminal = false, bool $isHidden = false)
     {
         $this->name = $name;
-        $this->isTerminal = (bool)$isTerminal;
+        $this->isTerminal = $isTerminal;
         $this->isHidden = $isHidden;
     }
 
@@ -82,27 +82,27 @@ class Symbol extends BaseObject
      * Name of the symbol, case sensitive
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
     /**
      * Whether the symbol is terminal or not
-     * @return boolean
+     * @return bool
      */
-    public function isTerminal()
+    public function isTerminal(): bool
     {
         return $this->isTerminal;
     }
 
     /**
      * Changes whether the symbol is terminal or not
-     * @param boolean $value
+     * @param bool $value
      */
-    public function setIsTerminal($value)
+    public function setIsTerminal(bool $value): void
     {
-        $this->isTerminal = (bool)$value;
+        $this->isTerminal = $value;
     }
 
     /**
@@ -110,7 +110,7 @@ class Symbol extends BaseObject
      * @return bool
      * @since 1.4.0
      */
-    public function isHidden()
+    public function isHidden(): bool
     {
         return $this->isHidden;
     }
@@ -129,7 +129,7 @@ class Symbol extends BaseObject
      * @return string
      * @since 1.5.0
      */
-    public static function dumpName($name)
+    public static function dumpName(string $name): string
     {
         if (self::isLikeName($name)) {
             return $name;
@@ -143,7 +143,7 @@ class Symbol extends BaseObject
      * @return string
      * @since 1.5.0
      */
-    public static function dumpType($type)
+    public static function dumpType(string $type): string
     {
         if (self::isLikeName($type)) {
             return "<$type>";
@@ -157,7 +157,7 @@ class Symbol extends BaseObject
      * @return string
      * @since 1.5.0
      */
-    public static function dumpInline($inline)
+    public static function dumpInline(string $inline): string
     {
         if (false === strpos($inline, '"')) {
             return '"' . $inline . '"';
@@ -173,7 +173,7 @@ class Symbol extends BaseObject
      * @return bool
      * @since 1.5.0
      */
-    protected static function isLikeName($type)
+    protected static function isLikeName(string $type): bool
     {
         return (bool)preg_match('/^[a-z][a-z_0-9]*$/i', $type);
     }

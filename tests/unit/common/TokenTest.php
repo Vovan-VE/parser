@@ -6,7 +6,7 @@ use VovanVE\parser\tests\helpers\BaseTestCase;
 
 class TokenTest extends BaseTestCase
 {
-    public function testBasic()
+    public function testBasic(): Token
     {
         $type = 'foo';
         $content = 'bar';
@@ -35,7 +35,7 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testChildrenMatch($token)
+    public function testChildrenMatch(Token $token): void
     {
         $this->assertTrue($token->areChildrenMatch([]));
         $this->assertFalse($token->areChildrenMatch(['lorem']));
@@ -46,7 +46,7 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testMake($token)
+    public function testMake(Token $token): void
     {
         $this->assertNull($token->made());
         $token->make(42);
@@ -61,7 +61,7 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testHidden($token)
+    public function testHidden(Token $token): void
     {
         $this->assertFalse($token->isHidden(), 'token must not be hidden by default');
         $hidden = new Token('a', 'b', null, null, true);
@@ -72,7 +72,7 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testInline($token)
+    public function testInline(Token $token): void
     {
         $this->assertFalse($token->isInline(), 'token must not be inline by default');
         $inline = new Token('*', '*', null, null, false, true);
@@ -83,7 +83,7 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testNoChild($token)
+    public function testNoChild(Token $token): void
     {
         $this->expectException(\OutOfBoundsException::class);
         $token->getChild(0);

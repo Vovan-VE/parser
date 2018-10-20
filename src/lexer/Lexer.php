@@ -162,7 +162,7 @@ class Lexer extends BaseObject
      * @return static
      * @since 1.4.0
      */
-    public function defines(array $defines)
+    public function defines(array $defines): self
     {
         if (!$defines) {
             return $this;
@@ -186,12 +186,12 @@ class Lexer extends BaseObject
      * Whitespaces are searched between all actual tokens and completely ignored.
      *
      * > Note: Returned object can be the same one in case of empty additions.
-     * @param array $whitespaces Additional whitespaces regexps. Duplicating currently
+     * @param string[] $whitespaces Additional whitespaces regexps. Duplicating currently
      * is not checked, so it on your own.
      * @return static
      * @since 1.4.0
      */
-    public function whitespaces(array $whitespaces)
+    public function whitespaces(array $whitespaces): self
     {
         if (!$whitespaces) {
             return $this;
@@ -208,12 +208,12 @@ class Lexer extends BaseObject
      * Named tokens defined with fixed strings to parse as is.
      *
      * > Note: Returned object can be the same one in case of empty additions.
-     * @param array $fixed Additional fixed tokens. Duplicating names are restricted.
+     * @param string[] $fixed Additional fixed tokens. Duplicating names are restricted.
      * @return static
      * @throws \InvalidArgumentException In case of name duplication.
      * @since 1.5.0
      */
-    public function fixed($fixed)
+    public function fixed(array $fixed): self
     {
         if (!$fixed) {
             return $this;
@@ -237,7 +237,7 @@ class Lexer extends BaseObject
      * @return static
      * @since 1.5.0
      */
-    public function inline($inline)
+    public function inline(array $inline): self
     {
         if (!$inline) {
             return $this;
@@ -255,12 +255,12 @@ class Lexer extends BaseObject
      * referenced here with named recursion `(?&name)`.
      *
      * > Note: Returned object can be the same one in case of empty additions.
-     * @param array $terminals Additional terminals. Only named are acceptable.
+     * @param string[] $terminals Additional terminals. Only named are acceptable.
      * is restricted.
      * @return static
      * @since 1.4.0
      */
-    public function terminals($terminals)
+    public function terminals(array $terminals): self
     {
         if (!$terminals) {
             return $this;
@@ -287,9 +287,9 @@ class Lexer extends BaseObject
      * @return static
      * @since 1.4.0
      */
-    public function modifiers($modifiers)
+    public function modifiers(string $modifiers): self
     {
-        if ('' === (string)$modifiers) {
+        if ('' === $modifiers) {
             return $this;
         }
 
@@ -314,7 +314,7 @@ class Lexer extends BaseObject
      * @throws \InvalidArgumentException
      * @since 1.4.0
      */
-    public function compile()
+    public function compile(): self
     {
         if ($this->isCompiled) {
             return $this;
@@ -413,7 +413,7 @@ class Lexer extends BaseObject
      * @return bool
      * @since 1.4.0
      */
-    public function isCompiled()
+    public function isCompiled(): bool
     {
         return $this->isCompiled;
     }
@@ -430,7 +430,7 @@ class Lexer extends BaseObject
      * @return \Generator|Token[] Returns generator of `Token`s. Generator has no its own return value.
      * @throws UnknownCharacterException Nothing matched in a current position
      */
-    public function parse($input)
+    public function parse(string $input)
     {
         $pos = 0;
         while (null !== ($match = $this->parseOne($input, $pos))) {
@@ -448,7 +448,7 @@ class Lexer extends BaseObject
      * @since 1.5.0
      * @throws UnknownCharacterException
      */
-    public function parseOne($input, $pos, $preferredTokens = [])
+    public function parseOne(string $input, int $pos, array $preferredTokens = []): ?Match
     {
         $length = strlen($input);
         if ($pos >= $length) {
@@ -484,14 +484,14 @@ class Lexer extends BaseObject
 
     /**
      * Extends array of named tokens
-     * @param array $oldTokens Existing tokens
-     * @param array $addTokens New tokens to add
+     * @param string[] $oldTokens Existing tokens
+     * @param string[] $addTokens New tokens to add
      * @param string $errorType Tokens type to insert in error message
-     * @return array New merged array of tokens
+     * @return string[] New merged array of tokens
      * @throws \InvalidArgumentException In case of name duplication.
      * @since 1.5.0
      */
-    private function addNamedTokens($oldTokens, $addTokens, $errorType)
+    private function addNamedTokens(array $oldTokens, array $addTokens, string $errorType): array
     {
         $dup_keys = array_intersect_key($oldTokens, $addTokens);
         if ($dup_keys) {
@@ -506,14 +506,14 @@ class Lexer extends BaseObject
     /**
      * Split terminals definition in different types
      *
-     * @param array $terminals Input terminals definitions array
+     * @param string[] $terminals Input terminals definitions array
      * @param array $hidden Variable to store hidden named tokens. Key is name without leading
      * dot and value is non-null.
      * @param array $normal Variable to store normal named tokens. Key is name and value is non-null.
      * @param array $named Variable to store all named tokens. Key is name and value is definition.
      * @since 1.4.0
      */
-    private function splitTerminals(array $terminals, &$hidden, &$normal, &$named)
+    private function splitTerminals(array $terminals, &$hidden, &$normal, &$named): void
     {
         foreach ($terminals as $key => $value) {
             if (is_int($key)) {
@@ -544,7 +544,7 @@ class Lexer extends BaseObject
      * @throws \InvalidArgumentException Some overlapping names
      * @since 1.5.0
      */
-    private function checkOverlappingNames(array $maps)
+    private function checkOverlappingNames(array $maps): void
     {
         $index = 0;
         foreach ($maps as $type => $map) {
@@ -569,13 +569,13 @@ class Lexer extends BaseObject
      * Inline tokens all are aliased with generated names. Returned regexps map has that
      * generated named in keys. Aliases map is stored in `$aliased` property. As of all inline
      * tokens are hidden, `$hiddens` map will be updated too with generated names.
-     * @param array $fixedMap Fixed tokens map
-     * @param array $inlines List of inline token texts.
-     * @return array Returns regexps map with generated names in keys. Also properties `$aliased`
+     * @param string[] $fixedMap Fixed tokens map
+     * @param string[] $inlines List of inline token texts.
+     * @return string[] Returns regexps map with generated names in keys. Also properties `$aliased`
      * and `$hiddens` will be updated.
      * @since 1.5.0
      */
-    private function buildFixedAndInlines(array $fixedMap, array $inlines)
+    private function buildFixedAndInlines(array $fixedMap, array $inlines): array
     {
         $overlapped = array_intersect($fixedMap, $inlines);
         if ($overlapped) {
@@ -620,11 +620,11 @@ class Lexer extends BaseObject
      *
      * The result is one regexp part of built subparts joined with delimiter. Joining can be
      * bypassed with `$join = false` argument.
-     * @param array $map Input map of regexps.
-     * @param string|bool $join Join with delimiter. `false` cause to return list of built parts.
-     * @return string|string[] Returns either joined regexp part or list or regexp subparts
+     * @param string[] $map Input map of regexps.
+     * @param string $join Join with delimiter.
+     * @return string Returns joined regexp part
      */
-    private function buildMap(array $map, $join = false)
+    private function buildMap(array $map, string $join): string
     {
         $alt = [];
         foreach ($map as $type => $re) {
@@ -649,7 +649,7 @@ class Lexer extends BaseObject
      * @throws DevException Error by end developer in lexer configuration
      * @throws InternalException Error in the package
      */
-    private function match($input, $pos, $preferredTokens)
+    private function match(string $input, int $pos, array $preferredTokens): ?Match
     {
         $current_regexp = $this->getRegexpForTokens($preferredTokens);
 
@@ -719,7 +719,7 @@ class Lexer extends BaseObject
      * @return int Returns matched length of whitespaces. Returns 0 if no whitespaces
      * found in the position.
      */
-    private function getWhitespaceLength($input, $pos)
+    private function getWhitespaceLength(string $input, int $pos): int
     {
         if ($this->regexpWhitespace) {
             if (
@@ -751,7 +751,7 @@ class Lexer extends BaseObject
      * @param string[] $preferredTokens
      * @return string
      */
-    private function getRegexpForTokens($preferredTokens)
+    private function getRegexpForTokens(array $preferredTokens): string
     {
         if (!$preferredTokens) {
             return $this->regexp;
@@ -807,7 +807,7 @@ class Lexer extends BaseObject
      * @throws \InvalidArgumentException Some bad named was found.
      * @since 1.4.0
      */
-    private function checkMapNames(array $map, $nameRegExp)
+    private function checkMapNames(array $map, string $nameRegExp): void
     {
         $names = array_keys($map);
         $bad_names = preg_grep($nameRegExp, $names, PREG_GREP_INVERT);
@@ -825,7 +825,7 @@ class Lexer extends BaseObject
      * @since 1.5.0
      * @throws \InvalidArgumentException
      */
-    private static function validateRegExp($regExp, $displayName)
+    private static function validateRegExp(string $regExp, string $displayName): void
     {
         /** @uses convertErrorToException() */
         set_error_handler([__CLASS__, 'convertErrorToException'], E_WARNING);
@@ -872,7 +872,7 @@ class Lexer extends BaseObject
      * when `/x` modifier is used
      * @see https://3v4l.org/tnnap This function test
      */
-    protected function textToRegExp($text)
+    protected function textToRegExp(string $text): string
     {
         // preg_quote() is useless with /x modifier: https://3v4l.org/brdeT
 

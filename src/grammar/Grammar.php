@@ -97,7 +97,7 @@ class Grammar extends BaseObject
         array $regexpMap = [],
         array $whitespaces = [],
         array $defines = [],
-        $modifiers = ''
+        string $modifiers = ''
     ) {
         $this->rules = array_values($rules);
         $this->inlines = array_values($inlines);
@@ -154,7 +154,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.4.0
      */
-    public function getInlines()
+    public function getInlines(): array
     {
         return $this->inlines;
     }
@@ -164,7 +164,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.5.0
      */
-    public function getFixed()
+    public function getFixed(): array
     {
         return $this->fixed;
     }
@@ -174,7 +174,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.5.0
      */
-    public function getRegExpMap()
+    public function getRegExpMap(): array
     {
         return $this->regexpMap;
     }
@@ -184,7 +184,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.7.0
      */
-    public function getDefines()
+    public function getDefines(): array
     {
         return $this->defines;
     }
@@ -194,7 +194,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.7.0
      */
-    public function getWhitespaces()
+    public function getWhitespaces(): array
     {
         return $this->whitespaces;
     }
@@ -204,7 +204,7 @@ class Grammar extends BaseObject
      * @return string
      * @since 1.7.0
      */
-    public function getModifiers()
+    public function getModifiers(): string
     {
         return $this->modifiers;
     }
@@ -213,7 +213,7 @@ class Grammar extends BaseObject
      * Rules in the grammar
      * @return Rule[]
      */
-    public function getRules()
+    public function getRules(): array
     {
         return $this->rules;
     }
@@ -222,7 +222,7 @@ class Grammar extends BaseObject
      * Reference to the mail rule
      * @return Rule
      */
-    public function getMainRule()
+    public function getMainRule(): Rule
     {
         return $this->mainRule;
     }
@@ -233,7 +233,7 @@ class Grammar extends BaseObject
      * Key is a symbol name.
      * @return Symbol[]
      */
-    public function getTerminals()
+    public function getTerminals(): array
     {
         return $this->terminals;
     }
@@ -244,7 +244,7 @@ class Grammar extends BaseObject
      * Key is a symbol name.
      * @return Symbol[]
      */
-    public function getNonTerminals()
+    public function getNonTerminals(): array
     {
         return $this->nonTerminals;
     }
@@ -254,9 +254,9 @@ class Grammar extends BaseObject
      * @param string $name Symbol name to search
      * @return Symbol|null
      */
-    public function getSymbol($name)
+    public function getSymbol(string $name): ?Symbol
     {
-        return isset($this->symbols[$name]) ? $this->symbols[$name] : null;
+        return $this->symbols[$name] ?? null;
     }
 
     /**
@@ -264,7 +264,7 @@ class Grammar extends BaseObject
      * @param Symbol $subject Symbol to search
      * @return Rule[]
      */
-    public function getRulesFor($subject)
+    public function getRulesFor(Symbol $subject): array
     {
         $rules = [];
         if (!$subject->isTerminal()) {

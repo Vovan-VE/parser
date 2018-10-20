@@ -42,3 +42,7 @@ Migration guide
 *   Constant `\VovanVE\parser\lexer\Lexer::DUMP_NEAR_LENGTH` became private.
 *   Constant `\VovanVE\parser\table\Item::DUMP_MARKER` became private.
 *   Constants `\VovanVE\parser\table\ItemSet::DUMP_PREFIX_MAIN_*` became private.
+*   Most of methods now have type hinting. If you inherit anything, you should
+    to check it.
+*   Properties `$rows` and `$states` of `\VovanVE\parser\table\Table`
+    became private, so use getters.

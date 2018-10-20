@@ -28,9 +28,9 @@ class Item extends BaseRule
      * and EOF marker.
      * @param Item $a
      * @param Item $b
-     * @return integer Returns 0 when items are equal
+     * @return int Returns 0 when items are equal
      */
-    public static function compare($a, $b)
+    public static function compare(Item $a, Item $b): int
     {
         return Symbol::compare($a->subject, $b->subject)
             ?: Symbol::compareList($a->passed, $b->passed)
@@ -45,7 +45,7 @@ class Item extends BaseRule
      * @param Rule $rule Source rule
      * @return static Returns new Item
      */
-    public static function createFromRule($rule)
+    public static function createFromRule(Rule $rule): self
     {
         return new static(
             $rule->getSubject(),
@@ -64,11 +64,11 @@ class Item extends BaseRule
      * @param string|null $tag [since 1.3.0] Tag name from the rule to use with actions
      */
     public function __construct(
-        $subject,
-        $passed = [],
-        $further = [],
-        $eof = false,
-        $tag = null
+        Symbol $subject,
+        array $passed = [],
+        array $further = [],
+        bool $eof = false,
+        ?string $tag = null
     ) {
         parent::__construct($subject, $eof, $tag);
 
@@ -81,7 +81,7 @@ class Item extends BaseRule
      * @return Symbol|null Next symbol expected after current position.
      * `null` when nothing more is expected.
      */
-    public function getExpected()
+    public function getExpected(): ?Symbol
     {
         return ($this->further) ? $this->further[0] : null;
     }
@@ -91,7 +91,7 @@ class Item extends BaseRule
      * @return static|null Returns new Item with current position shifted to the next symbol.
      * Returns `null` then there is not next expected symbol.
      */
-    public function shift()
+    public function shift(): ?self
     {
         $further = $this->further;
         if (!$further) {
@@ -107,7 +107,7 @@ class Item extends BaseRule
      * Reconstruct a source rule
      * @return Rule New rule object which is equal to source one
      */
-    public function getAsRule()
+    public function getAsRule(): Rule
     {
         return new Rule(
             $this->subject,
@@ -122,7 +122,7 @@ class Item extends BaseRule
     /**
      * @inheritdoc
      */
-    protected function toStringContent()
+    protected function toStringContent(): string
     {
         return join(self::DUMP_SPACE, array_merge(
             $this->passed,

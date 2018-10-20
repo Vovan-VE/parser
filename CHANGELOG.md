@@ -33,6 +33,9 @@ LR(0) parser Change Log
         *   `\VovanVE\parser\lexer\Lexer::RE_*`;
         *   `\VovanVE\parser\table\Item::DUMP_MARKER`;
         *   `\VovanVE\parser\table\ItemSet::DUMP_*`
+    *   Type hinting added to most of methods.
+    *   Properties `$rows` and `$states` of `\VovanVE\parser\table\Table`
+        became private, so use getters.
 
 1.7.0
 -----

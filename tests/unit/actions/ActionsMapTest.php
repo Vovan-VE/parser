@@ -9,7 +9,7 @@ use VovanVE\parser\tree\NonTerminal;
 
 class ActionsMapTest extends BaseTestCase
 {
-    public function testApplyToNode()
+    public function testApplyToNode(): void
     {
         $map = new ActionsMap([
             'foo' => function (Token $foo) {
@@ -35,7 +35,7 @@ class ActionsMapTest extends BaseTestCase
         $this->assertSame(42, $baz->made());
     }
 
-    public function testThrowingInTerminal()
+    public function testThrowingInTerminal(): void
     {
         $map = new ActionsMap([
             'foo' => function (Token $foo) {
@@ -49,7 +49,7 @@ class ActionsMapTest extends BaseTestCase
         $map->applyToNode($foo);
     }
 
-    public function testThrowingInNonTerminal()
+    public function testThrowingInNonTerminal(): void
     {
         $map = new ActionsMap([
             'Baz' => function (NonTerminal $baz) {
@@ -64,7 +64,7 @@ class ActionsMapTest extends BaseTestCase
         $map->applyToNode($baz);
     }
 
-    public function testThrowingInNonTerminalTag()
+    public function testThrowingInNonTerminalTag(): void
     {
         $map = new ActionsMap([
             'Baz(tag)' => function (NonTerminal $baz) {

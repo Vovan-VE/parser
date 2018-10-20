@@ -17,7 +17,7 @@ class Token extends BaseObject implements TreeNodeInterface
     private $isInline = false;
     /** @var array|null Match data for the token given from `preg_match()` */
     private $match;
-    /** @var integer|null Position of the token in the input text */
+    /** @var int|null Position of the token in the input text */
     private $offset;
     /** @var mixed Value made with action */
     private $made;
@@ -25,22 +25,21 @@ class Token extends BaseObject implements TreeNodeInterface
     /**
      * @param string $type Type of token which is `Symbol` name
      * @param string $content Matched content of the token
-     * @param null $match Match data for the token given from `preg_match()`
-     * @param null $offset Position of the token in the input text
+     * @param array|null $match Match data for the token given from `preg_match()`
+     * @param int|null $offset Position of the token in the input text
      * @param bool $isHidden [since 1.4.0] Whether then token is hidden with respect to `Symbol`
      * definition
      * @param bool $isInline [since 1.5.0] Whether then token is inline with respect to `Grammar`
      * inline tokens
      */
     public function __construct(
-        $type,
-        $content,
-        $match = null,
-        $offset = null,
-        $isHidden = false,
-        $isInline = false
-    )
-    {
+        string $type,
+        string $content,
+        ?array $match = null,
+        ?int $offset = null,
+        bool $isHidden = false,
+        bool $isInline = false
+    ) {
         $this->type = $type;
         $this->content = $content;
         $this->match = $match;
@@ -53,7 +52,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * Type of token which is `Symbol` name
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
@@ -62,7 +61,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * Matched content of the token
      * @return string
      */
-    public function getContent()
+    public function getContent(): string
     {
         return $this->content;
     }
@@ -72,7 +71,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @return bool
      * @since 1.4.0
      */
-    public function isHidden()
+    public function isHidden(): bool
     {
         return $this->isHidden;
     }
@@ -82,7 +81,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @return bool
      * @since 1.5.0
      */
-    public function isInline()
+    public function isInline(): bool
     {
         return $this->isInline;
     }
@@ -91,16 +90,16 @@ class Token extends BaseObject implements TreeNodeInterface
      * Match data for the token given from `preg_match()`
      * @return array|null
      */
-    public function getMatch()
+    public function getMatch(): ?array
     {
         return $this->match;
     }
 
     /**
      * Position of the token in the input text
-     * @return integer
+     * @return int|null
      */
-    public function getOffset()
+    public function getOffset(): ?int
     {
         return $this->offset;
     }
@@ -108,7 +107,7 @@ class Token extends BaseObject implements TreeNodeInterface
     /**
      * @inheritdoc
      */
-    public function getNodeName()
+    public function getNodeName(): string
     {
         return $this->type;
     }
@@ -117,7 +116,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.3.0
      */
-    public function getNodeTag()
+    public function getNodeTag(): ?string
     {
         return null;
     }
@@ -126,7 +125,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.1.0
      */
-    public function getChildrenCount()
+    public function getChildrenCount(): int
     {
         return 0;
     }
@@ -135,7 +134,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.3.0
      */
-    public function getChild($index)
+    public function getChild(int $index): TreeNodeInterface
     {
         throw new \OutOfBoundsException('No children');
     }
@@ -144,7 +143,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.1.0
      */
-    public function getChildren()
+    public function getChildren(): array
     {
         return [];
     }
@@ -154,7 +153,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @return bool
      * @since 1.2.0
      */
-    public function areChildrenMatch($nodeNames)
+    public function areChildrenMatch(array $nodeNames): bool
     {
         return [] === $nodeNames;
     }
@@ -162,7 +161,7 @@ class Token extends BaseObject implements TreeNodeInterface
     /**
      * @inheritdoc
      */
-    public function dumpAsString($indent = '', $last = true)
+    public function dumpAsString(string $indent = '', bool $last = true): string
     {
         return $indent . ' `- ' . $this->type . ' <' . $this->content . '>' . PHP_EOL;
     }
@@ -171,7 +170,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.3.0
      */
-    public function make($value)
+    public function make($value): void
     {
         $this->made = $value;
     }
@@ -189,7 +188,7 @@ class Token extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 2.0.0
      */
-    public function prune()
+    public function prune(): void
     {
         $this->content = '';
     }

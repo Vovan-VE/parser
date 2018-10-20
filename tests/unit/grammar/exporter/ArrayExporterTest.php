@@ -13,14 +13,14 @@ class ArrayExporterTest extends BaseTestCase
      * @param array $expected
      * @dataProvider arrayDataProvider
      */
-    public function testExportGrammar($grammar, $expected)
+    public function testExportGrammar(Grammar $grammar, array $expected)
     {
         $exporter = new ArrayExporter();
         $actual = $exporter->exportGrammar($grammar);
         $this->assertEquals($expected, $actual);
     }
 
-    public function arrayDataProvider()
+    public function arrayDataProvider(): array
     {
         return [
             [

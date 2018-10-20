@@ -8,7 +8,7 @@ use VovanVE\parser\tree\NonTerminal;
 
 class ActionsMadeMapTest extends BaseTestCase
 {
-    public function testApplyToNode()
+    public function testApplyToNode(): void
     {
         $map = new ActionsMadeMap([
             'foo' => function ($content) {
@@ -33,10 +33,9 @@ class ActionsMadeMapTest extends BaseTestCase
         $baz = new NonTerminal('Baz', [$foo]);
         $this->assertNull($map->applyToNode($baz));
         $this->assertNull($baz->made());
-
     }
 
-    public function testApplyMultiple()
+    public function testApplyMultiple(): void
     {
         $map = new ActionsMadeMap([
             'int' => function ($content) {
@@ -64,7 +63,7 @@ class ActionsMadeMapTest extends BaseTestCase
         $this->assertEquals(2, $sum->getChildrenCount());
     }
 
-    public function testApplyWithPrune()
+    public function testApplyWithPrune(): void
     {
         $map = new ActionsMadeMap([
             'int' => function ($content) {
@@ -96,10 +95,10 @@ class ActionsMadeMapTest extends BaseTestCase
         $this->assertEquals(0, $foobarqux->getChildrenCount());
     }
 
-    public function testThrowingInTerminal()
+    public function testThrowingInTerminal(): void
     {
         $map = new ActionsMadeMap([
-            'foo' => function ($foo) {
+            'foo' => function () {
                 throw new \DomainException('Something was wrong in userland code');
             },
         ]);
@@ -110,7 +109,7 @@ class ActionsMadeMapTest extends BaseTestCase
         $map->applyToNode($foo);
     }
 
-    public function testThrowingInNonTerminal()
+    public function testThrowingInNonTerminal(): void
     {
         $map = new ActionsMadeMap([
             'Baz' => function () {
@@ -125,7 +124,7 @@ class ActionsMadeMapTest extends BaseTestCase
         $map->applyToNode($baz);
     }
 
-    public function testThrowingInNonTerminalTag()
+    public function testThrowingInNonTerminalTag(): void
     {
         $map = new ActionsMadeMap([
             'Baz(tag)' => function () {

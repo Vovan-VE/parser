@@ -17,7 +17,7 @@ class AbortNodeException extends \Exception
      * @param int $nodeIndex Node index starting from 1 to point error to
      * @param \Throwable|null $previous
      */
-    public function __construct($message = "", $nodeIndex = 0, \Throwable $previous = null)
+    public function __construct(string $message = "", int $nodeIndex = 0, \Throwable $previous = null)
     {
         parent::__construct($message, 0, $previous);
         $this->nodeIndex = $nodeIndex;
@@ -26,7 +26,7 @@ class AbortNodeException extends \Exception
     /**
      * @return int
      */
-    public function getNodeIndex()
+    public function getNodeIndex(): int
     {
         return $this->nodeIndex;
     }

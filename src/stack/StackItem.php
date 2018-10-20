@@ -11,12 +11,12 @@ use VovanVE\parser\common\TreeNodeInterface;
  */
 class StackItem extends BaseObject
 {
-    /** @var integer State index */
+    /** @var int State index */
     public $state;
     /** @var TreeNodeInterface Node */
     public $node;
     /**
-     * @var boolean Whether the node must be hidden from the resulting tree
+     * @var bool Whether the node must be hidden from the resulting tree
      * @since 1.4.0
      */
     public $isHidden = false;
