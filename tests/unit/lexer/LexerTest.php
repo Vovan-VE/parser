@@ -71,7 +71,7 @@ class LexerTest extends BaseTestCase
             foreach ($tokens as $i => $token) {
                 $this->assertInstanceOf(Token::class, $token, "$n: token[$i] is Token");
                 $this->assertArrayHasKey($i, $expect_tokens, "$n: want token[$i]");
-                list ($expect_type, $expect_content, $expect_hidden) = $expect_tokens[$i] + [2 => false];
+                [$expect_type, $expect_content, $expect_hidden] = $expect_tokens[$i] + [2 => false];
                 $this->assertEquals($expect_type, $token->getType(), "$n: token[$i] type");
                 $this->assertEquals($expect_content, $token->getContent(), "$n: token[$i] content");
                 $this->assertEquals($expect_hidden, $token->isHidden(), "$n: token[$i] isHidden");
@@ -196,12 +196,11 @@ class LexerTest extends BaseTestCase
             ],
         ];
 
-        foreach ($sub_tests as $n => $sub_test) {
+        foreach ($sub_tests as $n => [$lexer, $expect_tokens]) {
             /** @var Lexer $lexer */
-            list ($lexer, $expect_tokens) = $sub_test;
             $parsed_tokens_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
-                list ($expect_type, $expect_content, $expect_hidden) = $expect_tokens[$i] + [2 => false];
+                [$expect_type, $expect_content, $expect_hidden] = $expect_tokens[$i] + [2 => false];
                 $this->assertEquals($expect_type, $token->getType(), "$n: token[$i] type");
                 $this->assertEquals($expect_content, $token->getContent(), "$n: token[$i] content");
                 $this->assertEquals($expect_hidden, $token->isHidden(), "$n: token[$i] isHidden");
@@ -232,7 +231,7 @@ class LexerTest extends BaseTestCase
         $found_tokens = 0;
         foreach ($lexer->parse($test_input) as $i => $token) {
             $this->assertArrayHasKey($i, $expect_tokens, "want token [$i]");
-            list ($expect_type, $expect_content) = $expect_tokens[$i];
+            [$expect_type, $expect_content] = $expect_tokens[$i];
             $this->assertEquals($expect_type, $token->getType(), "tokens[$i]->type");
             $this->assertEquals($expect_content, $token->getContent(), "tokens[$i]->content");
             ++$found_tokens;
@@ -328,7 +327,7 @@ class LexerTest extends BaseTestCase
 
         $tokens = $lexer->parse($test_input);
         $tokens->rewind();
-        foreach ($expected_first as $i => list ($expect_type, $expect_content)) {
+        foreach ($expected_first as $i => [$expect_type, $expect_content]) {
             $this->assertTrue($tokens->valid(), "found token [$i]");
             /** @var Token $token */
             $token = $tokens->current();
@@ -449,6 +448,7 @@ class LexerTest extends BaseTestCase
 
     public function testArrayMixedKeys()
     {
+        /** @var array $array */
         foreach (
             [
                 [['a' => null, 'b' => null, null, null], ['a', 'b', 0, 1]],
@@ -456,9 +456,8 @@ class LexerTest extends BaseTestCase
                 [[null, 'a' => null, null, 'b' => null], [0, 'a', 1, 'b']],
                 [[null, null, 'a' => null, 'b' => null], [0, 1, 'a', 'b']],
             ]
-            as $case
+            as [$array, $keys]
         ) {
-            list ($array, $keys) = $case;
             $this->assertSame($keys, array_keys($array));
         }
     }

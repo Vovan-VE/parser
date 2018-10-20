@@ -12,11 +12,10 @@ namespace VovanVE\parser\stack;
 class NoReduceException extends StateException
 {
     /**
-     * @param \Exception|null $previous
+     * @param \Throwable|null $previous
      */
-    public function __construct(\Exception $previous = null)
+    public function __construct(\Throwable $previous = null)
     {
-        // REFACT: minimal PHP >= 7.0: use \Throwable
         parent::__construct('No rule to reduce', 0, $previous);
     }
 }

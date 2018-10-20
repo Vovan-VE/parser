@@ -36,3 +36,9 @@ Migration guide
     so use getter.
 *   Property `\VovanVE\parser\tree\NonTerminal::$children` become private,
     so use getter.
+*   Constants `\VovanVE\parser\common\BaseRule::DUMP_*` became protected.
+*   Constants `\VovanVE\parser\grammar\loaders\TextLoader::RE_*` became private.
+*   Constants `\VovanVE\parser\lexer\Lexer::RE_*` became private.
+*   Constant `\VovanVE\parser\lexer\Lexer::DUMP_NEAR_LENGTH` became private.
+*   Constant `\VovanVE\parser\table\Item::DUMP_MARKER` became private.
+*   Constants `\VovanVE\parser\table\ItemSet::DUMP_PREFIX_MAIN_*` became private.

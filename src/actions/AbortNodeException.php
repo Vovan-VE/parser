@@ -15,9 +15,9 @@ class AbortNodeException extends \Exception
      * AbortNodeException constructor.
      * @param string $message
      * @param int $nodeIndex Node index starting from 1 to point error to
-     * @param \Exception|null $previous
+     * @param \Throwable|null $previous
      */
-    public function __construct($message = "", $nodeIndex = 0, \Exception $previous = null)
+    public function __construct($message = "", $nodeIndex = 0, \Throwable $previous = null)
     {
         parent::__construct($message, 0, $previous);
         $this->nodeIndex = $nodeIndex;

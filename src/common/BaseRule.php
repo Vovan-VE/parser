@@ -84,12 +84,11 @@ class BaseRule extends BaseObject
         return $this->eof;
     }
 
-    // REFACT: minimal PHP >= 7.1: protected const
-    const DUMP_SPACE = ' ';
-    const DUMP_KEY_OPEN = '(';
-    const DUMP_KEY_CLOSE = ')';
-    const DUMP_ARROW = '::=';
-    const DUMP_EOF = '<eof>';
+    protected const DUMP_SPACE = ' ';
+    protected const DUMP_KEY_OPEN = '(';
+    protected const DUMP_KEY_CLOSE = ')';
+    protected const DUMP_ARROW = '::=';
+    protected const DUMP_EOF = '<eof>';
 
     /**
      * @return string

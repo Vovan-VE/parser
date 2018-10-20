@@ -10,9 +10,8 @@ class JsonExporter extends ArrayExporter
 {
     /**
      * @var int
-     * @refact PHP >= 7.0: JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
      */
-    public $jsonOptions = 320;
+    public $jsonOptions = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
     public function exportGrammar($grammar)
     {

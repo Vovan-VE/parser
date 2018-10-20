@@ -15,7 +15,7 @@ class UnexpectedTokenException extends SyntaxException
     /** @var string[] */
     protected $expected;
 
-    public function __construct($found, array $expected, $offset, \Exception $previous = null)
+    public function __construct($found, array $expected, $offset, \Throwable $previous = null)
     {
         $this->found = $found;
         $this->expected = $expected;

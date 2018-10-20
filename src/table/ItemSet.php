@@ -99,7 +99,7 @@ class ItemSet extends BaseObject
      * Original Items which this set is initiated from
      * @return Item[]
      */
-    public function getInitialItems()
+    public function getInitialItems(): array
     {
         return $this->initialItems;
     }
@@ -109,7 +109,7 @@ class ItemSet extends BaseObject
      * @param Grammar $grammar Source grammar
      * @return static[] New Sets for other states
      */
-    public function getNextSets($grammar)
+    public function getNextSets($grammar): array
     {
         $next_map = [];
         foreach ($this->items as $item) {
@@ -206,10 +206,8 @@ class ItemSet extends BaseObject
         return true;
     }
 
-    // REFACT: minimal PHP >= 7.1: private const
-    const DUMP_PREFIX_MAIN = '';
-    // REFACT: minimal PHP >= 7.1: private const
-    const DUMP_PREFIX_SUB = '> ';
+    private const DUMP_PREFIX_MAIN = '';
+    private const DUMP_PREFIX_SUB = '> ';
 
     /**
      * @return string

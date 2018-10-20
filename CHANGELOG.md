@@ -26,6 +26,13 @@ LR(0) parser Change Log
             so use getter.
         *   Property `\VovanVE\parser\tree\NonTerminal::$children` become private,
             so use getter.
+    *   Internal constants hidden from public API:
+        *   `\VovanVE\parser\common\BaseRule::DUMP_*`;
+        *   `\VovanVE\parser\grammar\loaders\TextLoader::RE_*`;
+        *   `\VovanVE\parser\lexer\Lexer::DUMP_NEAR_LENGTH`;
+        *   `\VovanVE\parser\lexer\Lexer::RE_*`;
+        *   `\VovanVE\parser\table\Item::DUMP_MARKER`;
+        *   `\VovanVE\parser\table\ItemSet::DUMP_*`
 
 1.7.0
 -----

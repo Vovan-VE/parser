@@ -71,8 +71,6 @@ class Stack extends BaseObject
      */
     public function shift($node, $stateIndex, $isHidden = false)
     {
-        // REFACT: try to hide $stateIndex from public interface
-
         $item = new StackItem();
         $item->state = $stateIndex;
         $item->node = $node;

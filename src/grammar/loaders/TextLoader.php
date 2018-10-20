@@ -80,10 +80,9 @@ use VovanVE\parser\grammar\Rule;
  */
 class TextLoader
 {
-    // REFACT: minimal PHP >= 7.0: const expression: extract and reuse defines
+    // REFACT: const expression: extract and reuse defines
 
-    // REFACT: minimal PHP >= 7.1: private const
-    const RE_RULE_LINE = <<<'_REGEXP'
+    private const RE_RULE_LINE = <<<'_REGEXP'
 ~
     \G
     \h*+
@@ -106,8 +105,7 @@ class TextLoader
 ~xD
 _REGEXP;
 
-    // REFACT: minimal PHP >= 7.1: private const
-    const RE_INPUT_RULE = <<<'_REGEXP'
+    private const RE_INPUT_RULE = <<<'_REGEXP'
 /
     (?(DEFINE)
         (?<name> [a-z][a-z_0-9]*+ )
@@ -135,8 +133,7 @@ _REGEXP;
 /xi
 _REGEXP;
 
-    // REFACT: minimal PHP >= 7.1: private const
-    const RE_RULE_DEF_ITEM = <<<'_REGEXP'
+    private const RE_RULE_DEF_ITEM = <<<'_REGEXP'
 /
     \G
     \s*+
@@ -155,8 +152,7 @@ _REGEXP;
 /xi
 _REGEXP;
 
-    // REFACT: minimal PHP >= 7.1: private const
-    const RE_RULE_DEF_REGEXP = '~
+    private const RE_RULE_DEF_REGEXP = '~
         ^
         /
         (?<re>
@@ -203,7 +199,7 @@ _REGEXP;
                 $plain_name = $name;
                 $is_hidden = true;
             } else {
-                $is_hidden = '.' === substr($name, 0, 1);
+                $is_hidden = '.' === $name[0];
                 $plain_name = $is_hidden
                     ? substr($name, 1)
                     : $name;
@@ -280,20 +276,10 @@ _REGEXP;
             );
             $rules[] = $rule;
 
-            // REFACT: PHP >= 7.0: use `??`
-            if (isset($subject_rules_count[$subject_name])) {
-                ++$subject_rules_count[$subject_name];
-            } else {
-                $subject_rules_count[$subject_name] = 1;
-            }
+            $subject_rules_count[$subject_name] = ($subject_rules_count[$subject_name] ?? 0) + 1;
 
             foreach ($rule_inlines as $inline_token) {
-                // REFACT: PHP >= 7.0: use `??`
-                if (isset($inline_ref_count[$inline_token])) {
-                    ++$inline_ref_count[$inline_token];
-                } else {
-                    $inline_ref_count[$inline_token] = 1;
-                }
+                $inline_ref_count[$inline_token] = ($inline_ref_count[$inline_token] ?? 0) + 1;
 
                 // it is needed in case of the only reference,
                 // so array of an subject is not needed

@@ -77,8 +77,8 @@ _GRAMMAR
         ];
         /** @uses ItemSet::hasItem() */
         $method = [$item_set, 'hasItem'];
-        foreach ($test_items as $i => list ($expect_result, $test_args)) {
-            $actual = call_user_func_array($method, $test_args);
+        foreach ($test_items as $i => [$expect_result, $test_args]) {
+            $actual = $method(...$test_args);
             if ($expect_result) {
                 $this->assertTrue($actual, "hasItem() for test[$i]");
             } else {

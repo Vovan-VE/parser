@@ -63,12 +63,9 @@ use VovanVE\parser\errors\UnknownCharacterException;
  */
 class Lexer extends BaseObject
 {
-    // REFACT: minimal PHP >= 7.1: private const
-    const DUMP_NEAR_LENGTH = 30;
-    // REFACT: minimal PHP >= 7.1: private const
-    const RE_NAME = '/^\\.?[a-z][_a-z0-9]*$/i';
-    // REFACT: minimal PHP >= 7.1: private const
-    const RE_DEFINE_NAME = '/^[a-z][_a-z0-9]*$/i';
+    private const DUMP_NEAR_LENGTH = 30;
+    private const RE_NAME = '/^\\.?[a-z][_a-z0-9]*$/i';
+    private const RE_DEFINE_NAME = '/^[a-z][_a-z0-9]*$/i';
 
     /**
      * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
@@ -522,7 +519,7 @@ class Lexer extends BaseObject
             if (is_int($key)) {
                 throw new \InvalidArgumentException("Token [int $key] without name - use `inlines` instead");
             } elseif (preg_match(self::RE_NAME, $key)) {
-                if ('.' === substr($key, 0, 1)) {
+                if ('.' === $key[0]) {
                     $name = substr($key, 1);
                     $hidden[$name] = true;
                     $named[$name] = $value;

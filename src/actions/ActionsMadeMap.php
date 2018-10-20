@@ -62,7 +62,7 @@ class ActionsMadeMap extends ActionsMap
     {
         if ($node instanceof Token) {
             try {
-                return call_user_func($action, $node->getContent());
+                return $action($node->getContent());
             } catch (AbortParsingException $e) {
                 if (null === $e->getOffset()) {
                     throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
@@ -70,9 +70,6 @@ class ActionsMadeMap extends ActionsMap
                 throw $e;
             } catch (AbortNodeException $e) {
                 throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
-            } catch (\Exception $e) {
-                // REFACT: PHP >= 7.0: simplify
-                throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
             } catch (\Throwable $e) {
                 throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
             }
@@ -83,20 +80,19 @@ class ActionsMadeMap extends ActionsMap
             $args[] = $child->made();
         }
 
-        // REFACT: minimal PHP >= 7.0:
-        // $result = $action(...$args);
         try {
-            $result = call_user_func_array($action, $args);
+             $result = $action(...$args);
         } catch (AbortNodeException $e) {
-            throw new AbortParsingException($e->getMessage(), $node->getChild($e->getNodeIndex() - 1)->getOffset(), $e);
+            throw new AbortParsingException(
+                $e->getMessage(),
+                $node->getChild($e->getNodeIndex() - 1)->getOffset(),
+                $e
+            );
         } catch (AbortParsingException $e) {
             if (null === $e->getOffset()) {
                 throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
             }
             throw $e;
-        } catch (\Exception $e) {
-            // REFACT: PHP >= 7.0: simplify
-            throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
         } catch (\Throwable $e) {
             throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
         }

@@ -12,11 +12,10 @@ class ConflictShiftReduceException extends BadStateException
 {
     /**
      * @param Item[] $items Items of state which cause the error
-     * @param \Exception $previous Previous exception
+     * @param \Throwable $previous Previous exception
      */
-    public function __construct(array $items, \Exception $previous = null)
+    public function __construct(array $items, \Throwable $previous = null)
     {
-        // REFACT: minimal PHP >= 7.0: use \Throwable
         parent::__construct($items, 'Shift-reduce conflict', $previous);
     }
 }

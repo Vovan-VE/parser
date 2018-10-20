@@ -117,8 +117,7 @@ class Item extends BaseRule
         );
     }
 
-    // REFACT: minimal PHP >= 7.1: private const
-    const DUMP_MARKER = '•';
+    private const DUMP_MARKER = '•';
 
     /**
      * @inheritdoc
