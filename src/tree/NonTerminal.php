@@ -10,18 +10,12 @@ use VovanVE\parser\common\TreeNodeInterface;
  */
 class NonTerminal extends BaseObject implements TreeNodeInterface
 {
-    /**
-     * @var string Symbol name from the grammar
-     * @deprecated Don't use outside directly - use getter
-     */
+    /** @var string Symbol name from the grammar */
     public $name;
     /** @var string|null Tag from corresponding grammar rule if one was defined */
     private $tag;
-    /**
-     * @var TreeNodeInterface[] Children nodes
-     * @deprecated Don't use outside directly - use getter
-     */
-    public $children;
+    /** @var TreeNodeInterface[] Children nodes */
+    private $children;
     /** @var mixed Value evaluated with actions */
     private $made;
     /** @var int Offset in the source text */
@@ -162,5 +156,14 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
     public function made()
     {
         return $this->made;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 2.0.0
+     */
+    public function prune()
+    {
+        $this->children = [];
     }
 }

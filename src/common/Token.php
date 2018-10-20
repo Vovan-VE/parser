@@ -184,4 +184,13 @@ class Token extends BaseObject implements TreeNodeInterface
     {
         return $this->made;
     }
+
+    /**
+     * @inheritdoc
+     * @since 2.0.0
+     */
+    public function prune()
+    {
+        $this->content = '';
+    }
 }

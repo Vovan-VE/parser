@@ -1,6 +1,31 @@
 LR(0) parser Change Log
 =======================
 
+2.0.0 (dev)
+-----
+
+*   **BC break**:
+    *   Deleted stuff which was deprecated before:
+        *   class `\VovanVE\parser\LexerBuilder`;
+        *   exception `\VovanVE\parser\actions\ActionAbortException`;
+        *   exception `\VovanVE\parser\lexer\ParseException`;
+        *   method `\VovanVE\parser\grammar\Grammar::create()`;
+        *   method `\VovanVE\parser\actions\ActionsMap::runForNode()`;
+        *   method `\VovanVE\parser\lexer\Lexer::extend()`;
+        *   all arguments to `\VovanVE\parser\lexer\Lexer` constructor;
+        *   constant `\VovanVE\parser\common\TreeNodeInterface::DUMP_INDENT`;
+        *   constant `\VovanVE\parser\grammar\Grammar::RE_RULE_LINE`;
+        *   constant `\VovanVE\parser\grammar\Grammar::RE_INPUT_RULE`;
+        *   constant `\VovanVE\parser\grammar\Grammar::RE_RULE_DEF_ITEM`;
+        *   constant `\VovanVE\parser\grammar\Grammar::RE_RULE_DEF_REGEXP`;
+    *   Dropped support for deprecated features:
+        *   `Lexer` terminals will not accept anonymous inline tokens, so use
+            inlines directly.
+        *   Property `\VovanVE\parser\tree\NonTerminal::$name` become private,
+            so use getter.
+        *   Property `\VovanVE\parser\tree\NonTerminal::$children` become private,
+            so use getter.
+
 1.7.0
 -----
 

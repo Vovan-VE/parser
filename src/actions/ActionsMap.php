@@ -133,25 +133,6 @@ class ActionsMap extends BaseObject
     }
 
     /**
-     * Run action for a node and returns its result
-     *
-     * Runs action for a node if action is defined. Returns result of the action.
-     * @param TreeNodeInterface $node Subject node
-     * @return mixed Value returned from action or `null` if no action.
-     * @throws AbortParsingException
-     * @deprecated >= 1.5.0: Method is unused internally and does not cause tree recursion.
-     */
-    public function runForNode($node)
-    {
-        $action = $this->getAction($node);
-        if (null === $action) {
-            return null;
-        }
-
-        return $this->runAction($action, $node);
-    }
-
-    /**
      * Get action handler for node
      * @param TreeNodeInterface $node Subject node
      * @return callable|string|null Action handler or `null`.
@@ -214,8 +195,6 @@ class ActionsMap extends BaseObject
                 throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
             }
             throw $e;
-        } catch (ActionAbortException $e) {
-            throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
         } catch (\Exception $e) {
             // REFACT: PHP >= 7.0: simplify
             throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);

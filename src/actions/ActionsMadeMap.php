@@ -2,7 +2,7 @@
 namespace VovanVE\parser\actions;
 
 use VovanVE\parser\common\Token;
-use VovanVE\parser\tree\NonTerminal;
+use VovanVE\parser\common\TreeNodeInterface;
 
 /**
  * Actions map to deal with only made values
@@ -51,7 +51,12 @@ class ActionsMadeMap extends ActionsMap
     public $prune = false;
 
     /**
-     * @inheritdoc
+     * Run action handler and return its result
+     * @param callable $action Action callback from the map
+     * @param TreeNodeInterface $node Subject node
+     * @return mixed Result of the action call
+     * @since 1.5.0
+     * @throws AbortParsingException
      */
     protected function runActionHandler($action, $node)
     {
@@ -64,8 +69,6 @@ class ActionsMadeMap extends ActionsMap
                 }
                 throw $e;
             } catch (AbortNodeException $e) {
-                throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
-            } catch (ActionAbortException $e) {
                 throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
             } catch (\Exception $e) {
                 // REFACT: PHP >= 7.0: simplify
@@ -91,8 +94,6 @@ class ActionsMadeMap extends ActionsMap
                 throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
             }
             throw $e;
-        } catch (ActionAbortException $e) {
-            throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
         } catch (\Exception $e) {
             // REFACT: PHP >= 7.0: simplify
             throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
@@ -100,9 +101,8 @@ class ActionsMadeMap extends ActionsMap
             throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
         }
 
-        if ($this->prune && $node instanceof NonTerminal) {
-            // REFACT: add clear() to interfaces
-            $node->children = [];
+        if ($this->prune) {
+            $node->prune();
         }
 
         return $result;

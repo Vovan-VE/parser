@@ -7,9 +7,6 @@ namespace VovanVE\parser\common;
  */
 interface TreeNodeInterface
 {
-    /** @deprecated */
-    const DUMP_INDENT = '    ';
-
     /**
      * Name of the node according to grammar
      * @return string
@@ -96,4 +93,13 @@ interface TreeNodeInterface
      * @see make()
      */
     public function made();
+
+    /**
+     * Cleanup children and content
+     *
+     * This method can be used after `make()` to free memory usage.
+     * @return void
+     * @since 2.0.0
+     */
+    public function prune();
 }

@@ -74,29 +74,29 @@ class Lexer extends BaseObject
      * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
      * Key is name and value is a part of RegExp
      */
-    private $defines;
+    private $defines = [];
     /**
      * @var array Fixed terminal definition. Values are plain strings to parse as is.
      * Keys are names.
      */
-    private $fixed;
+    private $fixed = [];
     /**
      * @var string[] Inline terminals definition. Values are plain strings to parse as is.
      * Keys does not matter.
      */
-    private $inline;
+    private $inline = [];
     /**
      * @var array Terminals definition. Items of the array can be
      * either key=>value for named tokens (here Key is name and value is a part of RegExp;
      * DEFINEs can be referred with `(?&name)` regexp recursion)
      * or just a value (integer auto index) with inline token text literally.
      */
-    private $terminals;
+    private $terminals = [];
     /**
      * @var array List of RegExp parts to define whitespaces to ignore in an input text.
      * DEFINEs can be referred with `(?&name)` regexp recursion.
      */
-    private $whitespaces;
+    private $whitespaces = [];
     /**
      * @var string Modifiers to whole regexp.
      *
@@ -140,31 +140,8 @@ class Lexer extends BaseObject
 
     /**
      * Constructor
-     *
-     * See class description for details.
-     *
-     * > Deprecation notice: Utilizing all of arguments is deprecated in favor
-     * > to corresponding methods. Arguments will be removed in future.
-     * @param array $terminals Terminals definitions. Key=>value pairs are named tokens.
-     * Plain value with auto index is inline tokens literally.
-     * @param array $whitespaces List of regexp parts to define whitespaces and comments to skip
-     * @param array $defines Map of DEFINEs regexp parts to reference from terminals and whitespaces.
-     * @param string $modifiers Modifiers to both whole regexps. Here should be (but not required)
-     * used only "global" modifiers like `u`, `x`, `D` etc. Other modifiers like `i` is better
-     * to use locally like `(?i)[a-z]` or `(?i:[a-z])`.
      */
-    public function __construct(
-        array $terminals = [],
-        array $whitespaces = [],
-        array $defines = [],
-        $modifiers = 'u'
-    ) {
-        $this->defines = $defines;
-        $this->fixed = [];
-        $this->inline = [];
-        $this->terminals = $terminals;
-        $this->whitespaces = $whitespaces;
-        $this->modifiers = $modifiers;
+    public function __construct() {
     }
 
     public function __clone()
@@ -174,34 +151,6 @@ class Lexer extends BaseObject
         $this->regexp = null;
         $this->hiddens = [];
         $this->aliased = [];
-    }
-
-    /**
-     * Create new Lexer extending this one
-     *
-     * > Note: Returned object can be the same one in case of empty additions.
-     * @param array $terminals Additional terminals. Both inline and named are acceptable.
-     * Duplicating inline tokens is not permitted, but redefinition of named tokens
-     * is restricted.
-     * @param array $whitespaces Additional whitespaces regexps. Duplicating currently
-     * is not checked, so it on your own.
-     * @param array $defines Additional DEFINEs regexps. Duplicating names is restricted.
-     * @param string $modifiers Additional modifiers to whole regexps.
-     * @return static New Lexer object not compiled yet.
-     * @since 1.4.0
-     * @deprecated >= 1.5.0: Use corresponding extension method
-     */
-    public function extend(
-        array $terminals = [],
-        array $whitespaces = [],
-        array $defines = [],
-        $modifiers = ''
-    ) {
-        return $this
-            ->defines($defines)
-            ->terminals($terminals)
-            ->whitespaces($whitespaces)
-            ->modifiers($modifiers);
     }
 
     /**
@@ -308,13 +257,8 @@ class Lexer extends BaseObject
      * Named tokens defined with regexps. Named regexps from DEFINEs can be
      * referenced here with named recursion `(?&name)`.
      *
-     * > Deprecation notice: Inline tokens without names introduced in 1.4.0 should
-     * be defined with `inline()` method since 1.5.0. So, defining inline tokens within
-     * terminals is deprecated.
-     *
      * > Note: Returned object can be the same one in case of empty additions.
-     * @param array $terminals Additional terminals. Both inline and named are acceptable.
-     * Duplicating inline tokens is not permitted, but redefinition of named tokens
+     * @param array $terminals Additional terminals. Only named are acceptable.
      * is restricted.
      * @return static
      * @since 1.4.0
@@ -325,7 +269,7 @@ class Lexer extends BaseObject
             return $this;
         }
 
-        $new_terminals = $this->addMixedTokens($this->terminals, $terminals, 'terminal');
+        $new_terminals = $this->addNamedTokens($this->terminals, $terminals, 'terminal');
 
         $copy = clone $this;
         $copy->terminals = $new_terminals;
@@ -385,27 +329,17 @@ class Lexer extends BaseObject
             throw new \InvalidArgumentException('Duplicating fixed strings found');
         }
 
-        $inline = [];
-
         $fixed_hidden = [];
         $fixed_normal = [];
         $fixed_map = [];
-        $this->splitTerminals($this->fixed, $inline, $fixed_hidden, $fixed_normal, $fixed_map);
-        if ($inline) {
-            throw new \InvalidArgumentException('Mixing inline tokens in fixed tokens map');
-        }
+        $this->splitTerminals($this->fixed, $fixed_hidden, $fixed_normal, $fixed_map);
 
-        $inline = array_combine($this->inline, $this->inline);
-        $more_inline = [];
         $hidden = [];
         $normal = [];
         $map = [];
-        $this->splitTerminals($this->terminals, $more_inline, $hidden, $normal, $map);
+        $this->splitTerminals($this->terminals, $hidden, $normal, $map);
 
-        if ($more_inline) {
-            // DEPRECATED: inline tokens in terminals map
-            $inline += $more_inline;
-        }
+        $inline = array_combine($this->inline, $this->inline);
 
         $this->checkOverlappingNames([
             'fixed hidden' => $fixed_hidden,
@@ -573,50 +507,20 @@ class Lexer extends BaseObject
     }
 
     /**
-     * Extends array of mixed tokens definition with another array of tokens
-     *
-     * Array of mixed tokens has both named (name=>definition) and anonymous
-     * tokens (only definition in value).
-     * @param array $oldTokens Existing tokens array
-     * @param array $addTokens New tokens to add
-     * @param string $errorType Tokens type to insert in error message.
-     * @return array
-     * @throws \InvalidArgumentException In case of name duplication.
-     * @since 1.5.0
-     */
-    private function addMixedTokens($oldTokens, $addTokens, $errorType)
-    {
-        $new_terminals = $oldTokens;
-        foreach ($addTokens as $name => $re) {
-            if (is_int($name)) {
-                $new_terminals[] = $re;
-            } elseif (isset($new_terminals[$name])) {
-                throw new \InvalidArgumentException(
-                    "Cannot redefine $errorType: " . var_export($name, true)
-                );
-            } else {
-                $new_terminals[$name] = $re;
-            }
-        }
-        return $new_terminals;
-    }
-
-    /**
      * Split terminals definition in different types
      *
      * @param array $terminals Input terminals definitions array
-     * @param array $inline Variable to store inline tokens. Both keys and value are same.
      * @param array $hidden Variable to store hidden named tokens. Key is name without leading
      * dot and value is non-null.
      * @param array $normal Variable to store normal named tokens. Key is name and value is non-null.
      * @param array $named Variable to store all named tokens. Key is name and value is definition.
      * @since 1.4.0
      */
-    private function splitTerminals(array $terminals, &$inline, &$hidden, &$normal, &$named)
+    private function splitTerminals(array $terminals, &$hidden, &$normal, &$named)
     {
         foreach ($terminals as $key => $value) {
             if (is_int($key)) {
-                $inline[$value] = $value;
+                throw new \InvalidArgumentException("Token [int $key] without name - use `inlines` instead");
             } elseif (preg_match(self::RE_NAME, $key)) {
                 if ('.' === substr($key, 0, 1)) {
                     $name = substr($key, 1);

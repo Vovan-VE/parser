@@ -6,7 +6,7 @@ namespace VovanVE\parser\actions;
  * @package VovanVE\parser
  * @since 1.7.0
  */
-class AbortNodeException extends ActionAbortException
+class AbortNodeException extends \Exception
 {
     /** @var int */
     private $nodeIndex;

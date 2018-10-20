@@ -387,33 +387,6 @@ class LexerTest extends BaseTestCase
         }
     }
 
-    public function testExtend()
-    {
-        $base = (new Lexer)->terminals(['a' => 'a++']);
-        $ext1 = $base->extend(['b' => 'b++']);
-        $ext2 = $base->extend(['c' => 'c++']);
-        $this->assertNotSame($base, $ext1, 'extended lexer is new one');
-        $this->assertNotSame($base, $ext2, 'extended lexer is new one');
-        $this->assertNotSame($ext1, $ext2, 'both extended lexers are new');
-
-        $this->assertFalse($ext1->isCompiled(), 'ext1 is not compiled yet');
-        $ext1->compile();
-
-        $this->assertFalse($base->isCompiled(), 'base is not compiled yet');
-        $base->compile();
-
-        $this->assertFalse($ext2->isCompiled(), 'ext is not compiled yet');
-    }
-
-    public function testExtendDuplicate()
-    {
-        $base = (new Lexer)
-            ->terminals(['a' => 'a++'])
-            ->defines(['x' => 'x++']);
-        $this->setExpectedException(\InvalidArgumentException::class);
-        $base->extend(['a' => 'A'], [], ['x' => 'X']);
-    }
-
     public function testDefineDuplicate()
     {
         $base = (new Lexer)

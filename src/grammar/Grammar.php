@@ -37,13 +37,6 @@ use VovanVE\parser\grammar\loaders\TextLoader;
  */
 class Grammar extends BaseObject
 {
-    /** @deprecated >= 1.7.0 */
-    const RE_RULE_LINE = TextLoader::RE_RULE_LINE;
-    /** @deprecated >= 1.7.0 */
-    const RE_INPUT_RULE = TextLoader::RE_INPUT_RULE;
-    /** @deprecated >= 1.7.0 */
-    const RE_RULE_DEF_ITEM = TextLoader::RE_RULE_DEF_REGEXP;
-
     /** @var Rule[] Rules in the grammar */
     private $rules;
     /** @var string[] Strings list of defined inline tokens, unquoted */
@@ -80,20 +73,6 @@ class Grammar extends BaseObject
     private $terminals;
     /** @var Symbol[] Map of non-terminal Symbols from all rules. Key is a symbol name. */
     private $nonTerminals;
-
-    /**
-     * Create grammar object from a text
-     *
-     * See class description for details.
-     * @param string $text Grammar definition text
-     * @return static Grammar object
-     * @throws GrammarException Errors in grammar syntax or logic
-     * @deprecated >= 1.7.0: use `TextLoader::createGrammar()` instead
-     */
-    public static function create($text)
-    {
-        return TextLoader::createGrammar($text);
-    }
 
     /**
      * Constructor
@@ -305,7 +284,4 @@ class Grammar extends BaseObject
     {
         return join(PHP_EOL, $this->rules);
     }
-
-    /** @deprecated >= 1.7.0 */
-    const RE_RULE_DEF_REGEXP = TextLoader::RE_RULE_DEF_REGEXP;
 }

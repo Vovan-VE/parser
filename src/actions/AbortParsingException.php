@@ -6,7 +6,7 @@ namespace VovanVE\parser\actions;
  * @package VovanVE\parser
  * @since 1.7.0
  */
-class AbortParsingException extends ActionAbortException
+class AbortParsingException extends \Exception
 {
     /** @var int|null */
     protected $offset;
