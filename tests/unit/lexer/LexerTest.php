@@ -336,7 +336,7 @@ class LexerTest extends BaseTestCase
             $this->assertEquals($expect_type, $token->getType(), "token[$i]->type");
             $this->assertEquals($expect_content, $token->getContent(), "token[$i]->content");
             if ($last_valid_index === $i) {
-                $this->setExpectedException(UnknownCharacterException::class);
+                $this->expectException(UnknownCharacterException::class);
             }
             $tokens->next();
         }
@@ -346,7 +346,7 @@ class LexerTest extends BaseTestCase
     public function testFailNoTerminals()
     {
         $lexer = new Lexer();
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -357,7 +357,7 @@ class LexerTest extends BaseTestCase
                 'int' => '\\d++',
                 'bad-name' => '\\s++',
             ]);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -371,7 +371,7 @@ class LexerTest extends BaseTestCase
                 'int' => '\\d++',
                 'bad-name' => '\\s++',
             ]);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -381,7 +381,7 @@ class LexerTest extends BaseTestCase
             ->terminals([
                 'empty' => '.{0}',
             ]);
-        $this->setExpectedException(DevException::class);
+        $this->expectException(DevException::class);
         foreach ($lexer->parse('.') as $token) {
             $this->assertNotEquals('', $token->getContent());
         }
@@ -391,7 +391,7 @@ class LexerTest extends BaseTestCase
     {
         $base = (new Lexer)
             ->defines(['x' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $base->defines(['x' => 'y']);
     }
 
@@ -399,7 +399,7 @@ class LexerTest extends BaseTestCase
     {
         $base = (new Lexer)
             ->fixed(['x' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $base->fixed(['x' => 'y']);
     }
 
@@ -410,7 +410,7 @@ class LexerTest extends BaseTestCase
                 'x' => 'a',
                 'y' => 'a',
             ]);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $base->compile();
     }
 
@@ -418,7 +418,7 @@ class LexerTest extends BaseTestCase
     {
         $base = (new Lexer)
             ->terminals(['x' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $base->terminals(['x' => 'y']);
     }
 
@@ -491,7 +491,7 @@ class LexerTest extends BaseTestCase
                 'a' => 'x',
                 '.a' => 'y',
             ]);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -502,7 +502,7 @@ class LexerTest extends BaseTestCase
                 '.a' => 'y',
                 'a' => 'x',
             ]);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -511,7 +511,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->inline(['a'])
             ->terminals(['a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -520,7 +520,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->inline(['a'])
             ->terminals(['.a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -531,7 +531,7 @@ class LexerTest extends BaseTestCase
                 'a' => 'x',
                 '.a' => 'y',
             ]);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -540,7 +540,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->inline(['a'])
             ->fixed(['a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -549,7 +549,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->inline(['a'])
             ->fixed(['x' => 'a']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -558,7 +558,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->inline(['a'])
             ->fixed(['.a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -567,7 +567,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->terminals(['a' => 'y'])
             ->fixed(['a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -576,7 +576,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->terminals(['a' => 'y'])
             ->fixed(['.a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -585,7 +585,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->terminals(['.a' => 'y'])
             ->fixed(['a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -594,7 +594,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->terminals(['.a' => 'y'])
             ->fixed(['.a' => 'x']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -603,7 +603,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->defines(['a' => 'x'])
             ->fixed(['a' => 'y']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -612,7 +612,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->defines(['a' => 'x'])
             ->fixed(['.a' => 'y']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -621,7 +621,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->defines(['a' => 'x'])
             ->terminals(['a' => 'y']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -630,7 +630,7 @@ class LexerTest extends BaseTestCase
         $lexer = (new Lexer)
             ->defines(['a' => 'x'])
             ->terminals(['.a' => 'y']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -642,7 +642,7 @@ class LexerTest extends BaseTestCase
 
         $lexer = $lexer
             ->defines(['foo' => '(*']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -654,7 +654,7 @@ class LexerTest extends BaseTestCase
 
         $lexer = $lexer
             ->terminals(['foo' => '(*']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 
@@ -666,7 +666,7 @@ class LexerTest extends BaseTestCase
 
         $lexer = $lexer
             ->whitespaces(['(*']);
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $lexer->compile();
     }
 

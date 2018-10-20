@@ -44,7 +44,8 @@ class ActionsMapTest extends BaseTestCase
         ]);
         $foo = new Token('foo', 'lorem ipsum');
 
-        $this->setExpectedException(\RuntimeException::class, "Action failure in `foo`");
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("Action failure in `foo`");
         $map->applyToNode($foo);
     }
 
@@ -58,7 +59,8 @@ class ActionsMapTest extends BaseTestCase
         $foo = new Token('foo', 'lorem ipsum');
         $baz = new NonTerminal('Baz', [$foo]);
 
-        $this->setExpectedException(\RuntimeException::class, "Action failure in `Baz`");
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("Action failure in `Baz`");
         $map->applyToNode($baz);
     }
 
@@ -72,7 +74,8 @@ class ActionsMapTest extends BaseTestCase
         $foo = new Token('foo', 'lorem ipsum');
         $baz = new NonTerminal('Baz', [$foo], 'tag');
 
-        $this->setExpectedException(\RuntimeException::class, "Action failure in `Baz(tag)`");
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("Action failure in `Baz(tag)`");
         $map->applyToNode($baz);
     }
 }

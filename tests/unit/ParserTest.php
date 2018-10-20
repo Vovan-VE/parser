@@ -48,6 +48,8 @@ mul   : "*"
 _END
         );
 
+        $this->expectNotToPerformAssertions();
+
         return new Parser($lexer, $grammar);
     }
 
@@ -132,10 +134,8 @@ DUMP
      */
     public function testParseFailA($parser)
     {
-        $this->setExpectedException(
-            UnexpectedInputAfterEndException::class,
-            'Expected <EOF> but got <id "B">'
-        );
+        $this->expectException(UnexpectedInputAfterEndException::class);
+        $this->expectExceptionMessage('Expected <EOF> but got <id "B">');
         $parser->parse('A * 2 B');
     }
 
@@ -145,10 +145,8 @@ DUMP
      */
     public function testParseFailB($parser)
     {
-        $this->setExpectedException(
-            UnexpectedTokenException::class,
-            'Unexpected <add "-">; expected: "(", <id> or <int>'
-        );
+        $this->expectException(UnexpectedTokenException::class);
+        $this->expectExceptionMessage('Unexpected <add "-">; expected: "(", <id> or <int>');
         $parser->parse('A * -5');
     }
 
@@ -636,7 +634,7 @@ _END
 _END
         );
 
-        $this->setExpectedException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         new Parser($lexer, $grammar);
     }
 

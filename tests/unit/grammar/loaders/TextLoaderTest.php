@@ -83,7 +83,7 @@ _END
 
     public function testCreateFailFormat()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar("E: A \$; some ! invalid rule");
     }
 
@@ -286,7 +286,7 @@ _END
 
     public function testCreateInlineWithConflictSingle()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: a 'a'
@@ -296,7 +296,7 @@ _END
 
     public function testCreateInlineWithConflictSubject()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: "E"
@@ -306,7 +306,7 @@ _END
 
     public function testCreateInlineWithConflictCross1()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: 'a'
@@ -317,7 +317,7 @@ _END
 
     public function testCreateInlineWithConflictCross2()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: a
@@ -328,7 +328,7 @@ _END
 
     public function testCreateInlineWithConflictSingleHidden()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: .a 'a'
@@ -338,7 +338,7 @@ _END
 
     public function testCreateInlineWithConflictCross1Hidden()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: 'a'
@@ -349,7 +349,7 @@ _END
 
     public function testCreateInlineWithConflictCross2Hidden()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: .a
@@ -394,7 +394,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosedEmpty()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /
@@ -404,7 +404,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosedEmptyAndMore()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -416,7 +416,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosed()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+
@@ -426,7 +426,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosedAndMore()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -438,7 +438,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosedEscapedNothing()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+\
@@ -448,7 +448,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosedEscapedNothingAndMore()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -460,7 +460,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosedEscapedDelimiter()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+\/
@@ -470,7 +470,7 @@ _END
 
     public function testFailCreateRegExpSyntaxNotClosedEscapedDelimiterAndMore()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -482,7 +482,7 @@ _END
 
     public function testFailCreateRegExpNotInPlace()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: foo /a+/ bar
@@ -492,7 +492,7 @@ _END
 
     public function testFailCreateRegExpConflictRegExp()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+/
@@ -503,7 +503,7 @@ _END
 
     public function testFailCreateRegExpConflictNonTerminal()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: "foo"
@@ -514,7 +514,7 @@ _END
 
     public function testFailCreateRegExpConflictFixedAfter()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+/
@@ -525,7 +525,7 @@ _END
 
     public function testFailCreateRegExpConflictFixedBefore()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: "b"

@@ -9,19 +9,19 @@ class GrammarTest extends BaseTestCase
 {
     public function testCreateFailManyMainRules()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar("E: A \$; A: a; E: B \$; B: b");
     }
 
     public function testCreateFailNoMainRule()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar("A: A a; A: a");
     }
 
     public function testCreateFailNoTerminals()
     {
-        $this->setExpectedException(GrammarException::class);
+        $this->expectException(GrammarException::class);
         TextLoader::createGrammar("E: A \$; A: B; B: A");
     }
 }

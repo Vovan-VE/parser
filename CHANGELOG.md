@@ -5,6 +5,7 @@ LR(0) parser Change Log
 -----
 
 *   **BC break**:
+    *   Minimum PHP is 7.1 now.
     *   Deleted stuff which was deprecated before:
         *   class `\VovanVE\parser\LexerBuilder`;
         *   exception `\VovanVE\parser\actions\ActionAbortException`;

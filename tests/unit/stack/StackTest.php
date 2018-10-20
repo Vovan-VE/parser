@@ -30,6 +30,7 @@ V: int
 V: id
 _END
         );
+        $this->expectNotToPerformAssertions();
         return new Table($grammar);
     }
 
@@ -90,6 +91,7 @@ _END
      */
     public function testCreateStack($table)
     {
+        $this->expectNotToPerformAssertions();
         return new Stack($table);
     }
 

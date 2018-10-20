@@ -3,6 +3,7 @@ Migration guide
 
 ### to 2.0 from 1.x
 
+*   At least PHP 7.1 is required now.
 *   `\VovanVE\parser\lexer\Lexer` does not accept anonymous terminals,
     so use inlines directly.
 *   Deleted class `\VovanVE\parser\LexerBuilder`.
