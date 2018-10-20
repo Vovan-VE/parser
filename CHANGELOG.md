@@ -36,6 +36,12 @@ LR(0) parser Change Log
     *   Type hinting added to most of methods.
     *   Properties `$rows` and `$states` of `\VovanVE\parser\table\Table`
         became private, so use getters.
+    *   Property `$name` of `\VovanVE\parser\tree\NonTerminal`
+        became private, so use getters.
+    *   Property `$items` of `\VovanVE\parser\table\ItemSet`
+        became private, so use getters.
+    *   Properties `$passed` and `$further` of `\VovanVE\parser\table\Item`
+        became private, so use getters.
 
 1.7.0
 -----

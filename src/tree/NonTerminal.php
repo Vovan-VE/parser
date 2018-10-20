@@ -11,7 +11,7 @@ use VovanVE\parser\common\TreeNodeInterface;
 class NonTerminal extends BaseObject implements TreeNodeInterface
 {
     /** @var string Symbol name from the grammar */
-    public $name;
+    private $name;
     /** @var string|null Tag from corresponding grammar rule if one was defined */
     private $tag;
     /** @var TreeNodeInterface[] Children nodes */

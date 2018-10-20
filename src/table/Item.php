@@ -17,9 +17,9 @@ use VovanVE\parser\grammar\Rule;
 class Item extends BaseRule
 {
     /** @var Symbol[] Already passed symbols behind current position */
-    public $passed;
+    private $passed;
     /** @var Symbol[] Further symbols expected next to current position */
-    public $further;
+    private $further;
 
     /**
      * Compare two items
@@ -77,6 +77,16 @@ class Item extends BaseRule
     }
 
     /**
+     * Already passed symbols behind current position
+     * @return Symbol[]
+     * @since 2.0.0
+     */
+    public function getPassed(): array
+    {
+        return $this->passed;
+    }
+
+    /**
      * Get next expected Symbol if any
      * @return Symbol|null Next symbol expected after current position.
      * `null` when nothing more is expected.
@@ -84,6 +94,16 @@ class Item extends BaseRule
     public function getExpected(): ?Symbol
     {
         return ($this->further) ? $this->further[0] : null;
+    }
+
+    /**
+     * Whether item has further expected symbols
+     * @return bool
+     * @since 2.0.0
+     */
+    public function hasFurther(): bool
+    {
+        return (bool)$this->further;
     }
 
     /**

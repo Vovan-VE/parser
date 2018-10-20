@@ -52,7 +52,7 @@ _GRAMMAR
         $this->assertCount(1, $initial_items, 'initial items');
         $this->assertContainsOnlyInstancesOf(Item::class, $initial_items, 'initial items');
 
-        $items = $item_set->items;
+        $items = $item_set->getItems();
         $this->assertInternalType('array', $items, 'items');
         $this->assertCount(6, $items, 'items');
         $this->assertContainsOnlyInstancesOf(Item::class, $items, 'items');

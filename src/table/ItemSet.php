@@ -17,7 +17,7 @@ use VovanVE\parser\grammar\Rule;
 class ItemSet extends BaseObject
 {
     /** @var Item[] All Items in the set */
-    public $items;
+    private $items;
     /** @var Item[] Original Items which this set is initiated from */
     protected $initialItems;
 
@@ -96,6 +96,16 @@ class ItemSet extends BaseObject
     }
 
     /**
+     * All Items in the set
+     * @return Item[]
+     * @since 2.0.0
+     */
+    public function getItems(): array
+    {
+        return $this->items;
+    }
+
+    /**
      * Original Items which this set is initiated from
      * @return Item[]
      */
@@ -164,7 +174,7 @@ class ItemSet extends BaseObject
     public function hasFinalItem(): bool
     {
         foreach ($this->items as $item) {
-            if ($item->hasEofMark() && !$item->further) {
+            if ($item->hasEofMark() && !$item->hasFurther()) {
                 return true;
             }
         }
@@ -178,7 +188,7 @@ class ItemSet extends BaseObject
     public function getReduceRule(): ?Rule
     {
         foreach ($this->items as $item) {
-            if (!$item->further) {
+            if (!$item->hasFurther()) {
                 return $item->getAsRule();
             }
         }
