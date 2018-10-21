@@ -42,6 +42,10 @@ LR(0) parser Change Log
         became private, so use getters.
     *   Properties `$passed` and `$further` of `\VovanVE\parser\table\Item`
         became private, so use getters.
+*   Add: CLI tool to convert text grammar to array grammar:
+    ```sh
+    $ vendor/bin/grammar-text-to-array < grammar.txt > grammar.php
+    ```
 
 1.7.0
 -----

@@ -4,8 +4,50 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "69c48122860da78deeb053fa96015656",
-    "packages": [],
+    "content-hash": "94d6147c60e33dbb0589211a6a06781a",
+    "packages": [
+        {
+            "name": "vovan-ve/array-dumper",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Vovan-VE/array-dumper.git",
+                "reference": "63fe868a7539cdf020851dae7fe1248bd014a1ef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Vovan-VE/array-dumper/zipball/63fe868a7539cdf020851dae7fe1248bd014a1ef",
+                "reference": "63fe868a7539cdf020851dae7fe1248bd014a1ef",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "lib-pcre": "*",
+                "php": "^7.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "VovanVE\\array_dumper\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Vovan-VE",
+                    "email": "vovan-ve@yandex.ru"
+                }
+            ],
+            "description": "Dumper for constant arrays",
+            "time": "2018-10-21T12:04:34+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "doctrine/instantiator",
