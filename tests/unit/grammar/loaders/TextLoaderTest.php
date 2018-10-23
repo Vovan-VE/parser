@@ -87,6 +87,91 @@ _END
         TextLoader::createGrammar("E: A \$; some ! invalid rule");
     }
 
+    /**
+     * @param string $text
+     * @dataProvider dataProvider_FailEmpty
+     */
+    public function testCreateFailEmpty(string $text)
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar($text);
+    }
+
+    public function dataProvider_FailEmpty(): array
+    {
+        return [
+            [''],
+            ['#comment'],
+            [";#comment"],
+            [";;#comment"],
+            ["\n\n#comment"],
+            ["\n\n#comment"],
+            ["#comment\n"],
+            ["#comment\n\n"],
+            ["#comment\n\n;"],
+            ["#comment\n;"],
+            ["#comment\n;\n"],
+        ];
+    }
+
+    /**
+     * @param string $text
+     * @dataProvider dataProvider_comments
+     */
+    public function testComments(string $text)
+    {
+        $grammar = TextLoader::createGrammar($text);
+        $this->assertInstanceOf(Grammar::class, $grammar);
+    }
+
+    public function dataProvider_comments(): array
+    {
+        return [
+            [
+                <<<'_END'
+# comment1
+# comment2
+G: E $
+
+# comment3
+E: a
+
+# comment4
+
+E: b
+# comment5
+
+a: "x"
+# comment6
+b: "y"
+# comment7
+_END
+            ],
+            [
+                <<<'_END'
+
+# comment1
+# comment2
+G: E $
+
+# comment3
+E: a
+
+# comment4
+
+E: b
+# comment5
+
+a: "x"
+# comment6
+b: "y"
+# comment7
+
+_END
+            ],
+        ];
+    }
+
     public function testInlineSemicolon()
     {
         foreach (

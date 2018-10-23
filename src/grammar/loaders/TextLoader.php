@@ -1,14 +1,32 @@
 <?php
 namespace VovanVE\parser\grammar\loaders;
 
+use VovanVE\parser\actions\AbortNodeException;
+use VovanVE\parser\actions\ActionsMadeMap;
+use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Symbol;
+use VovanVE\parser\errors\AbortedException;
+use VovanVE\parser\errors\UnexpectedInputAfterEndException;
+use VovanVE\parser\errors\UnexpectedTokenException;
+use VovanVE\parser\errors\UnknownCharacterException;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\grammar\GrammarException;
 use VovanVE\parser\grammar\Rule;
+use VovanVE\parser\lexer\Lexer;
+use VovanVE\parser\Parser;
 
 /**
  * Class TextLoader
+ *
+ * > **Notice:** since 2.0.0 the text grammar is designed for dev purpose.
+ * > You need to convert it to array or JSON grammar for production purpose.
+ * > The reason is performance. Text grammar loader uses the whole parse itself
+ * > (1 level depth recursion). So, when you use array or JSON grammar, you
+ * > skip that recursion completely.
+ * >
+ * > Use CLI tools from the package to convert your text grammar to array of
+ * > JSON grammar.
  *
  * Grammar object can be easily created with plain text like so:
  *
@@ -77,388 +95,330 @@ use VovanVE\parser\grammar\Rule;
  *
  * @package VovanVE\parser
  * @since 1.7.0
+ * @see ./grammar-text.txt The grammar of text grammar
  */
-class TextLoader
+class TextLoader extends BaseObject
 {
-    // REFACT: const expression: extract and reuse defines
-
-    private const RE_RULE_LINE = <<<'_REGEXP'
-~
-    \G
-    \h*+
-    (?<rule>
-        (?: [^\v;"'<>/]++
-        |   " [^\v"]*+   (?: " | $ )
-        |   ' [^\v']*+   (?: ' | $ )
-        |   < [^\v<>]*+  (?: > | $ )
-        |   /
-            (?: [^\v/\\]++
-            |   \\ [^\v]
-            )*+
-            \\?+
-            (?: / | $ )
-        )*+
-    )
-    (?= $ | [\v;])
-    [\v;]*+
-    (?<eof> $ )?
-~xD
-_REGEXP;
-
-    private const RE_INPUT_RULE = <<<'_REGEXP'
-/
-    (?(DEFINE)
-        (?<name> [a-z][a-z_0-9]*+ )
-    )
-    ^
-    (?<subj> (?&name) )
-    \s*+
-    (?:
-        \(
-        \s*+
-        (?<tag> (?&name) )
-        \s*+
-        \)
-        \s*+
-    )?
-    :
-    \s*+
-    (?<def>
-        (?: [^$]++
-        |   \$ (?! \s*+ $ )
-        )++
-    )
-    (?<eof> \$ )?
-    $
-/xi
-_REGEXP;
-
-    private const RE_RULE_DEF_ITEM = <<<'_REGEXP'
-/
-    \G
-    \s*+
-    (?:
-        (?: (?<word> \.? [a-z][a-z_0-9]*+  )
-        |
-            (?<q> " [^"]+ "
-            |     ' [^']+ '
-            |     < [^<>]+ >
-            )
-        )
-        \s*+
-    |
-        (?<end> $ )
-    )
-/xi
-_REGEXP;
-
-    private const RE_RULE_DEF_REGEXP = '~
-        ^
-        /
-        (?<re>
-            (?:
-                [^/\\\\]++
-            |
-                \\\\.
-            )*+
-        )
-        (?<closed> / )?+
-        (?<end> $ )?
-    ~x';
-
     /**
      * Create grammar object from a text
      *
      * See class description for details.
+     *
+     * > **Notice:** Since 2.0.0 each call to this method will create Parse+Grammar internally
+     * > to parse your text grammar. No optimisation is here since text grammar is
+     * > for dev purpose only. So, if you are going to load a set of text grammars,
+     * > you are recommended to use an instance object of this class instead,
+     * > so the only one nested Parser+Grammar will be created.
      * @param string $text Grammar definition text
      * @return Grammar Grammar object
      * @throws GrammarException Errors in grammar syntax or logic
      */
     public static function createGrammar(string $text): Grammar
     {
-        $rules_strings = self::splitIntoRules($text);
+        return (new self)->loadGrammar($text);
+    }
 
-        $inlines = [];
-        $rules = [];
+    /** @var Parser A parser to parse text grammar */
+    private $parser;
+    /** @var ActionsMadeMap Actions to load text grammar into rules */
+    private $actions;
+    /** @var Symbol[][] Symbols registry filling while parsing a grammar */
+    private $symbols;
+    /** @var string[] Map of inline tokens filling while parsing a grammar */
+    private $inline;
+    /** @var string[] RegExp tokens map filling while parsing a grammar */
+    private $regexpMap;
 
-        $inline_ref_count = [];
-        /** @var Rule[] $inline_ref_rule */
-        $inline_ref_rule = [];
-        $subject_rules_count = [];
+    /**
+     * TextLoader constructor.
+     * @since 2.0.0
+     */
+    public function __construct()
+    {
+        // Hey dude, I heard you like Parser. I add a parser into grammar loader,
+        // so you will load grammar while you will load grammar.
 
-        /** @var Symbol[][] $symbols */
-        $symbols = [];
-        $get_symbol = function (string $name, bool $isInline = false) use (&$symbols, &$inlines): Symbol {
-            if ($isInline) {
-                if (!isset($inlines[$name]) && isset($symbols[$name])) {
-                    throw new GrammarException(
-                        "Inline '$name' conflicts with token <$name> defined previously"
+        $this->parser = new Parser(
+            (new Lexer)->whitespaces(['\\h+']),
+            ArrayLoader::createGrammar(require __DIR__ . '/grammar-text.php')
+        );
+
+        $this->actions = new ActionsMadeMap([
+            'Definitions(first)' => function (?Rule $rule, array $list): array {
+                if (!$rule) {
+                    return $list;
+                }
+                $new = $list;
+                array_unshift($new, $rule);
+                return $new;
+            },
+            'Definitions(only)' => $init_list_not_null = function (?Rule $rule): array {
+                return $rule ? [$rule] : [];
+            },
+            'Definitions' => Parser::ACTION_BUBBLE_THE_ONLY,
+
+            'DefinitionsContinue(list)' => function (array $list, ?Rule $rule): array {
+                if (!$rule) {
+                    return $list;
+                }
+                $new = $list;
+                $new[] = $rule;
+                return $new;
+            },
+            'DefinitionsContinue(first)' => $init_list_not_null,
+
+            'NextDefinition' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'NextDefinition(empty)' => function (): ?Rule {
+                return null;
+            },
+
+            'DefinitionOrComment' => Parser::ACTION_BUBBLE_THE_ONLY,
+            'DefinitionOrComment(empty)' => function () {
+                return null;
+            },
+
+            'Definition' => Parser::ACTION_BUBBLE_THE_ONLY,
+
+            'Rule' => function (array $subject, $definition): ?Rule {
+                /** @var string $name */
+                /** @var string|null $tag */
+                [$name, $tag] = $subject;
+
+                if ($definition instanceof \stdClass) {
+                    if (isset($definition->regexp)) {
+                        if (null !== $tag) {
+                            throw new AbortNodeException(
+                                'Conflict',
+                                1,
+                                new GrammarException("Rule tag cannot be used in RegExp rules")
+                            );
+                        }
+
+                        if (isset($this->regexpMap[$name])) {
+                            throw new AbortNodeException(
+                                'Conflict',
+                                1,
+                                new GrammarException("Duplicate RegExp rule for symbol `$name`")
+                            );
+                        }
+
+                        $this->wantSymbol($name);
+                        $this->regexpMap[$name] = $definition->regexp;
+                        return null;
+                    }
+
+                    throw new AbortNodeException(
+                        'Conflict',
+                        1,
+                        new InternalException('stdClass with unknown fields')
                     );
                 }
-                $inlines[$name] = $name;
-                $plain_name = $name;
-                $is_hidden = true;
-            } else {
-                $is_hidden = '.' === $name[0];
-                $plain_name = $is_hidden
-                    ? substr($name, 1)
-                    : $name;
 
-                if (isset($inlines[$plain_name])) {
+                /** @var Symbol[] $symbols */
+                /** @var bool $eof */
+                [$symbols, $eof] = $definition;
+
+                $subject_symbol = $this->wantSymbol($name);
+                $subject_symbol->setIsTerminal(false);
+                return new Rule($subject_symbol, $symbols, $eof, $tag);
+            },
+
+            'RuleSubjectTagged(tag)' => function (string $name, string $tag): array {
+                return [$name, $tag];
+            },
+            'RuleSubjectTagged' => function (string $name): array {
+                return [$name, null];
+            },
+
+            'RuleDefinition(regexp)' => function (string $regexp) {
+                return (object)['regexp' => $regexp];
+            },
+            'RuleDefinition(main)' => function (array $symbols): array {
+                return [$symbols, true];
+            },
+            'RuleDefinition' => function (array $symbols): array {
+                return [$symbols, false];
+            },
+
+            'Symbols(list)' => function (array $list, $item): array {
+                $new = $list;
+                $new[] = $item;
+                return $new;
+            },
+            'Symbols(first)' => function ($item): array {
+                return [$item];
+            },
+
+            'Symbol(hidden)' => function (string $name): Symbol {
+                try {
+                    return $this->wantSymbol($name, true);
+                } catch (GrammarException $e) {
+                    throw new AbortNodeException('Symbol conflict', 1, $e);
+                }
+            },
+            'Symbol(normal)' => function (string $name): Symbol {
+                try {
+                    return $this->wantSymbol($name, false);
+                } catch (GrammarException $e) {
+                    throw new AbortNodeException('Symbol conflict', 1, $e);
+                }
+            },
+            'Symbol(string)' => function (string $string): Symbol {
+                try {
+                    return $this->wantSymbol($string, true, true);
+                } catch (GrammarException $e) {
+                    throw new AbortNodeException('Symbol conflict', 1, $e);
+                }
+            },
+
+            'String' => Parser::ACTION_BUBBLE_THE_ONLY,
+
+            'qstring' => $unquote = function (string $content): string {
+                return substr($content, 1, -1);
+            },
+            'qqstring' => $unquote,
+            'angle_string' => $unquote,
+            'regexp' => $unquote,
+            'name' => 'strval'
+        ]);
+    }
+
+    /**
+     * Create a Grammar object from text grammar source
+     * @param string $text Grammar text
+     * @return Grammar
+     * @since 2.0.0
+     */
+    public function loadGrammar(string $text): Grammar
+    {
+        $this->symbols = [];
+        $this->inline = [];
+        $this->regexpMap = [];
+
+        try {
+            /** @var Rule[] $rules */
+            $rules = $this->parser->parse($text, $this->actions)->made();
+
+            /** @var int[] $subject_rules_count */
+            $subject_rules_count = [];
+            /** @var int[] $inline_ref_count */
+            $inline_ref_count = [];
+            /** @var Rule[] $inline_ref_rule */
+            $inline_ref_rule = [];
+
+            foreach ($rules as $rule) {
+                $subject_name = $rule->getSubject()->getName();
+
+                // RegExp tokens cannot be non-terminals in the same time
+                // since there is no anonymous RegExp terminals
+                if (isset($this->regexpMap[$subject_name])) {
                     throw new GrammarException(
-                        "Token <$plain_name> conflicts with inline '$plain_name' defined previously"
+                        "Symbol `$subject_name` defined as non-terminal and as regexp terminal in the same time"
                     );
+                }
+
+                $subject_rules_count[$subject_name] = ($subject_rules_count[$subject_name] ?? 0) + 1;
+
+                // sync hidden non-terminal symbols
+                if (isset($this->symbols[$subject_name][true])) {
+                    $this->symbols[$subject_name][true]->setIsTerminal(false);
+                }
+
+                foreach ($rule->getDefinition() as $symbol) {
+                    $name = $symbol->getName();
+                    if (isset($this->inline[$name])) {
+                        $inline_ref_count[$name] = ($inline_ref_count[$name] ?? 0) + 1;
+
+                        // it is needed in case of the only reference,
+                        // so array of an subject is not needed
+                        $inline_ref_rule[$name] = $rule;
+                    }
                 }
             }
 
-            return $symbols[$plain_name][$is_hidden]
-                ?? ($symbols[$plain_name][$is_hidden] = new Symbol($plain_name, true, $is_hidden));
-        };
-
-        $non_terminals_names = [];
-        $regexp_map = [];
-
-        foreach ($rules_strings as $rule_string) {
-            if ('' === $rule_string) {
-                continue;
-            }
-
-            try {
-                if (!preg_match(self::RE_INPUT_RULE, $rule_string, $match)) {
-                    throw new GrammarException("Invalid rule format");
-                }
-
-                $subject_name = $match['subj'];
-
-                /** @var Symbol $subject */
-
-                $regexp_definition = self::matchRegexpDefinition($match['def']);
-                if (null !== $regexp_definition) {
-                    if (isset($match['tag']) && '' !== $match['tag']) {
-                        throw new GrammarException("Rule tag cannot be used in RegExp rules");
-                    }
-
-                    if (isset($regexp_map[$subject_name])) {
-                        throw new GrammarException("Duplicate RegExp rule for symbol `$subject_name`");
-                    }
-
-                    $get_symbol($subject_name);
-                    $regexp_map[$subject_name] = $regexp_definition;
+            // Convert non-terminals defined only once with inline tokens
+            // `Subject: "inline"`
+            // into fixed terminals
+            $fixed = [];
+            foreach ($inline_ref_count as $inline_token => $ref_count) {
+                if (1 !== $ref_count) {
                     continue;
                 }
 
-                $subject = $get_symbol($subject_name);
-                $subject->setIsTerminal(false);
-                $non_terminals_names[$subject->getName()] = true;
-
-                $rule_inlines = [];
-                $definition_list = self::parseDefinitionItems($match['def'], $rule_inlines);
-
-                $definition = [];
-                foreach ($definition_list as $definition_item) {
-                    $definition[] = $get_symbol(
-                        $definition_item,
-                        isset($rule_inlines[$definition_item])
-                    );
-                }
-
-                $eof = !empty($match['eof']);
-            } catch (GrammarException $e) {
-                throw new GrammarException($e->getMessage() . " - rule '$rule_string'");
-            }
-
-            $rule = new Rule(
-                $subject,
-                $definition,
-                $eof,
-                isset($match['tag']) ? $match['tag'] : null
-            );
-            $rules[] = $rule;
-
-            $subject_rules_count[$subject_name] = ($subject_rules_count[$subject_name] ?? 0) + 1;
-
-            foreach ($rule_inlines as $inline_token) {
-                $inline_ref_count[$inline_token] = ($inline_ref_count[$inline_token] ?? 0) + 1;
-
-                // it is needed in case of the only reference,
-                // so array of an subject is not needed
-                $inline_ref_rule[$inline_token] = $rule;
-            }
-        }
-
-        // Hidden symbols all are terminals still
-        foreach ($non_terminals_names as $name => $_) {
-            if (isset($symbols[$name][true])) {
-                $symbols[$name][true]->setIsTerminal(false);
-            }
-        }
-
-        // RegExp tokens cannot be non-terminals in the same time
-        // since there is no anonymous RegExp terminals
-        foreach (array_intersect_key($regexp_map, $non_terminals_names) as $name => $_) {
-            throw new GrammarException(
-                "Symbol `$name` defined as non-terminal and as regexp terminal in the same time"
-            );
-        }
-
-        // Convert non-terminals defined only once with inline tokens
-        // `Subject: "inline"`
-        // into fixed terminals
-        $fixed = [];
-        foreach ($inline_ref_count as $inline_token => $ref_count) {
-            if (1 === $ref_count) {
                 $rule = $inline_ref_rule[$inline_token];
-                if (1 === count($rule->getDefinition()) && null === $rule->getTag()) {
+                if (null === $rule->getTag() && 1 === count($rule->getDefinition())) {
                     $subject = $rule->getSubject();
                     $name = $subject->getName();
 
-                    if (1 === $subject_rules_count[$name]) {
-                        // remove rule
-                        $key = array_search($rule, $rules, true);
-                        if (false !== $key) {
-                            unset($rules[$key]);
-                        }
-
-                        // remove inline
-                        unset($inlines[$inline_token]);
-
-                        // make terminal
-                        $subject->setIsTerminal(true);
-                        if (isset($symbols[$name][true])) {
-                            $symbols[$name][true]->setIsTerminal(true);
-                        }
-
-                        $fixed[$name] = $inline_token;
+                    if (1 !== $subject_rules_count[$name]) {
+                        continue;
                     }
+
+                    // remove rule
+                    $key = array_search($rule, $rules, true);
+                    if (false !== $key) {
+                        unset($rules[$key]);
+                    }
+
+                    // remove inline
+                    unset($this->inline[$inline_token]);
+
+                    // make terminal
+                    $subject->setIsTerminal(true);
+                    if (isset($this->symbols[$name][true])) {
+                        $this->symbols[$name][true]->setIsTerminal(true);
+                    }
+
+                    $fixed[$name] = $inline_token;
                 }
             }
-        }
 
-        return new Grammar($rules, $inlines, $fixed, $regexp_map);
+            return new Grammar($rules, $this->inline, $fixed, $this->regexpMap);
+        } catch (UnknownCharacterException | UnexpectedInputAfterEndException | UnexpectedTokenException $e) {
+            throw new GrammarException(
+                'Cannot parse grammar: ' . $e->getMessage() . ' at offset ' . $e->getOffset(),
+                0,
+                $e
+            );
+        } catch (AbortedException $e) {
+            for (; $e; $e = $e->getPrevious()) {
+                if ($e instanceof GrammarException || $e instanceof InternalException) {
+                    throw $e;
+                }
+            }
+        } finally {
+            $this->symbols = null;
+            $this->inline = null;
+            $this->regexpMap = null;
+        }
     }
 
     /**
-     * @param string $grammarText
-     * @return string[]
+     * Register a Symbol
+     * @param string $name Symbol name
+     * @param bool $isHidden Whether the hidden symbol is needed
+     * @param bool $isInline Whether the symbol is inline string
+     * @return Symbol
      */
-    private static function splitIntoRules(string $grammarText): array
+    private function wantSymbol(string $name, bool $isHidden = false, bool $isInline = false): Symbol
     {
-        if (false === preg_match_all(self::RE_RULE_LINE, $grammarText, $matches, PREG_SET_ORDER)) {
-            throw new InternalException('PCRE error', preg_last_error());
-        }
-
-        if (!$matches) {
-            throw new GrammarException('Cannot parse grammar text near start');
-        }
-
-        $last_match = $matches[count($matches) - 1];
-
-        $rules = array_column($matches, 'rule');
-        $rules = preg_replace('/^\\s+|\\s+$/u', '', $rules);
-        $rules = array_filter($rules, 'strlen');
-
-        if (!isset($last_match['eof'])) {
-            if ($rules) {
+        if ($isInline) {
+            if (!isset($this->inline[$name]) && isset($this->symbols[$name])) {
                 throw new GrammarException(
-                    "Cannot parse grammar after rule `{$rules[count($rules) - 1]}`"
+                    "Inline '$name' conflicts with token <$name> defined previously"
                 );
             }
-            throw new GrammarException('Could not parse grammar after some empty start');
-        }
-        return $rules;
-    }
-
-    /**
-     * Parse rule definition body into tokens as strings
-     * @param string $input Input string with rule definition body
-     * @param array $inlines Variable to store values of inline tokens. Key are same as values
-     * @return string[] List of tokens strings
-     */
-    private static function parseDefinitionItems(string $input, array &$inlines): array
-    {
-        if (!preg_match_all(self::RE_RULE_DEF_ITEM, $input, $matches, PREG_SET_ORDER)) {
-            throw new GrammarException("Invalid rule definition");
-        }
-
-        $last_match = array_pop($matches);
-        if (!isset($last_match['end'])) {
-            throw new GrammarException("Invalid rule definition");
-        }
-
-        $items = [];
-        foreach ($matches as $match) {
-            if (isset($match['q'])) {
-                $inline = substr($match['q'], 1, -1);
-                if (!isset($inlines[$inline]) && in_array($inline, $items, true)) {
-                    throw new GrammarException(
-                        "Inline token {$match['q']} conflicts with token <$inline>"
-                    );
-                }
-
-                $items[] = $inline;
-                $inlines[$inline] = $inline;
-            } elseif (isset($match['word'])) {
-                $word = $match['word'];
-                $items[] = $word;
-
-                $name = ltrim($word, '.');
-                if (isset($inlines[$name])) {
-                    throw new GrammarException(
-                        "Token <$word> conflicts with inline token '$name'"
-                    );
-                }
-            } else {
-                throw new InternalException('Unexpected item match');
+            $this->inline[$name] = $name;
+            $isHidden = true;
+        } else {
+            if (isset($this->inline[$name])) {
+                throw new GrammarException(
+                    "Token <$name> conflicts with inline '$name' defined previously"
+                );
             }
         }
 
-        return $items;
-    }
-
-    /**
-     * Try to parse rule definition as RegExp rule
-     *
-     * RegExp rule must to consist of a RegExp only: `/.../`.
-     *
-     * If input definition does not begin with delimiter `/`,
-     * parsing is successfully discarded with returning `null`.
-     *
-     * Otherwise parsed RegExp given between delimiters will
-     * be returned is it parsed successfully. In case of error
-     * an `GrammarException` will be thrown.
-     *
-     * > Note: RegExp body itself will not be checked or parsed
-     * > in details.
-     *
-     * > Note: Escaped slash `\/` (`'\\/'` in string literal) **can** be used.
-     * @param string $input Input rule body from grammar text
-     * @return string|null RegExp body without delimiters. `null` will be returned
-     * when input definition does not begin with RegExp delimiter `/`.
-     * @throws GrammarException RegExp syntax is started with delimiter but then comes an error.
-     */
-    private static function matchRegexpDefinition(string $input): ?string
-    {
-        if (!preg_match(self::RE_RULE_DEF_REGEXP, $input, $match)) {
-            // self failure check
-            if ('' !== $input && '/' === $input[0]) {
-                throw new InternalException('RegExp definition start `/...` did not match');
-            }
-
-            return null;
-        }
-
-        if (!isset($match['closed']) || '' === $match['closed']) {
-            throw new GrammarException('RegExp definition is not terminated with final delimiter');
-        }
-        if (!isset($match['end'])) {
-            throw new GrammarException('RegExp definition must be the only in a rule');
-        }
-
-        $regexp_part = $match['re'];
-        if ('' === $regexp_part) {
-            throw new GrammarException('Empty RegExp definition');
-        }
-
-        return $regexp_part;
+        return $this->symbols[$name][$isHidden]
+            ?? ($this->symbols[$name][$isHidden] = new Symbol($name, true, $isHidden));
     }
 }

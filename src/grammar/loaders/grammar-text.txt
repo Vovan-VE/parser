@@ -1,0 +1,44 @@
+Goal    : Definitions $
+
+Definitions(first)  : DefinitionOrComment DefinitionsContinue
+Definitions(only)   : DefinitionOrComment
+Definitions         : DefinitionsContinue
+
+DefinitionsContinue(list)   : DefinitionsContinue NextDefinition
+DefinitionsContinue(first)  : NextDefinition
+
+NextDefinition          : .separator DefinitionOrComment
+NextDefinition(empty)   : .separator
+
+DefinitionOrComment         : Definition
+DefinitionOrComment(empty)  : .comment
+
+Definition  : Rule
+
+Rule    : RuleSubjectTagged ":" RuleDefinition
+
+RuleSubjectTagged(tag)  : name "(" name ")"
+RuleSubjectTagged       : name
+
+RuleDefinition(regexp)  : regexp
+RuleDefinition(main)    : Symbols "$"
+RuleDefinition          : Symbols
+
+Symbols(list)   : Symbols Symbol
+Symbols(first)  : Symbol
+
+Symbol(hidden)  : "." name
+Symbol(normal)  : name
+Symbol(string)  : String
+
+String  : qstring
+String  : qqstring
+String  : angle_string
+
+comment     : /#[^\v]++/
+separator   : /(?:;|\R)++/
+qstring     : /'[^'\v]*'/
+qqstring    : /"[^"\v]*"/
+angle_string: /<[^<>\v]*>/
+regexp      : /\/(?:[^\v\/\\]++|\\[^\v])++\//
+name        : /(?i)[a-z][a-z_0-9]*+/

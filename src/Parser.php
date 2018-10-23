@@ -161,7 +161,7 @@ class Parser extends BaseObject
             }
             DONE:
         } catch (AbortParsingException $e) {
-            throw new AbortedException($e->getMessage(), $e->getOffset());
+            throw new AbortedException($e->getMessage(), $e->getOffset(), $e->getPrevious());
         } catch (NoReduceException $e) {
             // This unexpected reduce (no rule to reduce) may happen only
             // when current terminal is not expected. So, some terminals

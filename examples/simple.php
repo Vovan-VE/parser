@@ -1,5 +1,4 @@
 <?php
-/* @formatter:off */
 
 use VovanVE\parser\grammar\loaders\TextLoader;
 use VovanVE\parser\lexer\Lexer;

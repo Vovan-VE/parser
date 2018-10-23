@@ -4,6 +4,11 @@ LR(0) parser Change Log
 2.0.0 (dev)
 -----
 
+**Important change:** Text grammar now is for dev purpose by design. When your
+text grammar is ready, you need to generate an array or JSON grammar for
+production purpose with CLI tool. Text grammar loader uses Parser+Grammar
+internally.
+
 *   **BC break**:
     *   Minimum PHP is 7.1 now.
     *   Deleted stuff which was deprecated before:
@@ -42,6 +47,8 @@ LR(0) parser Change Log
         became private, so use getters.
     *   Properties `$passed` and `$further` of `\VovanVE\parser\table\Item`
         became private, so use getters.
+*   Add: Text grammar now can have line comments: `# comment` at whole line
+    ignoring leading whitespaces.
 *   Add: CLI tool to convert text grammar to array grammar:
     ```sh
     $ vendor/bin/grammar-text-to-array < grammar.txt > grammar.php

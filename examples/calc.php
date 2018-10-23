@@ -1,5 +1,4 @@
 <?php
-/* @formatter:off */
 
 use VovanVE\parser\actions\ActionsMadeMap;
 use VovanVE\parser\grammar\loaders\TextLoader;

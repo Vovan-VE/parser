@@ -3,6 +3,11 @@ Migration guide
 
 ### to 2.0 from 1.x
 
+Text grammar now is for dev purpose by design. When your text grammar
+is ready, you need to generate an array or JSON grammar for production
+purpose with CLI tool. Text grammar loader uses Parser+Grammar
+internally.
+
 *   At least PHP 7.1 is required now.
 *   `\VovanVE\parser\lexer\Lexer` does not accept anonymous terminals,
     so use inlines directly.
