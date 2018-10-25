@@ -66,7 +66,15 @@ return [
         ],
         [
             'name' => 'Definition',
+            'definition' => ['Define'],
+        ],
+        [
+            'name' => 'Definition',
             'definition' => ['Rule'],
+        ],
+        [
+            'name' => 'Define',
+            'definition' => ['&', 'name', ':', 'regexp'],
         ],
         [
             'name' => 'Rule',
@@ -135,6 +143,7 @@ return [
     ],
     'terminals' => [
         '$',
+        '&',
         '(',
         ')',
         '.',

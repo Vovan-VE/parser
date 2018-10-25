@@ -128,6 +128,8 @@ class TextLoader extends BaseObject
     private $inline;
     /** @var string[] RegExp tokens map filling while parsing a grammar */
     private $regexpMap;
+    /** @var string[] RegExp map for DEFINEs */
+    private $defines;
 
     /**
      * TextLoader constructor.
@@ -178,6 +180,26 @@ class TextLoader extends BaseObject
             },
 
             'Definition' => Parser::ACTION_BUBBLE_THE_ONLY,
+
+            'Define' => function (string $name, string $regexp) {
+                if (isset($this->defines[$name])) {
+                    throw new AbortNodeException(
+                        'Conflict',
+                        1,
+                        new GrammarException("Duplicating DEFINE `$name`")
+                    );
+                }
+                if (isset($this->symbols[$name])) {
+                    throw new AbortNodeException(
+                        'Conflict',
+                        1,
+                        new GrammarException("DEFINE `$name` overlaps with a symbol")
+                    );
+                }
+
+                $this->defines[$name] = $regexp;
+                return null;
+            },
 
             'Rule' => function (array $subject, $definition): ?Rule {
                 /** @var string $name */
@@ -294,6 +316,7 @@ class TextLoader extends BaseObject
         $this->symbols = [];
         $this->inline = [];
         $this->regexpMap = [];
+        $this->defines = [];
 
         try {
             /** @var Rule[] $rules */
@@ -373,7 +396,14 @@ class TextLoader extends BaseObject
                 }
             }
 
-            return new Grammar($rules, $this->inline, $fixed, $this->regexpMap);
+            return new Grammar(
+                $rules,
+                $this->inline,
+                $fixed,
+                $this->regexpMap,
+                [],
+                $this->defines
+            );
         } catch (UnknownCharacterException | UnexpectedInputAfterEndException | UnexpectedTokenException $e) {
             throw new GrammarException(
                 'Cannot parse grammar: ' . $e->getMessage() . ' at offset ' . $e->getOffset(),
@@ -381,15 +411,17 @@ class TextLoader extends BaseObject
                 $e
             );
         } catch (AbortedException $e) {
-            for (; $e; $e = $e->getPrevious()) {
-                if ($e instanceof GrammarException || $e instanceof InternalException) {
-                    throw $e;
+            for ($inner = $e; $inner; $inner = $inner->getPrevious()) {
+                if ($inner instanceof GrammarException || $inner instanceof InternalException) {
+                    throw $inner;
                 }
             }
+            throw new InternalException('Failure while parsing your grammar text', 0, $e);
         } finally {
             $this->symbols = null;
             $this->inline = null;
             $this->regexpMap = null;
+            $this->defines = null;
         }
     }
 
@@ -399,6 +431,7 @@ class TextLoader extends BaseObject
      * @param bool $isHidden Whether the hidden symbol is needed
      * @param bool $isInline Whether the symbol is inline string
      * @return Symbol
+     * @throws GrammarException
      */
     private function wantSymbol(string $name, bool $isHidden = false, bool $isInline = false): Symbol
     {
@@ -408,6 +441,10 @@ class TextLoader extends BaseObject
                     "Inline '$name' conflicts with token <$name> defined previously"
                 );
             }
+            if (isset($this->defines[$name])) {
+                throw new GrammarException("Inline '$name' conflicts with DEFINE");
+            }
+
             $this->inline[$name] = $name;
             $isHidden = true;
         } else {
@@ -415,6 +452,9 @@ class TextLoader extends BaseObject
                 throw new GrammarException(
                     "Token <$name> conflicts with inline '$name' defined previously"
                 );
+            }
+            if (isset($this->defines[$name])) {
+                throw new GrammarException("Token <$name> conflicts with DEFINE");
             }
         }
 

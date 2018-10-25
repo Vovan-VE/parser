@@ -13,7 +13,10 @@ NextDefinition(empty)   : .separator
 DefinitionOrComment         : Definition
 DefinitionOrComment(empty)  : .comment
 
+Definition  : Define
 Definition  : Rule
+
+Define  : "&" name ":" regexp
 
 Rule    : RuleSubjectTagged ":" RuleDefinition
 

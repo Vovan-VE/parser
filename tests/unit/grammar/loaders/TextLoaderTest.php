@@ -618,4 +618,63 @@ _END
 _END
         );
     }
+
+    public function testCreateWithDefines()
+    {
+        $grammar = TextLoader::createGrammar(<<<'_END'
+            G  : a $
+            a  : /(?&b)/
+            &b : /[a-z]+/
+_END
+        );
+        $this->assertEquals(['b' => '[a-z]+'], $grammar->getDefines());
+        $this->assertEquals(['a' => '(?&b)'], $grammar->getRegExpMap());
+        $this->assertCount(1, $grammar->getRules());
+    }
+
+    public function testFailCreateDefinesConflictSymbolToken()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            G : a $
+            a : "b"
+            &a: /a+/
+_END
+        );
+    }
+
+    public function testFailCreateDefinesConflictSymbolNonTerminal()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            G : a $
+            a : "b"
+            a : "c"
+            &a: /a+/
+_END
+        );
+    }
+
+    public function testFailCreateSymbolTokenConflictDefines()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            &a: /a+/
+            G : a $
+            a : "b"
+_END
+        );
+    }
+
+    public function testFailCreateSymbolNonTerminalConflictDefines()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            &a: /a+/
+            G : a $
+            a : "b"
+            a : "c"
+_END
+        );
+    }
 }
