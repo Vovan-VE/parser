@@ -118,6 +118,9 @@ class TextLoader extends BaseObject
         return (new self)->loadGrammar($text);
     }
 
+    private const OPT_TYPE_STRING = 'string';
+    private const OPT_TYPE_REGEXP = 'regexp';
+
     /** @var Parser A parser to parse text grammar */
     private $parser;
     /** @var ActionsMadeMap Actions to load text grammar into rules */
@@ -130,6 +133,10 @@ class TextLoader extends BaseObject
     private $regexpMap;
     /** @var string[] RegExp map for DEFINEs */
     private $defines;
+    /** @var string[] RegExp list for whitespaces */
+    private $whitespaces;
+    /** @var string */
+    private $modifiers;
 
     /**
      * TextLoader constructor.
@@ -199,6 +206,26 @@ class TextLoader extends BaseObject
 
                 $this->defines[$name] = $regexp;
                 return null;
+            },
+
+            'Option' => function (string $name, array $data) {
+                /** @var string $type */
+                /** @var string $value */
+                [$type, $value] = $data;
+
+                try {
+                    $this->addOption($name, $type, $value);
+                } catch (GrammarException $e) {
+                    throw new AbortNodeException('Invalid option', 1, $e);
+                }
+
+                return null;
+            },
+            'OptionValue(str)' => function (string $string): array {
+                return [self::OPT_TYPE_STRING, $string];
+            },
+            'OptionValue(re)' => function (string $regexp): array {
+                return [self::OPT_TYPE_REGEXP, $regexp];
             },
 
             'Rule' => function (array $subject, $definition): ?Rule {
@@ -317,6 +344,8 @@ class TextLoader extends BaseObject
         $this->inline = [];
         $this->regexpMap = [];
         $this->defines = [];
+        $this->whitespaces = [];
+        $this->modifiers = null;
 
         try {
             /** @var Rule[] $rules */
@@ -401,8 +430,9 @@ class TextLoader extends BaseObject
                 $this->inline,
                 $fixed,
                 $this->regexpMap,
-                [],
-                $this->defines
+                $this->whitespaces,
+                $this->defines,
+                $this->modifiers ?? ''
             );
         } catch (UnknownCharacterException | UnexpectedInputAfterEndException | UnexpectedTokenException $e) {
             throw new GrammarException(
@@ -422,6 +452,8 @@ class TextLoader extends BaseObject
             $this->inline = null;
             $this->regexpMap = null;
             $this->defines = null;
+            $this->whitespaces = null;
+            $this->modifiers = null;
         }
     }
 
@@ -460,5 +492,38 @@ class TextLoader extends BaseObject
 
         return $this->symbols[$name][$isHidden]
             ?? ($this->symbols[$name][$isHidden] = new Symbol($name, true, $isHidden));
+    }
+
+    /**
+     * @param string $name
+     * @param string $type
+     * @param string $value
+     * @throws GrammarException
+     */
+    private function addOption(string $name, string $type, string $value): void
+    {
+        switch ($name) {
+            case 'ws':
+                if (self::OPT_TYPE_REGEXP !== $type) {
+                    throw new GrammarException("Option `-$name` requires a regexp");
+                }
+
+                $this->whitespaces[] = $value;
+                return;
+
+            case 'mod':
+                if (self::OPT_TYPE_STRING !== $type) {
+                    throw new GrammarException("Option `-$name` requires a string");
+                }
+                if (null !== $this->modifiers) {
+                    throw new GrammarException("Option `-$name` can be used only once");
+                }
+
+                $this->modifiers = $value;
+                return;
+
+            default:
+                throw new GrammarException("Unknown option `-$name`");
+        }
     }
 }

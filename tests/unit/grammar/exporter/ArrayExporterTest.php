@@ -51,6 +51,9 @@ class ArrayExporterTest extends BaseTestCase
                     a      : "y"
                     b      : /(?&int)/
                     &int   : /\d+/
+                    -ws    : /\s+/
+                    -ws    : /#.*/
+                    -mod   : 'iu'
 _END
                 ),
                 [
@@ -100,6 +103,11 @@ _END
                     'defines' => [
                         'int' => '\\d+'
                     ],
+                    'whitespaces' => [
+                        '\\s+',
+                        '#.*',
+                    ],
+                    'modifiers' => 'iu',
                 ]
             ],
         ];

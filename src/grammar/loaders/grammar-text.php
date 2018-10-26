@@ -70,11 +70,29 @@ return [
         ],
         [
             'name' => 'Definition',
+            'definition' => ['Option'],
+        ],
+        [
+            'name' => 'Definition',
             'definition' => ['Rule'],
         ],
         [
             'name' => 'Define',
             'definition' => ['&', 'name', ':', 'regexp'],
+        ],
+        [
+            'name' => 'Option',
+            'definition' => ['-', 'name', ':', 'OptionValue'],
+        ],
+        [
+            'name' => 'OptionValue',
+            'tag' => 'str',
+            'definition' => ['String'],
+        ],
+        [
+            'name' => 'OptionValue',
+            'tag' => 're',
+            'definition' => ['regexp'],
         ],
         [
             'name' => 'Rule',
@@ -146,6 +164,7 @@ return [
         '&',
         '(',
         ')',
+        '-',
         '.',
         ':',
         [

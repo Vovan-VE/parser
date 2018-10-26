@@ -14,9 +14,15 @@ DefinitionOrComment         : Definition
 DefinitionOrComment(empty)  : .comment
 
 Definition  : Define
+Definition  : Option
 Definition  : Rule
 
 Define  : "&" name ":" regexp
+
+Option  : "-" name ":" OptionValue
+
+OptionValue(str): String
+OptionValue(re) : regexp
 
 Rule    : RuleSubjectTagged ":" RuleDefinition
 

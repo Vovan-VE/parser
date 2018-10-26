@@ -47,9 +47,11 @@ internally.
         became private, so use getters.
     *   Properties `$passed` and `$further` of `\VovanVE\parser\table\Item`
         became private, so use getters.
-*   Add: Text grammar now can:
+*   Add: Text grammar now supports:
     *   Comments: `# comment` at whole line ignoring leading whitespaces.
     *   DEFINEs: `&name : /regexp/`.
+    *   Whitespaces: `-ws : /\s+/`. Use multiple `-ws` when appropriate.
+    *   Modifiers: `-mod: "uis"`.
 *   Add: CLI tool to convert text grammar to array grammar:
     ```sh
     $ vendor/bin/grammar-text-to-array < grammar.txt > grammar.php

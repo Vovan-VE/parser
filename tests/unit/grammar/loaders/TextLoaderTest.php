@@ -677,4 +677,74 @@ _END
 _END
         );
     }
+
+    public function testFailCreateOptionUnknown()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            G   : a $
+            a   : "b"
+            -foo: "x"
+_END
+        );
+    }
+
+    public function testCreateWithWhitespaces()
+    {
+        $grammar = TextLoader::createGrammar(<<<'_END'
+            G   : a $
+            a   : "A"
+            -ws : /\s+/
+            -ws : /#.*/
+_END
+        );
+        $this->assertEquals(['\\s+', '#.*'], $grammar->getWhitespaces());
+        $this->assertEquals(['a' => 'A'], $grammar->getFixed());
+        $this->assertCount(1, $grammar->getRules());
+    }
+
+    public function testFailCreateWhitespacesNotRegexp()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            G   : a $
+            a   : "b"
+            -ws : " "
+_END
+        );
+    }
+
+    public function testCreateWithModifiers()
+    {
+        $grammar = TextLoader::createGrammar(<<<'_END'
+            G   : a $
+            a   : "A"
+            -mod: 'uis'
+_END
+        );
+        $this->assertEquals('uis', $grammar->getModifiers());
+    }
+
+    public function testFailCreateModifiersNotString()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            G   : a $
+            a   : "b"
+            -mod: /xu/
+_END
+        );
+    }
+
+    public function testFailCreateModifiersMultiple()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            G   : a $
+            a   : "b"
+            -mod: 's'
+            -mod: 'ui'
+_END
+        );
+    }
 }
