@@ -54,6 +54,8 @@ internally.
     ```sh
     $ vendor/bin/grammar-text-to-array < grammar.txt > grammar.php
     ```
+*   Fix: export grammar to array/JSON performs unwanted sorting of
+    DEFINEs and whitespaces.
 
 1.7.0
 -----
