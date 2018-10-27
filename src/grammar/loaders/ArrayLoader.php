@@ -66,7 +66,7 @@ class ArrayLoader
         /** @var string[] $regexpMap */
         static::loadTerminals($array['terminals'], $terminals, $inlines, $fixed, $regexpMap);
 
-        $rules = static::loadRules($array['rules'], $terminals);
+        $rules = static::loadRules($array['rules'], $terminals, array_fill_keys($inlines, true));
 
         return new Grammar($rules, $inlines, $fixed, $regexpMap, $whitespaces, $defines, $modifiers);
     }
@@ -125,9 +125,10 @@ class ArrayLoader
     /**
      * @param array $rules
      * @param bool[] $terminals
+     * @param array $hidden
      * @return Rule[]
      */
-    protected static function loadRules(array $rules, array $terminals): array
+    protected static function loadRules(array $rules, array $terminals, array $hidden): array
     {
         /** @var Rule[] $result */
         $result = [];
@@ -165,7 +166,7 @@ class ArrayLoader
             $def_items = [];
             foreach ($rule['definition'] as $j => $item) {
                 if (is_string($item)) {
-                    $def_items[] = $get_symbol($item);
+                    $def_items[] = $get_symbol($item, isset($hidden[$item]));
                 } elseif (is_array($item)) {
                     if (!isset($item['name'])) {
                         throw new \InvalidArgumentException("Missing required fields: rules[$i].definition[$j]: name");

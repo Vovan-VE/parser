@@ -61,6 +61,7 @@ internally.
     ```
 *   Fix: export grammar to array/JSON performs unwanted sorting of
     DEFINEs and whitespaces.
+*   Fix: array/JSON grammar loader does not mark inline tokens as hidden.
 
 1.7.0
 -----

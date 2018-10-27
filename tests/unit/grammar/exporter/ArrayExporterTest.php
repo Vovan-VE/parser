@@ -44,6 +44,7 @@ class ArrayExporterTest extends BaseTestCase
             [
                 TextLoader::createGrammar(<<<'_END'
                     G      : A $
+                    A      : D
                     A(loop): A a
                     A      : a
                     A      : b
@@ -52,6 +53,8 @@ class ArrayExporterTest extends BaseTestCase
                     a      : "y"
                     b      : /(?&int)/
                     c      : /c+/
+                    .D     : d
+                    .d     : /d+/
                     &int   : /\d+/
                     -ws    : /\s+/
                     -ws    : /#.*/
@@ -64,6 +67,12 @@ _END
                             'name' => 'G',
                             'eof' => true,
                             'definition' => ['A'],
+                        ],
+                        [
+                            'name' => 'A',
+                            'definition' => [
+                                ['name' => 'D', 'hidden' => true],
+                            ],
                         ],
                         [
                             'name' => 'A',
@@ -86,6 +95,10 @@ _END
                             'name' => 'A',
                             'definition' => [['name' => 'c', 'hidden' => true]],
                         ],
+                        [
+                            'name' => 'D',
+                            'definition' => [['name' => 'd', 'hidden' => true]],
+                        ],
                     ],
                     'terminals' => [
                         [
@@ -100,6 +113,10 @@ _END
                         [
                             'name' => 'c',
                             'match' => 'c+',
+                        ],
+                        [
+                            'name' => 'd',
+                            'match' => 'd+',
                         ],
                         'x',
                     ],
