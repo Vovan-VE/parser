@@ -298,16 +298,12 @@ class TextLoader extends BaseObject
                 return [$item];
             },
 
-            'Symbol(hidden)' => function (string $name): Symbol {
+            'Symbol(name)' => function (array $data): Symbol {
+                /** @var string $name */
+                /** @var bool $is_hidden */
+                [$name, $is_hidden] = $data;
                 try {
-                    return $this->wantSymbol($name, true);
-                } catch (GrammarException $e) {
-                    throw new AbortNodeException('Symbol conflict', 1, $e);
-                }
-            },
-            'Symbol(normal)' => function (string $name): Symbol {
-                try {
-                    return $this->wantSymbol($name, false);
+                    return $this->wantSymbol($name, $is_hidden);
                 } catch (GrammarException $e) {
                     throw new AbortNodeException('Symbol conflict', 1, $e);
                 }
@@ -318,6 +314,13 @@ class TextLoader extends BaseObject
                 } catch (GrammarException $e) {
                     throw new AbortNodeException('Symbol conflict', 1, $e);
                 }
+            },
+
+            'SymbolNamed(hidden)' => function (string $name): array {
+                return [$name, true];
+            },
+            'SymbolNamed(normal)' => function (string $name): array {
+                return [$name, false];
             },
 
             'String' => Parser::ACTION_BUBBLE_THE_ONLY,

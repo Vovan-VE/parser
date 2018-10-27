@@ -36,9 +36,11 @@ RuleDefinition          : Symbols
 Symbols(list)   : Symbols Symbol
 Symbols(first)  : Symbol
 
-Symbol(hidden)  : "." name
-Symbol(normal)  : name
+Symbol(name)    : SymbolNamed
 Symbol(string)  : String
+
+SymbolNamed(hidden) : "." name
+SymbolNamed(normal) : name
 
 String  : qstring
 String  : qqstring

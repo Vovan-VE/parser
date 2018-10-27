@@ -133,18 +133,23 @@ return [
         ],
         [
             'name' => 'Symbol',
-            'tag' => 'hidden',
-            'definition' => ['.', 'name'],
-        ],
-        [
-            'name' => 'Symbol',
-            'tag' => 'normal',
-            'definition' => ['name'],
+            'tag' => 'name',
+            'definition' => ['SymbolNamed'],
         ],
         [
             'name' => 'Symbol',
             'tag' => 'string',
             'definition' => ['String'],
+        ],
+        [
+            'name' => 'SymbolNamed',
+            'tag' => 'hidden',
+            'definition' => ['.', 'name'],
+        ],
+        [
+            'name' => 'SymbolNamed',
+            'tag' => 'normal',
+            'definition' => ['name'],
         ],
         [
             'name' => 'String',
