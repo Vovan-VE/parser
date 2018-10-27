@@ -53,3 +53,5 @@ qqstring    : /"[^"\v]*"/
 angle_string: /<[^<>\v]*>/
 regexp      : /\/(?:[^\v\/\\]++|\\[^\v])++\//
 name        : /(?i)[a-z][a-z_0-9]*+/
+
+-ws : /\h+/

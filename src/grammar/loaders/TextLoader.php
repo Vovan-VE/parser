@@ -147,10 +147,9 @@ class TextLoader extends BaseObject
         // Hey dude, I heard you like Parser. I add a parser into grammar loader,
         // so you will load grammar while you will load grammar.
 
-        $this->parser = new Parser(
-            (new Lexer)->whitespaces(['\\h+']),
-            ArrayLoader::createGrammar(require __DIR__ . '/grammar-text.php')
-        );
+        $this->parser = new Parser(new Lexer, ArrayLoader::createGrammar(
+            require __DIR__ . '/grammar-text.php'
+        ));
 
         $this->actions = new ActionsMadeMap([
             'Definitions(first)' => function (?Rule $rule, array $list): array {

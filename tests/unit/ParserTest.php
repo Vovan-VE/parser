@@ -360,10 +360,6 @@ _END
 
     public function testParseWithAllInlineAndActions(): void
     {
-        // some tokens are hidden completely on its definition
-        $lexer = (new Lexer)
-            ->whitespaces(['\\s+']);
-
         // some tokens are hidden locally in specific rules
         $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
@@ -375,10 +371,11 @@ P(div) : P '/' V
 P(V)   : V
 V(int) : int
 int    : /\d++/
+-ws    : /\s+/
 _END
         );
 
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -432,9 +429,7 @@ text    : /[^{}]++/
 TEXT
         );
 
-        $lexer = new Lexer;
-
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $result = $parser->parse("997foo{{42+37-23}}000bar", new ActionsMadeMap([
             'Nodes(L)' => function (string $a, string $b): string {
@@ -464,7 +459,6 @@ TEXT
 
     public function testInlinesOrderDoesNotMatter(): void
     {
-        $lexer = new Lexer();
         $actions = [
             'A(a)' => function () {
                 return 1;
@@ -489,7 +483,7 @@ TEXT
             ]
             as $grammar
         ) {
-            $parser = new Parser($lexer, $grammar);
+            $parser = new Parser(new Lexer, $grammar);
             $out = $parser->parse('aa', $actions)->made();
             $this->assertEquals(2, $out);
         }
@@ -547,10 +541,6 @@ _END
 
     public function testActionsAbort(): void
     {
-        // some tokens are hidden completely on its definition
-        $lexer = (new Lexer)
-            ->whitespaces(['\\s+']);
-
         // some tokens are hidden locally in specific rules
         $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
@@ -563,10 +553,11 @@ P(V)   : V
 V      : "(" S ")"
 V      : int
 int    : /\d++/
+-ws    : /\s+/
 _END
         );
 
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $actions = new ActionsMadeMap([
             'int' => function (string $int): int { return (int)$int; },
@@ -594,23 +585,6 @@ _END
         }
     }
 
-    public function testConflictTerminals(): void
-    {
-        $lexer = (new Lexer)
-            ->terminals([
-                'int' => '\\d+',
-            ]);
-        $grammar = TextLoader::createGrammar(<<<'_END'
-            G: int $
-            int: /\d+/
-_END
-        );
-
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot redefine terminal: int');
-        new Parser($lexer, $grammar);
-    }
-
     public function testPreferredMatching(): void
     {
         $grammar = TextLoader::createGrammar(<<<'_END'
@@ -626,8 +600,7 @@ _END
             VarName     : /[a-z][a-z0-9]*+/
             ElementName : /[a-z]++/
 _END
-);
-        $lexer = new Lexer;
+        );
 
         $actions = new ActionsMadeMap([
             'Nodes(list)' => function ($nodes, $node) { $nodes[] = $node; return $nodes; },
@@ -642,7 +615,7 @@ _END
             'Text' => function ($content) { return $content; },
         ]);
 
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $result = $parser->parse('Lorem ${ipsum} dolor <sit> amet', $actions)->made();
 

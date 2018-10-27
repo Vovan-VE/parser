@@ -201,4 +201,5 @@ return [
             'match' => '(?:;|\\R)++',
         ],
     ],
+    'whitespaces' => ['\\h+'],
 ];
