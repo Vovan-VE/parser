@@ -42,10 +42,10 @@ class BubbleTheOnlyTest extends BaseTestCase
             E: "[" E "]"
             E: "{" E "}"
             E: name
+
+            name: /[a-z]++/
         ');
-        $lexer = (new Lexer)
-            ->terminals(['name' => '[a-z]++']);
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $actions = [
             'name' => function (Token $name) {

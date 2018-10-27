@@ -24,7 +24,7 @@ class ArrayExporterTest extends BaseTestCase
     {
         return [
             [
-                TextLoader::createGrammar('G: a $'),
+                TextLoader::createGrammar('G: a $; a: /a+/'),
                 [
                     'rules' => [
                         [
@@ -36,6 +36,7 @@ class ArrayExporterTest extends BaseTestCase
                     'terminals' => [
                         [
                             'name' => 'a',
+                            'match' => 'a+',
                         ],
                     ],
                 ]
@@ -50,6 +51,7 @@ class ArrayExporterTest extends BaseTestCase
                     A      : .c
                     a      : "y"
                     b      : /(?&int)/
+                    c      : /c+/
                     &int   : /\d+/
                     -ws    : /\s+/
                     -ws    : /#.*/
@@ -97,6 +99,7 @@ _END
                         ],
                         [
                             'name' => 'c',
+                            'match' => 'c+',
                         ],
                         'x',
                     ],

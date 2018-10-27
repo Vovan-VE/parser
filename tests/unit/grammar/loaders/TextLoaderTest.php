@@ -21,6 +21,8 @@ class TextLoaderTest extends BaseTestCase
             B : b
             B : c
             B : d
+            a : 'aa'
+            b : 'bb'
             c : "cc"
             d : /\d+/
 _END
@@ -59,7 +61,9 @@ _END
 
         $fixed = $grammar->getFixed();
         $this->assertInternalType('array', $fixed);
-        $this->assertCount(1, $fixed, 'Fixed count');
+        $this->assertCount(3, $fixed, 'Fixed count');
+        $this->assertArrayHasKey('a', $fixed, 'Has fixed "a"');
+        $this->assertArrayHasKey('b', $fixed, 'Has fixed "b"');
         $this->assertArrayHasKey('c', $fixed, 'Has fixed "c"');
 
         $regexp_map = $grammar->getRegExpMap();
@@ -197,6 +201,7 @@ _END
                     A: 'y;'
                     A: <z;>
                     A: a
+                    a: ';'
 _END
                 ,
                 <<<'_END'
@@ -205,6 +210,7 @@ _END
                     A: 'y;'
                     A: <z;>
                     A: a
+                    a: ';'
 
 _END
                 ,
@@ -212,9 +218,9 @@ _END
                 'E: A $;  A: "x;";  A: \'y;\';  A: <z;>',
                 'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;',
                 'E: A $;  A: "x;";  A: \'y;\';  A: <z;>; ',
-                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a',
-                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a;',
-                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a; ',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a; a: ";"',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a; a: ";";',
+                'E: A $;  A: "x;";  A: \'y;\';  A: <z;>;  A: a; a: ";"; ',
             ]
             as $text
         ) {
@@ -234,6 +240,9 @@ _END
             A: a
             B: B comma b
             B: b
+            a: /a+/
+            b: /b+/
+            comma: ","
             '
         );
         $this->assertCount(3, $grammar->getTerminals(), 'does not care about hidden flag');
@@ -254,6 +263,9 @@ _END
             E: a .b
             E: .a c
             E: .a .c
+            a: /a+/
+            b: /b+/
+            c: /c+/
 _END
         );
         $this->assertCount(3, $grammar->getTerminals());
@@ -264,6 +276,9 @@ _END
         $grammar = TextLoader::createGrammar(<<<'_END'
             G: a .B c $
             B: b
+            a: /a+/
+            b: /b+/
+            c: /c+/
 _END
         );
         $this->assertCount(3, $grammar->getTerminals());
@@ -290,6 +305,9 @@ _END
             B: b
             C: C <"> c
             C: c
+            a: /a+/
+            b: /b+/
+            c: /c+/
 _END
         );
         $this->assertCount(5, $grammar->getTerminals(), 'total terminals');

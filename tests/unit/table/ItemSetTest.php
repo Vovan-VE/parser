@@ -26,6 +26,11 @@ E: E add B
 E: B
 B: zero
 B: one
+
+add : "+"
+mul : "*"
+zero: "0"
+one : "1"
 _GRAMMAR
         );
         $this->assertInstanceOf(Grammar::class, $grammar);

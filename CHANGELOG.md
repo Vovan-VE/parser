@@ -47,6 +47,8 @@ internally.
         became private, so use getters.
     *   Properties `$passed` and `$further` of `\VovanVE\parser\table\Item`
         became private, so use getters.
+    *   Grammar now MUST to define all mentioned terminals. Undefined terminals
+        will cause a grammar to fail to create.
 *   Add: Text grammar now supports:
     *   Comments: `# comment` at whole line ignoring leading whitespaces.
     *   DEFINEs: `&name : /regexp/`.

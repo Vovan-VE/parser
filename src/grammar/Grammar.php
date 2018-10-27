@@ -144,6 +144,20 @@ class Grammar extends BaseObject
         if (!$terminals) {
             throw new GrammarException('No terminals');
         }
+
+        $undefined = array_diff_key(
+            $terminals,
+            array_flip($this->inlines),
+            $this->fixed,
+            $this->regexpMap
+        );
+
+        if ($undefined) {
+            $undefined = array_keys($undefined);
+            sort($undefined);
+            throw new GrammarException('There are terminals without definitions: ' . join(', ', $undefined));
+        }
+
         $this->symbols = $symbols;
         $this->terminals = $terminals;
         $this->nonTerminals = $non_terminals;

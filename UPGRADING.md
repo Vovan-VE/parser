@@ -9,6 +9,8 @@ purpose with CLI tool. Text grammar loader uses Parser+Grammar
 internally.
 
 *   At least PHP 7.1 is required now.
+*   Grammar now MUST to define all mentioned terminals. Undefined terminals
+    will cause a grammar to fail loading.
 *   `\VovanVE\parser\lexer\Lexer` does not accept anonymous terminals,
     so use inlines directly.
 *   Deleted class `\VovanVE\parser\LexerBuilder`.

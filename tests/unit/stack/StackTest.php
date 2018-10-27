@@ -28,6 +28,11 @@ P: P mul V
 P: V
 V: int
 V: id
+
+add: "+"
+mul: "*"
+id : /[a-z]+/
+int: /\d+/
 _END
         );
         $this->expectNotToPerformAssertions();

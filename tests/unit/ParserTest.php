@@ -22,17 +22,6 @@ class ParserTest extends BaseTestCase
      */
     public function testCreate(): Parser
     {
-        $lexer = (new Lexer)
-            ->fixed([
-                'div' => '/',
-            ])
-            ->terminals([
-                'id' => '[a-z_][a-z_\\d]*+',
-                'add' => '[-+]',
-            ])
-            ->whitespaces(['\\s+'])
-            ->modifiers('i');
-
         $grammar = TextLoader::createGrammar(<<<'_END'
 E     : S $
 S(add): S add P
@@ -45,12 +34,17 @@ V(var): id
 V(S)  : "(" S ")"
 int   : /\d++/
 mul   : "*"
+add   : /[-+]/
+div   : "/"
+id    : /[a-z_][a-z_\d]*+/
+-ws   : /\s+/
+-mod  : 'i'
 _END
         );
 
         $this->expectNotToPerformAssertions();
 
-        return new Parser($lexer, $grammar);
+        return new Parser(new Lexer, $grammar);
     }
 
     /**
@@ -152,19 +146,6 @@ DUMP
 
     public function testParseWithActions(): void
     {
-        $lexer = (new Lexer)
-            ->fixed([
-                'mul' => '*',
-                'div' => '/',
-            ])
-            ->terminals([
-                'int' => '\\d++',
-                'add' => '\\+',
-                'sub' => '-',
-            ])
-            ->whitespaces(['\\s+'])
-            ->modifiers('i');
-
         $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
 S(add) : S add P
@@ -174,10 +155,17 @@ P(mul) : P mul V
 P(div) : P div V
 P(V)   : V
 V(int) : int
+add    : /\+/
+sub    : /-/
+div    : '/'
+mul    : '*'
+int    : /\d++/
+-ws    : /\s+/
+-mod   : 'i'
 _END
         );
 
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -213,19 +201,6 @@ _END
     public function testParseWithHiddensAndActions(): void
     {
         // some tokens are hidden completely on its definition
-        $lexer = (new Lexer)
-            ->fixed([
-                'add' => '+',
-                '.mul' => '*',
-            ])
-            ->terminals([
-                'int' => '\\d++',
-                'sub' => '-',
-                '.div' => '\\/',
-            ])
-            ->whitespaces(['\\s+'])
-            ->modifiers('i');
-
         // some tokens are hidden locally in specific rules
         $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
@@ -236,10 +211,17 @@ P(mul) : P mul V
 P(div) : P .div V
 P(V)   : V
 V(int) : int
+add    : "+"
+sub    : /-/
+.mul   : "*"
+.div   : /\//
+int    : /\d++/
+-ws    : /\s+/
+-mod   : 'i'
 _END
         );
 
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -274,13 +256,6 @@ _END
 
     public function testParseWithInlinesAndActions(): void
     {
-        // some tokens are hidden completely on its definition
-        $lexer = (new Lexer)
-            ->terminals([
-                'int' => '\\d++',
-            ])
-            ->whitespaces(['\\s+']);
-
         // some tokens are hidden locally in specific rules
         $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
@@ -291,10 +266,12 @@ P(mul) : P <*> V
 P(div) : P '/' V
 P(V)   : V
 V(int) : int
+int    : /\d++/
+-ws    : /\s+/
 _END
         );
 
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -329,13 +306,6 @@ _END
 
     public function testParseWithInlinesAndFixedAndActions(): void
     {
-        // some tokens are hidden completely on its definition
-        $lexer = (new Lexer)
-            ->terminals([
-                'int' => '\\d++',
-            ])
-            ->whitespaces(['\\s+']);
-
         // some tokens are hidden locally in specific rules
         $grammar = TextLoader::createGrammar(<<<'_END'
 E      : S $
@@ -350,10 +320,12 @@ add    : '+'
 sub    : "-"
 mul    : <*>
 div    : '/'
+int    : /\d++/
+-ws    : /\s+/
 _END
         );
 
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser(new Lexer, $grammar);
 
         $actions = [
             'int' => function (Token $int): int {
