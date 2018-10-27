@@ -99,6 +99,10 @@ class Grammar extends BaseObject
         array $defines = [],
         string $modifiers = ''
     ) {
+        if (!$rules) {
+            throw new GrammarException('No rules defined');
+        }
+
         $this->rules = array_values($rules);
         $this->inlines = array_values($inlines);
         $this->fixed = $fixed;
