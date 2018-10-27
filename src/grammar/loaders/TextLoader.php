@@ -230,8 +230,9 @@ class TextLoader extends BaseObject
 
             'Rule' => function (array $subject, $definition): ?Rule {
                 /** @var string $name */
+                /** @var bool $is_hidden */
                 /** @var string|null $tag */
-                [$name, $tag] = $subject;
+                [[$name, $is_hidden], $tag] = $subject;
 
                 if ($definition instanceof \stdClass) {
                     if (isset($definition->regexp)) {
@@ -251,7 +252,11 @@ class TextLoader extends BaseObject
                             );
                         }
 
-                        $this->wantSymbol($name);
+                        $this->wantSymbol($name, $is_hidden);
+                        if ($is_hidden && isset($this->symbols[$name][false])) {
+                            $this->symbols[$name][false]->setIsHidden(true);
+                        }
+
                         $this->regexpMap[$name] = $definition->regexp;
                         return null;
                     }
@@ -267,16 +272,22 @@ class TextLoader extends BaseObject
                 /** @var bool $eof */
                 [$symbols, $eof] = $definition;
 
-                $subject_symbol = $this->wantSymbol($name);
+                $subject_symbol = $this->wantSymbol($name, $is_hidden);
                 $subject_symbol->setIsTerminal(false);
+
+                // sync hidden/visible counterpart non-terminal symbols
+                if (isset($this->symbols[$name][!$is_hidden])) {
+                    $this->symbols[$name][!$is_hidden]->setIsTerminal(false);
+                }
+
                 return new Rule($subject_symbol, $symbols, $eof, $tag);
             },
 
-            'RuleSubjectTagged(tag)' => function (string $name, string $tag): array {
-                return [$name, $tag];
+            'RuleSubjectTagged(tag)' => function (array $subject, string $tag): array {
+                return [$subject, $tag];
             },
-            'RuleSubjectTagged' => function (string $name): array {
-                return [$name, null];
+            'RuleSubjectTagged' => function (array $subject): array {
+                return [$subject, null];
             },
 
             'RuleDefinition(regexp)' => function (string $regexp) {
@@ -361,8 +372,13 @@ class TextLoader extends BaseObject
             /** @var Rule[] $inline_ref_rule */
             $inline_ref_rule = [];
 
+            $non_terminal_is_hidden = [];
+            $hidden_non_terminals = [];
+
             foreach ($rules as $rule) {
-                $subject_name = $rule->getSubject()->getName();
+                $subject = $rule->getSubject();
+                $subject_name = $subject->getName();
+                $subject_hidden = $subject->isHidden();
 
                 // RegExp tokens cannot be non-terminals in the same time
                 // since there is no anonymous RegExp terminals
@@ -372,11 +388,20 @@ class TextLoader extends BaseObject
                     );
                 }
 
+                if (isset($non_terminal_is_hidden[$subject_name])) {
+                    if ($subject_hidden !== $non_terminal_is_hidden[$subject_name]) {
+                        throw new GrammarException(
+                            "Symbol `$subject_name` defined both as hidden and as visible"
+                        );
+                    }
+                } else {
+                    $non_terminal_is_hidden[$subject_name] = $subject_hidden;
+                }
+
                 $subject_rules_count[$subject_name] = ($subject_rules_count[$subject_name] ?? 0) + 1;
 
-                // sync hidden non-terminal symbols
-                if (isset($this->symbols[$subject_name][true])) {
-                    $this->symbols[$subject_name][true]->setIsTerminal(false);
+                if ($subject_hidden) {
+                    $hidden_non_terminals[$subject_name] = true;
                 }
 
                 foreach ($rule->getDefinition() as $symbol) {
@@ -388,6 +413,12 @@ class TextLoader extends BaseObject
                         // so array of an subject is not needed
                         $inline_ref_rule[$name] = $rule;
                     }
+                }
+            }
+
+            foreach ($hidden_non_terminals as $name => $_) {
+                if (isset($this->symbols[$name][false])) {
+                    $this->symbols[$name][false]->setIsHidden(true);
                 }
             }
 
@@ -420,8 +451,8 @@ class TextLoader extends BaseObject
 
                     // make terminal
                     $subject->setIsTerminal(true);
-                    if (isset($this->symbols[$name][true])) {
-                        $this->symbols[$name][true]->setIsTerminal(true);
+                    if (isset($this->symbols[$name][!$subject->isHidden()])) {
+                        $this->symbols[$name][!$subject->isHidden()]->setIsTerminal(true);
                     }
 
                     $fixed[$name] = $inline_token;

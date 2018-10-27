@@ -101,11 +101,11 @@ return [
         [
             'name' => 'RuleSubjectTagged',
             'tag' => 'tag',
-            'definition' => ['name', '(', 'name', ')'],
+            'definition' => ['SymbolNamed', '(', 'name', ')'],
         ],
         [
             'name' => 'RuleSubjectTagged',
-            'definition' => ['name'],
+            'definition' => ['SymbolNamed'],
         ],
         [
             'name' => 'RuleDefinition',

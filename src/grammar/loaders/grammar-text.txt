@@ -26,8 +26,8 @@ OptionValue(re) : regexp
 
 Rule    : RuleSubjectTagged ":" RuleDefinition
 
-RuleSubjectTagged(tag)  : name "(" name ")"
-RuleSubjectTagged       : name
+RuleSubjectTagged(tag)  : SymbolNamed "(" name ")"
+RuleSubjectTagged       : SymbolNamed
 
 RuleDefinition(regexp)  : regexp
 RuleDefinition(main)    : Symbols "$"

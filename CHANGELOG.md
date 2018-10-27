@@ -52,6 +52,7 @@ internally.
     *   DEFINEs: `&name : /regexp/`.
     *   Whitespaces: `-ws : /\s+/`. Use multiple `-ws` when appropriate.
     *   Modifiers: `-mod: "uis"`.
+    *   Defining symbols which always are hidden: `.Foo: ...`
 *   Add: CLI tool to convert text grammar to array grammar:
     ```sh
     $ vendor/bin/grammar-text-to-array < grammar.txt > grammar.php

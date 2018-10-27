@@ -747,4 +747,57 @@ _END
 _END
         );
     }
+
+    public function testCreateHidden()
+    {
+        $grammar = TextLoader::createGrammar(<<<'_END'
+            G   : A $
+            .A  : b
+            .A  : c
+            .b  : /b+/
+            .c  : 'ccc'
+_END
+        );
+
+        $rules = $grammar->getRules();
+        $this->assertCount(3, $rules);
+
+        $rule_1 = $rules[0];
+        $this->assertEquals('G', $rule_1->getSubject()->getName());
+        $this->assertFalse($rule_1->getSubject()->isHidden());
+        $this->assertFalse($rule_1->getSubject()->isTerminal());
+        $this->assertCount(1, $rule_1->getDefinition());
+        $this->assertEquals('A', $rule_1->getDefinition()[0]->getName());
+        $this->assertTrue($rule_1->getDefinition()[0]->isHidden());
+        $this->assertFalse($rule_1->getDefinition()[0]->isTerminal());
+
+        $rule_2 = $rules[1];
+        $this->assertEquals('A', $rule_2->getSubject()->getName());
+        $this->assertTrue($rule_2->getSubject()->isHidden());
+        $this->assertFalse($rule_2->getSubject()->isTerminal());
+        $this->assertCount(1, $rule_2->getDefinition());
+        $this->assertEquals('b', $rule_2->getDefinition()[0]->getName());
+        $this->assertTrue($rule_2->getDefinition()[0]->isHidden());
+        $this->assertTrue($rule_2->getDefinition()[0]->isTerminal());
+
+        $rule_3 = $rules[2];
+        $this->assertEquals('A', $rule_3->getSubject()->getName());
+        $this->assertTrue($rule_3->getSubject()->isHidden());
+        $this->assertFalse($rule_3->getSubject()->isTerminal());
+        $this->assertCount(1, $rule_3->getDefinition());
+        $this->assertEquals('c', $rule_3->getDefinition()[0]->getName());
+        $this->assertTrue($rule_3->getDefinition()[0]->isHidden());
+        $this->assertTrue($rule_3->getDefinition()[0]->isTerminal());
+    }
+
+    public function testFailCreateHiddenMix()
+    {
+        $this->expectException(GrammarException::class);
+        TextLoader::createGrammar(<<<'_END'
+            G   : A $
+            A   : 'a'
+            .A  : 'b'
+_END
+        );
+    }
 }

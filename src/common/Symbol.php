@@ -98,6 +98,8 @@ class Symbol extends BaseObject
 
     /**
      * Changes whether the symbol is terminal or not
+     *
+     * This method is for internal use.
      * @param bool $value
      */
     public function setIsTerminal(bool $value): void
@@ -113,6 +115,18 @@ class Symbol extends BaseObject
     public function isHidden(): bool
     {
         return $this->isHidden;
+    }
+
+    /**
+     * Changes whether the symbol is hidden or not
+     *
+     * This method is for internal use.
+     * @param bool $value
+     * @since 2.0.0
+     */
+    public function setIsHidden(bool $value): void
+    {
+        $this->isHidden = $value;
     }
 
     /**

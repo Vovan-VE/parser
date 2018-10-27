@@ -1,6 +1,17 @@
 TODO
 ----
 
+*   tests: expect exception message
 *   Charset control for input text.
 *   Finally move Lexer to internals.
-*   Undefined symbol did not checked before parsing
+
+*   Optional symbols shortcut
+    ```
+    Foo: Bar [Baz]
+    Foo: Bar [Baz Bah]
+    Foo: Bar [Baz [Lol] Bah]
+    ```
+*   Whitespaces control:
+    *   Disable per rule
+    *   Disable between symbols
+    *   Enable between symbols
