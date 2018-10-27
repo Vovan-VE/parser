@@ -607,6 +607,7 @@ _END
         );
 
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot redefine terminal: int');
         new Parser($lexer, $grammar);
     }
 

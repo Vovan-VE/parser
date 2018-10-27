@@ -88,6 +88,7 @@ _END
     public function testCreateFailFormat()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Cannot parse grammar: Cannot parse none of expected tokens near "! invalid rule" at offset 13');
         TextLoader::createGrammar("E: A \$; some ! invalid rule");
     }
 
@@ -95,26 +96,60 @@ _END
      * @param string $text
      * @dataProvider dataProvider_FailEmpty
      */
-    public function testCreateFailEmpty(string $text)
+    public function testCreateFailEmpty(string $text, string $message)
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage($message);
         TextLoader::createGrammar($text);
     }
 
     public function dataProvider_FailEmpty(): array
     {
         return [
-            [''],
-            ['#comment'],
-            [";#comment"],
-            [";;#comment"],
-            ["\n\n#comment"],
-            ["\n\n#comment"],
-            ["#comment\n"],
-            ["#comment\n\n"],
-            ["#comment\n\n;"],
-            ["#comment\n;"],
-            ["#comment\n;\n"],
+            [
+                '',
+                'Cannot parse grammar: Unexpected <EOF>; expected: "&", <comment>, <separator>, "-", "." or <name> at offset 0',
+            ],
+            [
+                '#comment',
+                'No rules defined',
+            ],
+            [
+                ";#comment",
+                'No rules defined',
+            ],
+            [
+                ";;#comment",
+                'No rules defined',
+            ],
+            [
+                "\n\n#comment",
+                'No rules defined',
+            ],
+            [
+                "\n\n#comment",
+                'No rules defined',
+            ],
+            [
+                "#comment\n",
+                'No rules defined',
+            ],
+            [
+                "#comment\n\n",
+                'No rules defined',
+            ],
+            [
+                "#comment\n\n;",
+                'No rules defined',
+            ],
+            [
+                "#comment\n;",
+                'No rules defined',
+            ],
+            [
+                "#comment\n;\n",
+                'No rules defined',
+            ],
         ];
     }
 
@@ -390,6 +425,7 @@ _END
     public function testCreateInlineWithConflictSingle()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage("Inline 'a' conflicts with token <a> defined previously");
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: a 'a'
@@ -400,6 +436,7 @@ _END
     public function testCreateInlineWithConflictSubject()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage("Inline 'E' conflicts with token <E> defined previously");
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: "E"
@@ -410,6 +447,7 @@ _END
     public function testCreateInlineWithConflictCross1()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage("Token <a> conflicts with inline 'a' defined previously");
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: 'a'
@@ -421,6 +459,7 @@ _END
     public function testCreateInlineWithConflictCross2()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage("Inline 'a' conflicts with token <a> defined previously");
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: a
@@ -432,6 +471,7 @@ _END
     public function testCreateInlineWithConflictSingleHidden()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage("Inline 'a' conflicts with token <a> defined previously");
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: .a 'a'
@@ -442,6 +482,7 @@ _END
     public function testCreateInlineWithConflictCross1Hidden()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage("Token <a> conflicts with inline 'a' defined previously");
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: 'a'
@@ -453,6 +494,7 @@ _END
     public function testCreateInlineWithConflictCross2Hidden()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage("Inline 'a' conflicts with token <a> defined previously");
         TextLoader::createGrammar(<<<'_END'
             G: E $
             E: .a
@@ -498,6 +540,7 @@ _END
     public function testFailCreateRegExpSyntaxNotClosedEmpty()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Cannot parse grammar: Cannot parse none of expected tokens near "/" at offset 34');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /
@@ -508,6 +551,11 @@ _END
     public function testFailCreateRegExpSyntaxNotClosedEmptyAndMore()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage(<<<'_MSG'
+Cannot parse grammar: Cannot parse none of expected tokens near "/
+            A: b" at offset 51
+_MSG
+);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -520,6 +568,7 @@ _END
     public function testFailCreateRegExpSyntaxNotClosed()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Cannot parse grammar: Cannot parse none of expected tokens near "/a+" at offset 34');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+
@@ -530,6 +579,11 @@ _END
     public function testFailCreateRegExpSyntaxNotClosedAndMore()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage(<<<'_MSG'
+Cannot parse grammar: Cannot parse none of expected tokens near "/a+
+            A: b" at offset 51
+_MSG
+);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -542,6 +596,7 @@ _END
     public function testFailCreateRegExpSyntaxNotClosedEscapedNothing()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Cannot parse grammar: Cannot parse none of expected tokens near "/a+\\" at offset 34');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+\
@@ -552,6 +607,11 @@ _END
     public function testFailCreateRegExpSyntaxNotClosedEscapedNothingAndMore()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage(<<<'_MSG'
+Cannot parse grammar: Cannot parse none of expected tokens near "/a+\
+            A: b" at offset 51
+_MSG
+);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -564,6 +624,7 @@ _END
     public function testFailCreateRegExpSyntaxNotClosedEscapedDelimiter()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Cannot parse grammar: Cannot parse none of expected tokens near "/a+\\/" at offset 34');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+\/
@@ -574,6 +635,11 @@ _END
     public function testFailCreateRegExpSyntaxNotClosedEscapedDelimiterAndMore()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage(<<<'_MSG'
+Cannot parse grammar: Cannot parse none of expected tokens near "/a+\/
+            A: b" at offset 51
+_MSG
+);
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: a
@@ -586,6 +652,7 @@ _END
     public function testFailCreateRegExpNotInPlace()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Cannot parse grammar: Expected <EOF> but got <regexp "/a+/"> at offset 38');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: foo /a+/ bar
@@ -596,6 +663,7 @@ _END
     public function testFailCreateRegExpConflictRegExp()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Duplicate RegExp rule for symbol `a`');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+/
@@ -607,6 +675,7 @@ _END
     public function testFailCreateRegExpConflictNonTerminal()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Symbol `A` defined as non-terminal and as regexp terminal in the same time');
         TextLoader::createGrammar(<<<'_END'
             G: A $
             A: "foo"
@@ -618,6 +687,7 @@ _END
     public function testFailCreateRegExpConflictFixedAfter()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Symbol `a` defined as non-terminal and as regexp terminal in the same time');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: /a+/
@@ -629,6 +699,7 @@ _END
     public function testFailCreateRegExpConflictFixedBefore()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Symbol `a` defined as non-terminal and as regexp terminal in the same time');
         TextLoader::createGrammar(<<<'_END'
             G: a $
             a: "b"
@@ -653,6 +724,7 @@ _END
     public function testFailCreateDefinesConflictSymbolToken()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('DEFINE `a` overlaps with a symbol');
         TextLoader::createGrammar(<<<'_END'
             G : a $
             a : "b"
@@ -664,6 +736,7 @@ _END
     public function testFailCreateDefinesConflictSymbolNonTerminal()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('DEFINE `a` overlaps with a symbol');
         TextLoader::createGrammar(<<<'_END'
             G : a $
             a : "b"
@@ -676,6 +749,7 @@ _END
     public function testFailCreateSymbolTokenConflictDefines()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Token <a> conflicts with DEFINE');
         TextLoader::createGrammar(<<<'_END'
             &a: /a+/
             G : a $
@@ -687,6 +761,7 @@ _END
     public function testFailCreateSymbolNonTerminalConflictDefines()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Token <a> conflicts with DEFINE');
         TextLoader::createGrammar(<<<'_END'
             &a: /a+/
             G : a $
@@ -699,6 +774,7 @@ _END
     public function testFailCreateOptionUnknown()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Unknown option `-foo`');
         TextLoader::createGrammar(<<<'_END'
             G   : a $
             a   : "b"
@@ -724,6 +800,7 @@ _END
     public function testFailCreateWhitespacesNotRegexp()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Option `-ws` requires a regexp');
         TextLoader::createGrammar(<<<'_END'
             G   : a $
             a   : "b"
@@ -746,6 +823,7 @@ _END
     public function testFailCreateModifiersNotString()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Option `-mod` requires a string');
         TextLoader::createGrammar(<<<'_END'
             G   : a $
             a   : "b"
@@ -757,6 +835,7 @@ _END
     public function testFailCreateModifiersMultiple()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Option `-mod` can be used only once');
         TextLoader::createGrammar(<<<'_END'
             G   : a $
             a   : "b"
@@ -811,6 +890,7 @@ _END
     public function testFailCreateHiddenMix()
     {
         $this->expectException(GrammarException::class);
+        $this->expectExceptionMessage('Symbol `A` defined both as hidden and as visible');
         TextLoader::createGrammar(<<<'_END'
             G   : A $
             A   : 'a'

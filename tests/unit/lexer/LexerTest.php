@@ -336,6 +336,7 @@ class LexerTest extends BaseTestCase
             $this->assertEquals($expect_content, $token->getContent(), "token[$i]->content");
             if ($last_valid_index === $i) {
                 $this->expectException(UnknownCharacterException::class);
+                $this->expectExceptionMessage('Cannot parse none of expected tokens near "?!@"');
             }
             $tokens->next();
         }
@@ -346,6 +347,7 @@ class LexerTest extends BaseTestCase
     {
         $lexer = new Lexer();
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('No terminals defined');
         $lexer->compile();
     }
 
@@ -357,6 +359,7 @@ class LexerTest extends BaseTestCase
                 'bad-name' => '\\s++',
             ]);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Bad token name <bad-name>');
         $lexer->compile();
     }
 
@@ -371,6 +374,7 @@ class LexerTest extends BaseTestCase
                 'bad-name' => '\\s++',
             ]);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Bad names: bad-name');
         $lexer->compile();
     }
 
@@ -381,6 +385,7 @@ class LexerTest extends BaseTestCase
                 'empty' => '.{0}',
             ]);
         $this->expectException(DevException::class);
+        $this->expectExceptionMessage('Tokens should not match empty string; context: `.`; expected: []; REGEXP: /\G(?:(?<empty>.{0}))/');
         foreach ($lexer->parse('.') as $token) {
             $this->assertNotEquals('', $token->getContent());
         }
@@ -391,6 +396,7 @@ class LexerTest extends BaseTestCase
         $base = (new Lexer)
             ->defines(['x' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot redefine defines: x');
         $base->defines(['x' => 'y']);
     }
 
@@ -399,6 +405,7 @@ class LexerTest extends BaseTestCase
         $base = (new Lexer)
             ->fixed(['x' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot redefine fixed: x');
         $base->fixed(['x' => 'y']);
     }
 
@@ -410,6 +417,7 @@ class LexerTest extends BaseTestCase
                 'y' => 'a',
             ]);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed strings found');
         $base->compile();
     }
 
@@ -418,6 +426,7 @@ class LexerTest extends BaseTestCase
         $base = (new Lexer)
             ->terminals(['x' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot redefine terminal: x');
         $base->terminals(['x' => 'y']);
     }
 
@@ -491,6 +500,7 @@ class LexerTest extends BaseTestCase
                 '.a' => 'y',
             ]);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating hidden tokens and normal tokens: a');
         $lexer->compile();
     }
 
@@ -502,6 +512,7 @@ class LexerTest extends BaseTestCase
                 'a' => 'x',
             ]);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating hidden tokens and normal tokens: a');
         $lexer->compile();
     }
 
@@ -511,6 +522,7 @@ class LexerTest extends BaseTestCase
             ->inline(['a'])
             ->terminals(['a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating inline tokens and normal tokens: a');
         $lexer->compile();
     }
 
@@ -520,6 +532,7 @@ class LexerTest extends BaseTestCase
             ->inline(['a'])
             ->terminals(['.a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating inline tokens and hidden tokens: a');
         $lexer->compile();
     }
 
@@ -531,6 +544,7 @@ class LexerTest extends BaseTestCase
                 '.a' => 'y',
             ]);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed hidden tokens and fixed normal tokens: a');
         $lexer->compile();
     }
 
@@ -540,6 +554,7 @@ class LexerTest extends BaseTestCase
             ->inline(['a'])
             ->fixed(['a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed normal tokens and inline tokens: a');
         $lexer->compile();
     }
 
@@ -549,6 +564,7 @@ class LexerTest extends BaseTestCase
             ->inline(['a'])
             ->fixed(['x' => 'a']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed tokens and inline tokens strings: "a"');
         $lexer->compile();
     }
 
@@ -558,6 +574,7 @@ class LexerTest extends BaseTestCase
             ->inline(['a'])
             ->fixed(['.a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed hidden tokens and inline tokens: a');
         $lexer->compile();
     }
 
@@ -567,6 +584,7 @@ class LexerTest extends BaseTestCase
             ->terminals(['a' => 'y'])
             ->fixed(['a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed normal tokens and normal tokens: a');
         $lexer->compile();
     }
 
@@ -576,6 +594,7 @@ class LexerTest extends BaseTestCase
             ->terminals(['a' => 'y'])
             ->fixed(['.a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed hidden tokens and normal tokens: a');
         $lexer->compile();
     }
 
@@ -585,6 +604,7 @@ class LexerTest extends BaseTestCase
             ->terminals(['.a' => 'y'])
             ->fixed(['a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed normal tokens and hidden tokens: a');
         $lexer->compile();
     }
 
@@ -594,6 +614,7 @@ class LexerTest extends BaseTestCase
             ->terminals(['.a' => 'y'])
             ->fixed(['.a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicating fixed hidden tokens and hidden tokens: a');
         $lexer->compile();
     }
 
@@ -603,6 +624,7 @@ class LexerTest extends BaseTestCase
             ->defines(['a' => 'x'])
             ->fixed(['a' => 'y']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Declarations and defines has duplicated names: a');
         $lexer->compile();
     }
 
@@ -612,6 +634,7 @@ class LexerTest extends BaseTestCase
             ->defines(['a' => 'x'])
             ->fixed(['.a' => 'y']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Declarations and defines has duplicated names: a');
         $lexer->compile();
     }
 
@@ -621,6 +644,7 @@ class LexerTest extends BaseTestCase
             ->defines(['a' => 'x'])
             ->terminals(['a' => 'y']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Declarations and defines has duplicated names: a');
         $lexer->compile();
     }
 
@@ -630,6 +654,7 @@ class LexerTest extends BaseTestCase
             ->defines(['a' => 'x'])
             ->terminals(['.a' => 'y']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Declarations and defines has duplicated names: a');
         $lexer->compile();
     }
 
@@ -642,6 +667,7 @@ class LexerTest extends BaseTestCase
         $lexer = $lexer
             ->defines(['foo' => '(*']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('PCRE error in DEFINEs RegExp: preg_match(): Compilation failed: nothing to repeat at offset 18; RegExp: /(?(DEFINE)(?<foo>(*))\\G/');
         $lexer->compile();
     }
 
@@ -654,6 +680,7 @@ class LexerTest extends BaseTestCase
         $lexer = $lexer
             ->terminals(['foo' => '(*']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('PCRE error in <foo> definition /(*/ RegExp: preg_match(): Compilation failed: nothing to repeat at offset 10; RegExp: /\\G(?<foo>(*)/');
         $lexer->compile();
     }
 
@@ -666,6 +693,7 @@ class LexerTest extends BaseTestCase
         $lexer = $lexer
             ->whitespaces(['(*']);
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('PCRE error in whitespaces RegExp: preg_match(): Compilation failed: nothing to repeat at offset 6; RegExp: /\\G(?:(*)+/');
         $lexer->compile();
     }
 

@@ -86,6 +86,7 @@ class TokenTest extends BaseTestCase
     public function testNoChild(Token $token): void
     {
         $this->expectException(\OutOfBoundsException::class);
+        $this->expectExceptionMessage('No children');
         $token->getChild(0);
     }
 }

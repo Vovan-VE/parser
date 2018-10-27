@@ -171,7 +171,7 @@ class Lexer extends BaseObject
         $dup_keys = array_intersect_key($this->defines, $defines);
         if ($dup_keys) {
             throw new \InvalidArgumentException(
-                "Cannot redefine defines: " . var_export($dup_keys, true)
+                "Cannot redefine defines: " . join(', ', array_keys($dup_keys))
             );
         }
 
@@ -366,9 +366,10 @@ class Lexer extends BaseObject
         $regexp = [];
 
         if ($this->defines) {
-            if (array_intersect_key($this->defines, $terminals_map)) {
+            $same = array_intersect_key($this->defines, $terminals_map);
+            if ($same) {
                 throw new \InvalidArgumentException(
-                    'Declarations and defines has duplicated names'
+                    'Declarations and defines has duplicated names: ' . join(', ', array_keys($same))
                 );
             }
 
@@ -496,7 +497,7 @@ class Lexer extends BaseObject
         $dup_keys = array_intersect_key($oldTokens, $addTokens);
         if ($dup_keys) {
             throw new \InvalidArgumentException(
-                "Cannot redefine $errorType: " . var_export($dup_keys, true)
+                "Cannot redefine $errorType: " . join(', ', array_keys($dup_keys))
             );
         }
 
@@ -553,7 +554,7 @@ class Lexer extends BaseObject
                 $same = array_intersect_key($map, $map2);
                 if ($same) {
                     throw new \InvalidArgumentException(
-                        "Duplicating $type tokens and $type2 tokens: " . join(', ', $same)
+                        "Duplicating $type tokens and $type2 tokens: " . join(', ', array_keys($same))
                     );
                 }
             }

@@ -170,6 +170,7 @@ DUMP
         $this->assertInstanceOf(TreeNodeInterface::class, $node->getChild(2));
 
         $this->expectException(\OutOfBoundsException::class);
+        $this->expectExceptionMessage('No children');
         $node->getChild(3);
     }
 }
