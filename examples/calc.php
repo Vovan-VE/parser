@@ -20,12 +20,11 @@ $grammar = TextLoader::createGrammar(<<<'_END'
     Value       : "(" Sum ")"
     Value       : int
     int         : /\d+/
+
+    -ws         : /\s+/
+    -mod        : 'u'
 _END
 );
-
-$lexer = (new Lexer)
-    //->modifiers('i')
-    ->whitespaces(['\\s+']);
 
 $actions = new ActionsMadeMap([
     'int' => function ($content) { return (int)$content; },
@@ -42,7 +41,7 @@ $actions = new ActionsMadeMap([
     'Sum(sub)' => function ($a, $b) { return $a - $b; },
 ]);
 
-$parser = new Parser($lexer, $grammar);
+$parser = new Parser(new Lexer, $grammar);
 
 $tree = $parser->parse('2 * (-10 + 33) - 4', $actions);
 
