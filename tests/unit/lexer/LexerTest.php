@@ -496,7 +496,7 @@ class LexerTest extends BaseTestCase
             ->inline(['a'])
             ->terminals(['a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating inline tokens and normal tokens: a');
+        $this->expectExceptionMessage('Duplicating inline tokens and regexp tokens: a');
         $lexer->compile();
     }
 
@@ -506,7 +506,7 @@ class LexerTest extends BaseTestCase
             ->inline(['a'])
             ->fixed(['a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating fixed normal tokens and inline tokens: a');
+        $this->expectExceptionMessage('Duplicating fixed tokens and inline tokens: a');
         $lexer->compile();
     }
 
@@ -526,7 +526,7 @@ class LexerTest extends BaseTestCase
             ->terminals(['a' => 'y'])
             ->fixed(['a' => 'x']);
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating fixed normal tokens and normal tokens: a');
+        $this->expectExceptionMessage('Duplicating fixed tokens and regexp tokens: a');
         $lexer->compile();
     }
 

@@ -40,21 +40,21 @@ class Grammar extends BaseObject
     /** @var Rule[] Rules in the grammar */
     private $rules;
     /** @var string[] Strings list of defined inline tokens, unquoted */
-    private $inlines = [];
+    protected $inlines = [];
     /** @var array Fixed tokens definition map */
-    private $fixed = [];
+    protected $fixed = [];
     /** @var array RegExp tokens definition map */
-    private $regexpMap = [];
+    protected $regexpMap = [];
     /**
      * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
      * Key is name and value is a part of RegExp
      */
-    private $defines;
+    protected $defines;
     /**
      * @var array List of RegExp parts to define whitespaces to ignore in an input text.
      * DEFINEs can be referred with `(?&name)` regexp recursion.
      */
-    private $whitespaces = [];
+    protected $whitespaces = [];
     /**
      * @var string Modifiers to whole regexp.
      *
@@ -64,7 +64,8 @@ class Grammar extends BaseObject
      * should be used. Other modifiers like `i` should (but not required) be used locally
      * in specific parts like `(?i)[a-z]` or `(?i:[a-z])`.
      */
-    private $modifiers = '';
+    protected $modifiers = '';
+
     /** @var Rule Reference to the mail rule */
     private $mainRule;
     /** @var Symbol[] Map of all Symbols from all rules. Key is a symbol name. */
