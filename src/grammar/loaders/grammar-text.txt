@@ -1,4 +1,9 @@
+# This is a grammar of such grammar written with the same grammar.
+
 Goal    : Definitions $
+
+# definitions list can be started either with definition
+# or with separator
 
 Definitions(first)  : Definition DefinitionsContinue
 Definitions(only)   : Definition
@@ -10,9 +15,9 @@ DefinitionsContinue(first)  : NextDefinition
 NextDefinition          : .separator Definition
 NextDefinition(empty)   : .separator
 
-Definition  : Define
-Definition  : Option
-Definition  : Rule
+Definition  : Define        # DEFINE: `&name  : /regexp/`
+Definition  : Option        # Option: `-name: value`
+Definition  : Rule          # normal rule
 
 Define  : "&" name ":" regexp
 
@@ -44,9 +49,12 @@ String  : qqstring
 String  : angle_string
 
 separator   : /(?:;|\R)++/
+
+# strings has no any escaping
 qstring     : /'[^'\v]*'/
 qqstring    : /"[^"\v]*"/
 angle_string: /<[^<>\v]*>/
+
 regexp      : /\/(?:[^\v\/\\]++|\\[^\v])++\//
 name        : /(?i)[a-z][a-z_0-9]*+/
 
