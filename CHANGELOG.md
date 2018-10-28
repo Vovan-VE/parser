@@ -4,15 +4,21 @@ LR(0) parser Change Log
 2.0.0 (dev)
 -----
 
-**Important change:** Text grammar now is for dev purpose by design. When your
+**Important change #1:** Text grammar now is for dev purpose by design. When your
 text grammar is ready, you need to generate an array or JSON grammar for
 production purpose with CLI tool. Text grammar loader uses Parser+Grammar
 internally.
+
+**Important change #2:** Grammar now is Lexer. You don't need Lexer itself anymore.
 
 *   **BC break**:
     *   Minimum PHP is 7.1 now.
     *   Grammar now MUST to define all mentioned terminals. Undefined terminals
         will cause a grammar to fail to create.
+    *   Deleted argument #1 `$lexer` from `\VovanVE\parser\Parser` constructor.
+    *   Removed deprecation status from `\VovanVE\parser\lexer\Lexer`, since
+        `Lexer` class is not used neither by Grammar nor by Parser, but it can
+        be used otherwise for dev or test purpose.
     *   Removed concept of hidden tokens in Lexer's point if view. Now only
         Grammar is responsive for hidden symbols.
     *   Deleted stuff which was deprecated before:

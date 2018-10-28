@@ -4,7 +4,6 @@ namespace VovanVE\parser\tests\unit\actions\commands;
 use VovanVE\parser\actions\commands\BubbleTheOnly;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\grammar\loaders\TextLoader;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 use VovanVE\parser\tree\NonTerminal;
@@ -45,7 +44,7 @@ class BubbleTheOnlyTest extends BaseTestCase
 
             name: /[a-z]++/
         ');
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = [
             'name' => function (Token $name) {

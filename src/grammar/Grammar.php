@@ -1,9 +1,9 @@
 <?php
 namespace VovanVE\parser\grammar;
 
-use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\loaders\TextLoader;
+use VovanVE\parser\lexer\BaseLexer;
 
 /**
  * Grammar to define input syntax
@@ -35,36 +35,10 @@ use VovanVE\parser\grammar\loaders\TextLoader;
  * @package VovanVE\parser
  * @link https://en.wikipedia.org/wiki/LR_parser
  */
-class Grammar extends BaseObject
+class Grammar extends BaseLexer
 {
     /** @var Rule[] Rules in the grammar */
     private $rules;
-    /** @var string[] Strings list of defined inline tokens, unquoted */
-    protected $inlines = [];
-    /** @var array Fixed tokens definition map */
-    protected $fixed = [];
-    /** @var array RegExp tokens definition map */
-    protected $regexpMap = [];
-    /**
-     * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
-     * Key is name and value is a part of RegExp
-     */
-    protected $defines;
-    /**
-     * @var array List of RegExp parts to define whitespaces to ignore in an input text.
-     * DEFINEs can be referred with `(?&name)` regexp recursion.
-     */
-    protected $whitespaces = [];
-    /**
-     * @var string Modifiers to whole regexp.
-     *
-     * Same modifiers will be applied both to tokens and whitespaces regexps.
-     *
-     * Here only "global" modifiers like `u`, `x`, `D`, etc.
-     * should be used. Other modifiers like `i` should (but not required) be used locally
-     * in specific parts like `(?i)[a-z]` or `(?i:[a-z])`.
-     */
-    protected $modifiers = '';
 
     /** @var Rule Reference to the mail rule */
     private $mainRule;

@@ -10,7 +10,6 @@ use VovanVE\parser\errors\AbortedException;
 use VovanVE\parser\errors\UnexpectedInputAfterEndException;
 use VovanVE\parser\errors\UnexpectedTokenException;
 use VovanVE\parser\grammar\loaders\TextLoader;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 use VovanVE\parser\tree\NonTerminal;
@@ -44,7 +43,7 @@ _END
 
         $this->expectNotToPerformAssertions();
 
-        return new Parser(new Lexer, $grammar);
+        return new Parser($grammar);
     }
 
     /**
@@ -165,7 +164,7 @@ int    : /\d++/
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -221,7 +220,7 @@ int    : /\d++/
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -271,7 +270,7 @@ int    : /\d++/
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -325,7 +324,7 @@ int    : /\d++/
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -375,7 +374,7 @@ int    : /\d++/
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = [
             'int' => function (Token $int): int {
@@ -429,7 +428,7 @@ text    : /[^{}]++/
 TEXT
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $result = $parser->parse("997foo{{42+37-23}}000bar", new ActionsMadeMap([
             'Nodes(L)' => function (string $a, string $b): string {
@@ -483,7 +482,7 @@ TEXT
             ]
             as $grammar
         ) {
-            $parser = new Parser(new Lexer, $grammar);
+            $parser = new Parser($grammar);
             $out = $parser->parse('aa', $actions)->made();
             $this->assertEquals(2, $out);
         }
@@ -498,7 +497,7 @@ TEXT
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = new ActionsMap([
             'int' => function (Token $i): int {
@@ -523,7 +522,7 @@ _END
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = new ActionsMadeMap([
             'int' => function (string $i): int {
@@ -557,7 +556,7 @@ int    : /\d++/
 _END
         );
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = new ActionsMadeMap([
             'int' => function (string $int): int { return (int)$int; },
@@ -615,7 +614,7 @@ _END
             'Text' => function ($content) { return $content; },
         ]);
 
-        $parser = new Parser(new Lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $result = $parser->parse('Lorem ${ipsum} dolor <sit> amet', $actions)->made();
 

@@ -13,7 +13,6 @@ use VovanVE\parser\errors\UnknownCharacterException;
 use VovanVE\parser\grammar\Grammar;
 use VovanVE\parser\grammar\GrammarException;
 use VovanVE\parser\grammar\Rule;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 /**
@@ -147,7 +146,7 @@ class TextLoader extends BaseObject
         // Hey dude, I heard you like Parser. I add a parser into grammar loader,
         // so you will load grammar while you will load grammar.
 
-        $this->parser = new Parser(new Lexer, ArrayLoader::createGrammar(
+        $this->parser = new Parser(ArrayLoader::createGrammar(
             require __DIR__ . '/grammar-text.php'
         ));
 

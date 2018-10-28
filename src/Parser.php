@@ -31,18 +31,21 @@ class Parser extends BaseObject
     /** Shortcut action to bubble up the only child's made value */
     const ACTION_BUBBLE_THE_ONLY = ActionsMap::DO_BUBBLE_THE_ONLY;
 
-    /** @var Lexer lexer to parse input text into tokens stream */
-    protected $lexer;
+    /** @var Grammar Grammar to parse input text */
+    protected $grammar;
     /** @var Table States table */
     protected $table;
 
     /**
-     * @param Lexer $lexer lexer to parse input text into tokens stream
      * @param Grammar|string $grammar Grammar object or text. Text will be passed to `Grammar::create()`
      * @see TextLoader
      */
-    public function __construct(Lexer $lexer, $grammar)
+    public function __construct($grammar)
     {
+        if ($grammar instanceof Lexer) {
+            throw new \InvalidArgumentException('Lexer is not needed, since Grammar is Lexer now');
+        }
+
         if (is_string($grammar)) {
             $grammar = TextLoader::createGrammar($grammar);
         } elseif (!$grammar instanceof Grammar) {
@@ -51,13 +54,7 @@ class Parser extends BaseObject
             );
         }
 
-        $this->lexer = $lexer
-            ->defines($grammar->getDefines())
-            ->whitespaces($grammar->getWhitespaces())
-            ->modifiers($grammar->getModifiers())
-            ->fixed($grammar->getFixed())
-            ->terminals($grammar->getRegExpMap())
-            ->inline($grammar->getInlines());
+        $this->grammar = $grammar;
 
         $this->table = new Table($grammar);
     }
@@ -121,7 +118,7 @@ class Parser extends BaseObject
                 }
 
                 $expected_terms = array_keys($stack->getStateRow()->terminalActions);
-                $match = $this->lexer->parseOne($input, $pos, $expected_terms);
+                $match = $this->grammar->parseOne($input, $pos, $expected_terms);
 
                 if ($match) {
                     /** @var Token $token */

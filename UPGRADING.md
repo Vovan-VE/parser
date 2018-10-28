@@ -11,6 +11,9 @@ internally.
 *   At least PHP 7.1 is required now.
 *   Grammar now MUST to define all mentioned terminals. Undefined terminals
     will cause a grammar to fail loading.
+*   Deleted argument #1 `$lexer` from `\VovanVE\parser\Parser` constructor.
+    Grammar now is Lexer. You don't need Lexer itself anymore but dev or test
+    purpose.
 *   Removed concept of hidden tokens in Lexer's point if view. Now only
     Grammar is responsive for hidden symbols.
 *   `\VovanVE\parser\lexer\Lexer` does not accept anonymous terminals,
