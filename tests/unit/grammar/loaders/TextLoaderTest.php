@@ -108,11 +108,11 @@ _END
         return [
             [
                 '',
-                'Cannot parse grammar: Unexpected <EOF>; expected: "&", <comment>, <separator>, "-", "." or <name> at offset 0',
+                'Cannot parse grammar: Unexpected <EOF>; expected: "&", <separator>, "-", "." or <name> at offset 0',
             ],
             [
                 '#comment',
-                'No rules defined',
+                'Cannot parse grammar: Unexpected <EOF>; expected: "&", <separator>, "-", "." or <name> at offset 8',
             ],
             [
                 ";#comment",
@@ -173,11 +173,11 @@ _END
 G: E $
 
 # comment3
-E: a
+E: a     # comment3-1
 
 # comment4
 
-E: b
+E: b     # comment5-1
 # comment5
 
 a: "x"
@@ -194,11 +194,11 @@ _END
 G: E $
 
 # comment3
-E: a
+E: a     # comment3-1
 
 # comment4
 
-E: b
+E: b     # comment5-1
 # comment5
 
 a: "x"

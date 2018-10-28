@@ -1,17 +1,14 @@
 Goal    : Definitions $
 
-Definitions(first)  : DefinitionOrComment DefinitionsContinue
-Definitions(only)   : DefinitionOrComment
+Definitions(first)  : Definition DefinitionsContinue
+Definitions(only)   : Definition
 Definitions         : DefinitionsContinue
 
 DefinitionsContinue(list)   : DefinitionsContinue NextDefinition
 DefinitionsContinue(first)  : NextDefinition
 
-NextDefinition          : .separator DefinitionOrComment
+NextDefinition          : .separator Definition
 NextDefinition(empty)   : .separator
-
-DefinitionOrComment         : Definition
-DefinitionOrComment(empty)  : .comment
 
 Definition  : Define
 Definition  : Option
@@ -46,7 +43,6 @@ String  : qstring
 String  : qqstring
 String  : angle_string
 
-comment     : /#[^\v]++/
 separator   : /(?:;|\R)++/
 qstring     : /'[^'\v]*'/
 qqstring    : /"[^"\v]*"/
@@ -55,3 +51,4 @@ regexp      : /\/(?:[^\v\/\\]++|\\[^\v])++\//
 name        : /(?i)[a-z][a-z_0-9]*+/
 
 -ws : /\h+/
+-ws : /#[^\v]++/

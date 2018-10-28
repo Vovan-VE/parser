@@ -63,7 +63,7 @@ internally.
     *   Properties `$passed` and `$further` of `VovanVE\parser\table\Item`
         became private, so use getters.
 *   Add: Text grammar now supports:
-    *   Comments: `# comment` at whole line ignoring leading whitespaces.
+    *   Line comments: `# comment`.
     *   DEFINEs: `&name : /regexp/`.
     *   Whitespaces: `-ws : /\s+/`. Use multiple `-ws` when appropriate.
     *   Modifiers: `-mod: "uis"`.

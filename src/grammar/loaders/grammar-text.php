@@ -9,12 +9,12 @@ return [
         [
             'name' => 'Definitions',
             'tag' => 'first',
-            'definition' => ['DefinitionOrComment', 'DefinitionsContinue'],
+            'definition' => ['Definition', 'DefinitionsContinue'],
         ],
         [
             'name' => 'Definitions',
             'tag' => 'only',
-            'definition' => ['DefinitionOrComment'],
+            'definition' => ['Definition'],
         ],
         [
             'name' => 'Definitions',
@@ -37,7 +37,7 @@ return [
                     'name' => 'separator',
                     'hidden' => true,
                 ],
-                'DefinitionOrComment',
+                'Definition',
             ],
         ],
         [
@@ -46,20 +46,6 @@ return [
             'definition' => [
                 [
                     'name' => 'separator',
-                    'hidden' => true,
-                ],
-            ],
-        ],
-        [
-            'name' => 'DefinitionOrComment',
-            'definition' => ['Definition'],
-        ],
-        [
-            'name' => 'DefinitionOrComment',
-            'tag' => 'empty',
-            'definition' => [
-                [
-                    'name' => 'comment',
                     'hidden' => true,
                 ],
             ],
@@ -177,10 +163,6 @@ return [
             'match' => '<[^<>\\v]*>',
         ],
         [
-            'name' => 'comment',
-            'match' => '#[^\\v]++',
-        ],
-        [
             'name' => 'name',
             'match' => '(?i)[a-z][a-z_0-9]*+',
         ],
@@ -201,5 +183,5 @@ return [
             'match' => '(?:;|\\R)++',
         ],
     ],
-    'whitespaces' => ['\\h+'],
+    'whitespaces' => ['\\h+', '#[^\\v]++'],
 ];

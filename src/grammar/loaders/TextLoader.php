@@ -179,11 +179,6 @@ class TextLoader extends BaseObject
                 return null;
             },
 
-            'DefinitionOrComment' => Parser::ACTION_BUBBLE_THE_ONLY,
-            'DefinitionOrComment(empty)' => function () {
-                return null;
-            },
-
             'Definition' => Parser::ACTION_BUBBLE_THE_ONLY,
 
             'Define' => function (string $name, string $regexp) {
