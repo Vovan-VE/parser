@@ -89,13 +89,15 @@ Description
 
 This package contains:
 
-*   Lexer to parse input string for tokens. Lexer is configurable by regexps.
-*   Parsing table generator to work with any LR(0) grammar. Input grammar can
-    be initialized from plain text.
+*   Lexer to parse input string into tokens. There is separate Lexer configurable
+    by regexps.
+*   Grammar object to describe a grammar of a language.
+*   Parsing table generation to work with any LR(0) grammar.
 *   LR(0) parser itself. It parse input string for AST using the table.
 
-This package was made just to apply the theory in practice. It may easily be
-used for small grammars to parse small source codes.
+First this package was made just to apply the theory in practice. It may easily be
+used for small grammars to parse small source codes. But later I did apply it in my
+another package.
 
 Installation
 ------------
