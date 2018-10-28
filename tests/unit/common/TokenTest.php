@@ -61,21 +61,10 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testHidden(Token $token): void
-    {
-        $this->assertFalse($token->isHidden(), 'token must not be hidden by default');
-        $hidden = new Token('a', 'b', null, null, true);
-        $this->assertTrue($hidden->isHidden(), 'hidden token');
-    }
-
-    /**
-     * @param Token $token
-     * @depends testBasic
-     */
     public function testInline(Token $token): void
     {
         $this->assertFalse($token->isInline(), 'token must not be inline by default');
-        $inline = new Token('*', '*', null, null, false, true);
+        $inline = new Token('*', '*', null, null, true);
         $this->assertTrue($inline->isInline(), 'inline token');
     }
 

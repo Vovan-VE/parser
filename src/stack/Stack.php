@@ -66,15 +66,13 @@ class Stack extends BaseObject
      * Perform a Shift of a node into the stack
      * @param TreeNodeInterface $node Node to add into the stack
      * @param int $stateIndex Next state index to switch to
-     * @param bool $isHidden [since 1.4.0] Whether the node is hidden from the resulting tree
      * @throws AbortParsingException
      */
-    public function shift(TreeNodeInterface $node, int $stateIndex, bool $isHidden = false): void
+    public function shift(TreeNodeInterface $node, int $stateIndex): void
     {
         $item = new StackItem();
         $item->state = $stateIndex;
         $item->node = $node;
-        $item->isHidden = $isHidden;
 
         if ($this->actions) {
             $this->actions->applyToNode($node);
@@ -110,9 +108,11 @@ class Stack extends BaseObject
             if ($item->node->getNodeName() !== $symbol->getName()) {
                 throw new InternalException('Unexpected stack content');
             }
-            if (!($symbol->isHidden() || $item->isHidden)) {
+
+            if (!$symbol->isHidden()) {
                 $nodes[] = $item->node;
             }
+
             if (null === $offset) {
                 $offset = $item->node->getOffset();
             }

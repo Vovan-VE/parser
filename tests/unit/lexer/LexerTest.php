@@ -21,13 +21,13 @@ class LexerTest extends BaseTestCase
             ->fixed([
                 'inc' => '++',
                 'dec' => '--',
-                '.mul' => '*',
+                'mul' => '*',
             ])
             ->terminals([
                 'int' => '\\d++',
                 'var' => '[a-z_][a-z_0-9]*+',
                 'add' => '[-+]',
-                '.bit' => '[|&]',
+                'bit' => '[|&]',
             ])
             ->whitespaces(['\\s++'])
             ->modifiers('i');
@@ -45,13 +45,13 @@ class LexerTest extends BaseTestCase
                 ['inc', '++'],
                 ['add', '-'],
                 ['int', '37'],
-                ['bit', '&', true],
-                ['--INLINE--', '--INLINE--', true],
-                ['bit', '|', true],
+                ['bit', '&'],
+                ['--INLINE--', '--INLINE--'],
+                ['bit', '|'],
                 ['var', 'x'],
-                ['$', '$', true],
-                ['\\', '\\', true],
-                ['mul', '*', true],
+                ['$', '$'],
+                ['\\', '\\'],
+                ['mul', '*'],
                 ['var', 'y23'],
             ],
             '' => [],
@@ -71,10 +71,9 @@ class LexerTest extends BaseTestCase
             foreach ($tokens as $i => $token) {
                 $this->assertInstanceOf(Token::class, $token, "$n: token[$i] is Token");
                 $this->assertArrayHasKey($i, $expect_tokens, "$n: want token[$i]");
-                [$expect_type, $expect_content, $expect_hidden] = $expect_tokens[$i] + [2 => false];
+                [$expect_type, $expect_content] = $expect_tokens[$i];
                 $this->assertEquals($expect_type, $token->getType(), "$n: token[$i] type");
                 $this->assertEquals($expect_content, $token->getContent(), "$n: token[$i] content");
-                $this->assertEquals($expect_hidden, $token->isHidden(), "$n: token[$i] isHidden");
                 ++$parsed_tokens_count;
             }
             $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "$n: tokens count");
@@ -133,8 +132,8 @@ class LexerTest extends BaseTestCase
                     ->modifiers('i'),
                 [
                     ['var', 'a'],
-                    ['++', '++', true],
-                    ['+', '+', true],
+                    ['++', '++'],
+                    ['+', '+'],
                     ['var', 'b'],
                 ],
             ],
@@ -152,8 +151,8 @@ class LexerTest extends BaseTestCase
                     ->modifiers('i'),
                 [
                     ['var', 'a'],
-                    ['++', '++', true],
-                    ['+', '+', true],
+                    ['++', '++'],
+                    ['+', '+'],
                     ['var', 'b'],
                 ],
             ],
@@ -200,10 +199,9 @@ class LexerTest extends BaseTestCase
             /** @var Lexer $lexer */
             $parsed_tokens_count = 0;
             foreach ($lexer->parse($test_input) as $i => $token) {
-                [$expect_type, $expect_content, $expect_hidden] = $expect_tokens[$i] + [2 => false];
+                [$expect_type, $expect_content] = $expect_tokens[$i];
                 $this->assertEquals($expect_type, $token->getType(), "$n: token[$i] type");
                 $this->assertEquals($expect_content, $token->getContent(), "$n: token[$i] content");
-                $this->assertEquals($expect_hidden, $token->isHidden(), "$n: token[$i] isHidden");
                 ++$parsed_tokens_count;
             }
             $this->assertEquals(count($expect_tokens), $parsed_tokens_count, "$n: tokens count");
@@ -359,7 +357,7 @@ class LexerTest extends BaseTestCase
                 'bad-name' => '\\s++',
             ]);
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Bad token name <bad-name>');
+        $this->expectExceptionMessage('Bad names: bad-name');
         $lexer->compile();
     }
 
@@ -492,31 +490,7 @@ class LexerTest extends BaseTestCase
         }
     }
 
-    public function testConflictVisibleHidden()
-    {
-        $lexer = (new Lexer)
-            ->terminals([
-                'a' => 'x',
-                '.a' => 'y',
-            ]);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating hidden tokens and normal tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictHiddenVisible()
-    {
-        $lexer = (new Lexer)
-            ->terminals([
-                '.a' => 'y',
-                'a' => 'x',
-            ]);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating hidden tokens and normal tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictVisibleInline()
+    public function testConflictInline()
     {
         $lexer = (new Lexer)
             ->inline(['a'])
@@ -526,29 +500,7 @@ class LexerTest extends BaseTestCase
         $lexer->compile();
     }
 
-    public function testConflictHiddenInline()
-    {
-        $lexer = (new Lexer)
-            ->inline(['a'])
-            ->terminals(['.a' => 'x']);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating inline tokens and hidden tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictFixedVisibleHidden()
-    {
-        $lexer = (new Lexer)
-            ->fixed([
-                'a' => 'x',
-                '.a' => 'y',
-            ]);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating fixed hidden tokens and fixed normal tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictFixedVisibleInline()
+    public function testConflictFixedInline()
     {
         $lexer = (new Lexer)
             ->inline(['a'])
@@ -568,17 +520,7 @@ class LexerTest extends BaseTestCase
         $lexer->compile();
     }
 
-    public function testConflictFixedHiddenInline()
-    {
-        $lexer = (new Lexer)
-            ->inline(['a'])
-            ->fixed(['.a' => 'x']);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating fixed hidden tokens and inline tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictTerminalVisibleFixedVisible()
+    public function testConflictTerminalFixed()
     {
         $lexer = (new Lexer)
             ->terminals(['a' => 'y'])
@@ -588,37 +530,7 @@ class LexerTest extends BaseTestCase
         $lexer->compile();
     }
 
-    public function testConflictTerminalVisibleFixedHidden()
-    {
-        $lexer = (new Lexer)
-            ->terminals(['a' => 'y'])
-            ->fixed(['.a' => 'x']);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating fixed hidden tokens and normal tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictTerminalHiddenFixedVisible()
-    {
-        $lexer = (new Lexer)
-            ->terminals(['.a' => 'y'])
-            ->fixed(['a' => 'x']);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating fixed normal tokens and hidden tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictTerminalHiddenFixedHidden()
-    {
-        $lexer = (new Lexer)
-            ->terminals(['.a' => 'y'])
-            ->fixed(['.a' => 'x']);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicating fixed hidden tokens and hidden tokens: a');
-        $lexer->compile();
-    }
-
-    public function testConflictDefineFixedVisible()
+    public function testConflictDefineFixed()
     {
         $lexer = (new Lexer)
             ->defines(['a' => 'x'])
@@ -628,31 +540,11 @@ class LexerTest extends BaseTestCase
         $lexer->compile();
     }
 
-    public function testConflictDefineFixedHidden()
-    {
-        $lexer = (new Lexer)
-            ->defines(['a' => 'x'])
-            ->fixed(['.a' => 'y']);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Declarations and defines has duplicated names: a');
-        $lexer->compile();
-    }
-
-    public function testConflictDefineTerminalVisible()
+    public function testConflictDefineTerminal()
     {
         $lexer = (new Lexer)
             ->defines(['a' => 'x'])
             ->terminals(['a' => 'y']);
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Declarations and defines has duplicated names: a');
-        $lexer->compile();
-    }
-
-    public function testConflictDefineTerminalHidden()
-    {
-        $lexer = (new Lexer)
-            ->defines(['a' => 'x'])
-            ->terminals(['.a' => 'y']);
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Declarations and defines has duplicated names: a');
         $lexer->compile();

@@ -11,6 +11,10 @@ internally.
 
 *   **BC break**:
     *   Minimum PHP is 7.1 now.
+    *   Grammar now MUST to define all mentioned terminals. Undefined terminals
+        will cause a grammar to fail to create.
+    *   Removed concept of hidden tokens in Lexer's point if view. Now only
+        Grammar is responsive for hidden symbols.
     *   Deleted stuff which was deprecated before:
         *   class `\VovanVE\parser\LexerBuilder`;
         *   exception `\VovanVE\parser\actions\ActionAbortException`;
@@ -24,6 +28,11 @@ internally.
         *   constant `\VovanVE\parser\grammar\Grammar::RE_INPUT_RULE`;
         *   constant `\VovanVE\parser\grammar\Grammar::RE_RULE_DEF_ITEM`;
         *   constant `\VovanVE\parser\grammar\Grammar::RE_RULE_DEF_REGEXP`;
+    *   Deleted useless stuff:
+        *   property `\VovanVE\parser\stack\StackItem::$isHidden`;
+        *   argument #3 `$isHidden` to `\VovanVE\parser\stack\Stack::shift()`;
+        *   argument #5 `$isHidden` to `\VovanVE\parser\common\Token` constructor;
+        *   method `\VovanVE\parser\common\Token::isHidden()`;
     *   Dropped support for deprecated features:
         *   `Lexer` terminals will not accept anonymous inline tokens, so use
             inlines directly.
@@ -47,8 +56,6 @@ internally.
         became private, so use getters.
     *   Properties `$passed` and `$further` of `\VovanVE\parser\table\Item`
         became private, so use getters.
-    *   Grammar now MUST to define all mentioned terminals. Undefined terminals
-        will cause a grammar to fail to create.
 *   Add: Text grammar now supports:
     *   Comments: `# comment` at whole line ignoring leading whitespaces.
     *   DEFINEs: `&name : /regexp/`.

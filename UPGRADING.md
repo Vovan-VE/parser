@@ -11,6 +11,8 @@ internally.
 *   At least PHP 7.1 is required now.
 *   Grammar now MUST to define all mentioned terminals. Undefined terminals
     will cause a grammar to fail loading.
+*   Removed concept of hidden tokens in Lexer's point if view. Now only
+    Grammar is responsive for hidden symbols.
 *   `\VovanVE\parser\lexer\Lexer` does not accept anonymous terminals,
     so use inlines directly.
 *   Deleted class `\VovanVE\parser\LexerBuilder`.
@@ -39,6 +41,11 @@ internally.
     since it is unused.
 *   Deleted constant `\VovanVE\parser\grammar\Grammar::RE_RULE_DEF_REGEXP`
     since it is unused.
+*   Deleted property `\VovanVE\parser\stack\StackItem::$isHidden`
+    since it became unused.
+*   Deleted argument #3 `$isHidden` to `\VovanVE\parser\stack\Stack::shift()`.
+*   Deleted argument #5 `$isHidden` to `\VovanVE\parser\common\Token` constructor.
+*   Deleted method `\VovanVE\parser\common\Token::isHidden()`.
 *   Property `\VovanVE\parser\tree\NonTerminal::$name` become private,
     so use getter.
 *   Property `\VovanVE\parser\tree\NonTerminal::$children` become private,

@@ -64,8 +64,7 @@ use VovanVE\parser\errors\UnknownCharacterException;
 class Lexer extends BaseObject
 {
     private const DUMP_NEAR_LENGTH = 30;
-    private const RE_NAME = '/^\\.?[a-z][_a-z0-9]*$/i';
-    private const RE_DEFINE_NAME = '/^[a-z][_a-z0-9]*$/i';
+    private const RE_NAME = '/^[a-z][_a-z0-9]*$/i';
 
     /**
      * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
@@ -121,10 +120,6 @@ class Lexer extends BaseObject
     /** @var string[] Prepared RegExp map for terminals */
     private $regexpTerminalsMap;
     /**
-     * @var array Map for hidden tokens to mark output Tokens.
-     * Keys are either names or inline values. Values are any non-null value. */
-    private $hiddens = [];
-    /**
      * @var array Aliases map for inline tokens. Key is generated name,
      * value is source string for Symbol name
      */
@@ -146,7 +141,6 @@ class Lexer extends BaseObject
         $this->isCompiled = false;
         $this->regexpWhitespace = null;
         $this->regexp = null;
-        $this->hiddens = [];
         $this->aliased = [];
     }
 
@@ -320,45 +314,35 @@ class Lexer extends BaseObject
             return $this;
         }
 
-        $this->checkMapNames($this->defines, self::RE_DEFINE_NAME);
+        $this->checkMapNames($this->defines);
 
         if (count($this->fixed) !== count(array_unique($this->fixed, SORT_STRING))) {
             throw new \InvalidArgumentException('Duplicating fixed strings found');
         }
 
-        $fixed_hidden = [];
-        $fixed_normal = [];
-        $fixed_map = [];
-        $this->splitTerminals($this->fixed, $fixed_hidden, $fixed_normal, $fixed_map);
-
-        $hidden = [];
-        $normal = [];
-        $map = [];
-        $this->splitTerminals($this->terminals, $hidden, $normal, $map);
+        $this->checkMapNames($this->fixed);
+        $this->checkMapNames($this->terminals);
 
         $inline = array_combine($this->inline, $this->inline);
 
         $this->checkOverlappingNames([
-            'fixed hidden' => $fixed_hidden,
-            'fixed normal' => $fixed_normal,
+            'fixed normal' => $this->fixed,
             'inline' => $inline,
-            'hidden' => $hidden,
-            'normal' => $normal,
+            'normal' => $this->terminals,
         ]);
 
-        $this->hiddens = $fixed_hidden + $hidden;
         $this->aliased = [];
         $this->aliasOf = [];
 
-        $fixed_and_inline_re_map = $this->buildFixedAndInlines($fixed_map, $inline);
-        $same = array_intersect_key($map, $fixed_and_inline_re_map);
+        $fixed_and_inline_re_map = $this->buildFixedAndInlines($this->fixed, $inline);
+        $same = array_intersect_key($this->terminals, $fixed_and_inline_re_map);
         if ($same) {
             throw new \LogicException("Duplicating inline and named tokens: " . join(', ', $same));
         }
 
         $this->regexpFixedAndInlineMap = $fixed_and_inline_re_map;
-        $this->regexpTerminalsMap = $map;
-        $terminals_map = $fixed_and_inline_re_map + $map;
+        $this->regexpTerminalsMap = $this->terminals;
+        $terminals_map = $fixed_and_inline_re_map + $this->terminals;
         if (!$terminals_map) {
             throw new \InvalidArgumentException('No terminals defined');
         }
@@ -382,7 +366,7 @@ class Lexer extends BaseObject
         }
         $this->regexpDefines = $re_defines;
 
-        foreach ($map as $name => $re_part) {
+        foreach ($this->terminals as $name => $re_part) {
             self::validateRegExp(
                 "/$re_defines\\G(?<$name>$re_part)/" . $this->modifiers,
                 Symbol::dumpType($name) . " definition /$re_part/"
@@ -505,36 +489,6 @@ class Lexer extends BaseObject
     }
 
     /**
-     * Split terminals definition in different types
-     *
-     * @param string[] $terminals Input terminals definitions array
-     * @param array $hidden Variable to store hidden named tokens. Key is name without leading
-     * dot and value is non-null.
-     * @param array $normal Variable to store normal named tokens. Key is name and value is non-null.
-     * @param array $named Variable to store all named tokens. Key is name and value is definition.
-     * @since 1.4.0
-     */
-    private function splitTerminals(array $terminals, &$hidden, &$normal, &$named): void
-    {
-        foreach ($terminals as $key => $value) {
-            if (is_int($key)) {
-                throw new \InvalidArgumentException("Token [int $key] without name - use `inlines` instead");
-            } elseif (preg_match(self::RE_NAME, $key)) {
-                if ('.' === $key[0]) {
-                    $name = substr($key, 1);
-                    $hidden[$name] = true;
-                    $named[$name] = $value;
-                } else {
-                    $normal[$key] = true;
-                    $named[$key] = $value;
-                }
-            } else {
-                throw new \InvalidArgumentException("Bad token name <$key>");
-            }
-        }
-    }
-
-    /**
      * Check defined tokens for duplicating names
      *
      * Each token's name must be used only once. Inline tokens must not overlap
@@ -605,7 +559,6 @@ class Lexer extends BaseObject
 
                 $this->aliased[$name] = $text;
                 $this->aliasOf[$text] = $name;
-                $this->hiddens[$text] = true;
             }
             $re_map[$name] = $this->textToRegExp($text);
         }
@@ -701,7 +654,7 @@ class Lexer extends BaseObject
             $type = $this->aliased[$type];
             $is_inline = true;
         }
-        $token = new Token($type, $content, $match, $pos, isset($this->hiddens[$type]), $is_inline);
+        $token = new Token($type, $content, $match, $pos, $is_inline);
 
         $result = new Match();
         $result->token = $token;
@@ -804,14 +757,12 @@ class Lexer extends BaseObject
     /**
      * Check names in regexps map for validity
      * @param array $map Map of regexp parts to check
-     * @param string $nameRegExp Regexp for names to check against.
-     * @throws \InvalidArgumentException Some bad named was found.
      * @since 1.4.0
      */
-    private function checkMapNames(array $map, string $nameRegExp): void
+    private function checkMapNames(array $map): void
     {
         $names = array_keys($map);
-        $bad_names = preg_grep($nameRegExp, $names, PREG_GREP_INVERT);
+        $bad_names = preg_grep(self::RE_NAME, $names, PREG_GREP_INVERT);
         if ($bad_names) {
             throw new \InvalidArgumentException(
                 'Bad names: ' . join(', ', $bad_names)

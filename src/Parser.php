@@ -137,11 +137,7 @@ class Parser extends BaseObject
                     if ($token) {
                         $terminal_actions = $stack->getStateRow()->terminalActions;
                         if (isset($terminal_actions[$symbol_name])) {
-                            $stack->shift(
-                                $token,
-                                $terminal_actions[$symbol_name],
-                                $token->isHidden()
-                            );
+                            $stack->shift($token, $terminal_actions[$symbol_name]);
                             goto NEXT_SYMBOL;
                         }
                     }
