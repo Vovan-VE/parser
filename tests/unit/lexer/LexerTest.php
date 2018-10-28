@@ -559,7 +559,9 @@ class LexerTest extends BaseTestCase
         $lexer = $lexer
             ->defines(['foo' => '(*']);
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('PCRE error in DEFINEs RegExp: preg_match(): Compilation failed: nothing to repeat at offset 18; RegExp: /(?(DEFINE)(?<foo>(*))\\G/');
+        $this->expectExceptionMessageRegExp(
+            '/^PCRE error in DEFINEs RegExp: preg_match\\(\\): Compilation failed: (nothing to repeat|quantifier does not follow a repeatable item) at offset 18; RegExp: \\/\\Q(?(DEFINE)(?<foo>(*))\\G\\E\\/$/'
+        );
         $lexer->compile();
     }
 
@@ -572,7 +574,9 @@ class LexerTest extends BaseTestCase
         $lexer = $lexer
             ->terminals(['foo' => '(*']);
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('PCRE error in <foo> definition /(*/ RegExp: preg_match(): Compilation failed: nothing to repeat at offset 10; RegExp: /\\G(?<foo>(*)/');
+        $this->expectExceptionMessageRegExp(
+            '/^PCRE error in <foo> definition \\/\\(\\*\\/ RegExp: preg_match\\(\\): Compilation failed: (nothing to repeat|quantifier does not follow a repeatable item) at offset 10; RegExp: \\/\\Q\\G(?<foo>(*)\\E\\/$/'
+        );
         $lexer->compile();
     }
 
@@ -585,7 +589,9 @@ class LexerTest extends BaseTestCase
         $lexer = $lexer
             ->whitespaces(['(*']);
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('PCRE error in whitespaces RegExp: preg_match(): Compilation failed: nothing to repeat at offset 6; RegExp: /\\G(?:(*)+/');
+        $this->expectExceptionMessageRegExp(
+            '/^PCRE error in whitespaces RegExp: preg_match\\(\\): Compilation failed: (nothing to repeat|quantifier does not follow a repeatable item) at offset 6; RegExp: \\/\\Q\\G(?:(*)+\\E\\/$/'
+        );
         $lexer->compile();
     }
 
