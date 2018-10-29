@@ -4,12 +4,12 @@ LR(0) parser Change Log
 2.0.0 (dev)
 -----
 
-**Important change #1:** Text grammar now is for dev purpose by design. When your
+Text grammar now is for dev purpose by design. When your
 text grammar is ready, you need to generate an array or JSON grammar for
 production purpose with CLI tool. Text grammar loader uses Parser+Grammar
 internally.
 
-**Important change #2:** Grammar now is Lexer. You don't need Lexer itself anymore.
+Grammar now is Lexer. You don't need Lexer itself anymore.
 
 *   **BC break**:
     *   Minimum PHP is 7.1 now.

@@ -344,6 +344,7 @@ class TextLoader extends BaseObject
      * @param string $text Grammar text
      * @return Grammar
      * @since 2.0.0
+     * @throws GrammarException
      */
     public function loadGrammar(string $text): Grammar
     {
