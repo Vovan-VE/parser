@@ -1,24 +1,10 @@
 <?php
-/* @formatter:off */
 
-use VovanVE\parser\grammar\loaders\TextLoader;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$lexer = (new Lexer)
-    ->fixed([
-        'div' => '/',
-    ])
-    ->terminals([
-        'id' => '[a-z_][a-z_\\d]*+',
-        'add' => '[-+]',
-    ])
-    ->whitespaces(['\\s+'])
-    ->modifiers('i');
-
-$grammar = TextLoader::createGrammar(<<<'_END'
+$grammar = <<<'_END'
 E     : S $
 S(add): S add P
 S     : P
@@ -29,9 +15,13 @@ V(int): int
 V(var): id
 int   : /\d++/
 mul   : "*"
-_END
-);
+div   : "/"
+add   : /[-+]/
+id    : /[a-z_][a-z_\d]*+/
+-ws   : /\s+/
+-mod  : "i"
+_END;
 
-$parser = new Parser($lexer, $grammar);
+$parser = new Parser($grammar);
 $tree = $parser->parse('A * 2  +1 ');
 echo $tree->dumpAsString();

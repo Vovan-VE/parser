@@ -6,7 +6,7 @@ use VovanVE\parser\tests\helpers\BaseTestCase;
 
 class TokenTest extends BaseTestCase
 {
-    public function testBasic()
+    public function testBasic(): Token
     {
         $type = 'foo';
         $content = 'bar';
@@ -35,7 +35,7 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testChildrenMatch($token)
+    public function testChildrenMatch(Token $token): void
     {
         $this->assertTrue($token->areChildrenMatch([]));
         $this->assertFalse($token->areChildrenMatch(['lorem']));
@@ -46,7 +46,7 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testMake($token)
+    public function testMake(Token $token): void
     {
         $this->assertNull($token->made());
         $token->make(42);
@@ -61,21 +61,10 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testHidden($token)
-    {
-        $this->assertFalse($token->isHidden(), 'token must not be hidden by default');
-        $hidden = new Token('a', 'b', null, null, true);
-        $this->assertTrue($hidden->isHidden(), 'hidden token');
-    }
-
-    /**
-     * @param Token $token
-     * @depends testBasic
-     */
-    public function testInline($token)
+    public function testInline(Token $token): void
     {
         $this->assertFalse($token->isInline(), 'token must not be inline by default');
-        $inline = new Token('*', '*', null, null, false, true);
+        $inline = new Token('*', '*', null, null, true);
         $this->assertTrue($inline->isInline(), 'inline token');
     }
 
@@ -83,9 +72,10 @@ class TokenTest extends BaseTestCase
      * @param Token $token
      * @depends testBasic
      */
-    public function testNoChild($token)
+    public function testNoChild(Token $token): void
     {
-        $this->setExpectedException(\OutOfBoundsException::class);
+        $this->expectException(\OutOfBoundsException::class);
+        $this->expectExceptionMessage('No children');
         $token->getChild(0);
     }
 }

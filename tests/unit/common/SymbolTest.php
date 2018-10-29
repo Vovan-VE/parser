@@ -6,7 +6,7 @@ use VovanVE\parser\tests\helpers\BaseTestCase;
 
 class SymbolTest extends BaseTestCase
 {
-    public function testCompare()
+    public function testCompare(): void
     {
         $foo = new Symbol('foo');
         $foo_copy = new Symbol('foo', false);
@@ -26,7 +26,7 @@ class SymbolTest extends BaseTestCase
         $this->assertNotEquals(0, Symbol::compare($foo, $foo_terminal), 'foo != foo_terminal');
     }
 
-    public function testCompareList()
+    public function testCompareList(): void
     {
         $orig = [new Symbol('foo', true), new Symbol('foo', false), new Symbol('bar', true)];
         $copy = [new Symbol('foo', true), new Symbol('foo', false), new Symbol('bar', true)];

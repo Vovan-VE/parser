@@ -1,6 +1,81 @@
 LR(0) parser Change Log
 =======================
 
+2.0.0
+-----
+
+Text grammar now is for dev purpose by design. When your
+text grammar is ready, you need to generate an array or JSON grammar for
+production purpose with CLI tool. Text grammar loader uses Parser+Grammar
+internally.
+
+Grammar now is Lexer. You don't need Lexer itself anymore.
+
+*   **BC break**:
+    *   Minimum PHP is 7.1 now.
+    *   Grammar now MUST to define all mentioned terminals. Undefined terminals
+        will cause a grammar to fail to create.
+    *   Deleted argument #1 `$lexer` from `VovanVE\parser\Parser` constructor.
+    *   Removed deprecation status from `VovanVE\parser\lexer\Lexer`, since
+        `Lexer` class is not used neither by Grammar nor by Parser, but it can
+        be used otherwise for dev or test purpose.
+    *   Removed concept of hidden tokens in Lexer's point if view. Now only
+        Grammar is responsive for hidden symbols.
+    *   Deleted stuff which was deprecated before:
+        *   class `VovanVE\parser\LexerBuilder`;
+        *   exception `VovanVE\parser\actions\ActionAbortException`;
+        *   exception `VovanVE\parser\lexer\ParseException`;
+        *   method `VovanVE\parser\grammar\Grammar::create()`;
+        *   method `VovanVE\parser\actions\ActionsMap::runForNode()`;
+        *   method `VovanVE\parser\lexer\Lexer::extend()`;
+        *   all arguments to `VovanVE\parser\lexer\Lexer` constructor;
+        *   constant `VovanVE\parser\common\TreeNodeInterface::DUMP_INDENT`;
+        *   constant `VovanVE\parser\grammar\Grammar::RE_RULE_LINE`;
+        *   constant `VovanVE\parser\grammar\Grammar::RE_INPUT_RULE`;
+        *   constant `VovanVE\parser\grammar\Grammar::RE_RULE_DEF_ITEM`;
+        *   constant `VovanVE\parser\grammar\Grammar::RE_RULE_DEF_REGEXP`;
+    *   Deleted useless stuff:
+        *   property `VovanVE\parser\stack\StackItem::$isHidden`;
+        *   argument #3 `$isHidden` to `VovanVE\parser\stack\Stack::shift()`;
+        *   argument #5 `$isHidden` to `VovanVE\parser\common\Token` constructor;
+        *   method `VovanVE\parser\common\Token::isHidden()`;
+    *   Dropped support for deprecated features:
+        *   `Lexer` terminals will not accept anonymous inline tokens, so use
+            inlines directly.
+        *   Property `VovanVE\parser\tree\NonTerminal::$name` become private,
+            so use getter.
+        *   Property `VovanVE\parser\tree\NonTerminal::$children` become private,
+            so use getter.
+    *   Internal constants hidden from public API:
+        *   `VovanVE\parser\common\BaseRule::DUMP_*`;
+        *   `VovanVE\parser\grammar\loaders\TextLoader::RE_*`;
+        *   `VovanVE\parser\lexer\Lexer::DUMP_NEAR_LENGTH`;
+        *   `VovanVE\parser\lexer\Lexer::RE_*`;
+        *   `VovanVE\parser\table\Item::DUMP_MARKER`;
+        *   `VovanVE\parser\table\ItemSet::DUMP_*`
+    *   Type hinting added to most of methods.
+    *   Properties `$rows` and `$states` of `VovanVE\parser\table\Table`
+        became private, so use getters.
+    *   Property `$name` of `VovanVE\parser\tree\NonTerminal`
+        became private, so use getters.
+    *   Property `$items` of `VovanVE\parser\table\ItemSet`
+        became private, so use getters.
+    *   Properties `$passed` and `$further` of `VovanVE\parser\table\Item`
+        became private, so use getters.
+*   Add: Text grammar now supports:
+    *   Line comments: `# comment`.
+    *   DEFINEs: `&name : /regexp/`.
+    *   Whitespaces: `-ws : /\s+/`. Use multiple `-ws` when appropriate.
+    *   Modifiers: `-mod: "uis"`.
+    *   Defining symbols which always are hidden: `.Foo: ...`
+*   Add: CLI tool to convert text grammar to array grammar:
+    ```sh
+    $ vendor/bin/grammar-text-to-array < grammar.txt > grammar.php
+    ```
+*   Fix: export grammar to array/JSON performs unwanted sorting of
+    DEFINEs and whitespaces.
+*   Fix: array/JSON grammar loader does not mark inline tokens as hidden.
+
 1.7.0
 -----
 
@@ -11,21 +86,21 @@ future upgrade to next 2.0 version.
     that `Lexer` does, but with new array/JSON grammar. The `Lexer` class either will
     become internal, will be removed or will be "eaten" by `Grammar` class in next
     major version 2.0.
-*   Deprecated: exception `\VovanVE\parser\actions\ActionAbortException` - use
-    new exceptions `\VovanVE\parser\actions\AbortParsingException` or
-    `\VovanVE\parser\actions\AbortNodeException` instead.
-*   Deprecated: method `\VovanVE\parser\grammar\Grammar::create()` - use
-    `\VovanVE\parser\grammar\loaders\TextLoader::createGrammar()` instead.
+*   Deprecated: exception `VovanVE\parser\actions\ActionAbortException` - use
+    new exceptions `VovanVE\parser\actions\AbortParsingException` or
+    `VovanVE\parser\actions\AbortNodeException` instead.
+*   Deprecated: method `VovanVE\parser\grammar\Grammar::create()` - use
+    `VovanVE\parser\grammar\loaders\TextLoader::createGrammar()` instead.
 *   Add: `Grammar` now can do everything that `Lexer` does, but temporarily
     in ugly way. Just use new array/JSON grammar to setup `Grammar` object.
-*   Add: exception `\VovanVE\parser\actions\AbortNodeException` to abort
+*   Add: exception `VovanVE\parser\actions\AbortNodeException` to abort
     parsing from actions pointing to offset of the given node in source text.
-*   Add: exception `\VovanVE\parser\actions\AbortParsingException` to abort
+*   Add: exception `VovanVE\parser\actions\AbortParsingException` to abort
     parsing from actions pointing to given offset in source text.
-*   Add: method `\VovanVE\parser\common\TreeNodeInterface::getOffset()` to get node
+*   Add: method `VovanVE\parser\common\TreeNodeInterface::getOffset()` to get node
     offset in input text. _This would be BC break change, but why do you ever need to
     implement this interface yourself?_
-*   Add: 4th argument `$offset` to `\VovanVE\parser\tree\NonTerminal` constructor.
+*   Add: 4th argument `$offset` to `VovanVE\parser\tree\NonTerminal` constructor.
 *   Add: ability to export/load `Grammar` object to/from array or JSON.
 *   Notice: Text grammar should not be used for production anymore, but it
     can be used for dev phase. New array/JSON grammar should be used for production.
@@ -37,9 +112,9 @@ future upgrade to next 2.0 version.
 1.6.0
 -----
 
-*   Deprecated: `\VovanVE\parser\lexer\ParseException` now replaced with
-    `\VovanVE\parser\errors\UnknownCharacterException`.
-*   Enh: `\VovanVE\parser\SyntaxException` divided into more detailed exceptions
+*   Deprecated: `VovanVE\parser\lexer\ParseException` now replaced with
+    `VovanVE\parser\errors\UnknownCharacterException`.
+*   Enh: `VovanVE\parser\SyntaxException` divided into more detailed exceptions
     to be explained to end-user easily.
 
 1.5.3
@@ -74,9 +149,9 @@ future upgrade to next 2.0 version.
     children' `made()` values instead of nodes. It also allows you optionally to prune
     tree just after node `made()` is done.
 *   Add: Method `VovanVE\parser\lexer\Lexer::parseOne()` to deal with complex grammar.
-*   Add method `\VovanVE\parser\table\TableRow::isReduceOnly()` to check if table row
+*   Add method `VovanVE\parser\table\TableRow::isReduceOnly()` to check if table row
     is for reduce only.
-*   Add exception `\VovanVE\parser\actions\ActionAbortException` which should be thrown from
+*   Add exception `VovanVE\parser\actions\ActionAbortException` which should be thrown from
     action handler to be converted to `VovanVE\parser\SyntaxException`.
 *   Enh: RegExp validation throws exception from `VovanVE\parser\lexer\Lexer`.
 *   Enh: Enum expected tokens in `VovanVE\parser\SyntaxException` in case of unexpected token
@@ -88,7 +163,7 @@ future upgrade to next 2.0 version.
     in favor to corresponding extending method.
 *   Deprecated: Method `VovanVE\parser\lexer\Lexer::extend()` - use specific corresponding
     extending method.
-*   Deprecated: Method `\VovanVE\parser\actions\ActionsMap::runForNode()` since it is unused
+*   Deprecated: Method `VovanVE\parser\actions\ActionsMap::runForNode()` since it is unused
     internally and does not cause tree recursion.
 *   Deprecated: Defining inline tokens within regexp terminals in `VovanVE\parser\lexer\Lexer`.
 
@@ -105,7 +180,7 @@ future upgrade to next 2.0 version.
 1.4.0
 -----
 
-*   Deprecated: class `\VovanVE\parser\LexerBuilder`. Use `use VovanVE\parser\lexer\Lexer`
+*   Deprecated: class `VovanVE\parser\LexerBuilder`. Use `use VovanVE\parser\lexer\Lexer`
     constructor directly. Configuration methods of `LexerBuilder` introduced in `Lexer` to
     simplify migration, but remember that `Lexer` is immutable.
 *   Add inline quoted tokens in grammar source like `Sum(add): Sum "+" Product`.

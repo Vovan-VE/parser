@@ -1,9 +1,7 @@
 <?php
-/* @formatter:off */
 
 use VovanVE\parser\actions\ActionsMadeMap;
 use VovanVE\parser\grammar\loaders\TextLoader;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -27,9 +25,7 @@ text    : /[^{}]++/
 TEXT
 );
 
-$lexer = new Lexer;
-
-$parser = new Parser($lexer, $grammar);
+$parser = new Parser($grammar);
 
 $result = $parser->parse("997foo{{42+37-23}}000", new ActionsMadeMap([
     'Nodes(L)' => function ($a, $b) { return $a . $b; },

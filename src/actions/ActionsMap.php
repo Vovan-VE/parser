@@ -52,12 +52,11 @@ class ActionsMap extends BaseObject
     private $actions = [];
 
     /**
-     * @var array Commands declaration. Key is command name, value is class name which
+     * Commands declaration. Key is command name, value is class name which
      * must implement `CommandInterface` class
      * @uses CommandInterface
-     * @refact minimal PHP >= 7 const array isset
      */
-    private static $COMMANDS = [
+    private const COMMANDS = [
         self::DO_BUBBLE_THE_ONLY => BubbleTheOnly::class,
     ];
 
@@ -66,7 +65,7 @@ class ActionsMap extends BaseObject
      * @return string
      * @since 1.5.2
      */
-    protected static function buildActionName($node)
+    protected static function buildActionName(TreeNodeInterface $node): string
     {
         $name = $node->getNodeName();
         $tag = $node->getNodeTag();
@@ -90,7 +89,7 @@ class ActionsMap extends BaseObject
             if (
                 !(
                     is_callable($action)
-                    || is_string($action) && isset(self::$COMMANDS[$action])
+                    || is_string($action) && isset(self::COMMANDS[$action])
                 )
             ) {
                 throw new \InvalidArgumentException('All actions must be a valid callable');
@@ -118,7 +117,7 @@ class ActionsMap extends BaseObject
      * @throws AbortParsingException
      * @since 1.4.0
      */
-    public function applyToNode($node)
+    public function applyToNode(TreeNodeInterface $node): ?bool
     {
         $action = $this->getAction($node);
         if (null === $action) {
@@ -133,40 +132,16 @@ class ActionsMap extends BaseObject
     }
 
     /**
-     * Run action for a node and returns its result
-     *
-     * Runs action for a node if action is defined. Returns result of the action.
-     * @param TreeNodeInterface $node Subject node
-     * @return mixed Value returned from action or `null` if no action.
-     * @throws AbortParsingException
-     * @deprecated >= 1.5.0: Method is unused internally and does not cause tree recursion.
-     */
-    public function runForNode($node)
-    {
-        $action = $this->getAction($node);
-        if (null === $action) {
-            return null;
-        }
-
-        return $this->runAction($action, $node);
-    }
-
-    /**
      * Get action handler for node
      * @param TreeNodeInterface $node Subject node
      * @return callable|string|null Action handler or `null`.
      * @since 1.4.0
      */
-    private function getAction($node)
+    private function getAction(TreeNodeInterface $node)
     {
         $name = self::buildActionName($node);
 
-        // REFACT: minimal PHP >= 7.0: $var ?? null
-        if (!isset($this->actions[$name])) {
-            return null;
-        }
-
-        return $this->actions[$name];
+        return $this->actions[$name] ?? null;
     }
 
     /**
@@ -177,11 +152,11 @@ class ActionsMap extends BaseObject
      * @throws AbortParsingException
      * @since 1.5.0
      */
-    private function runAction($action, $node)
+    private function runAction($action, TreeNodeInterface $node)
     {
-        if (is_string($action) && isset(self::$COMMANDS[$action])) {
+        if (is_string($action) && isset(self::COMMANDS[$action])) {
             /** @var CommandInterface $class Just a class name, not an instance */
-            $class = self::$COMMANDS[$action];
+            $class = self::COMMANDS[$action];
             return $class::runForNode($node);
         }
 
@@ -196,29 +171,19 @@ class ActionsMap extends BaseObject
      * @since 1.5.0
      * @throws AbortParsingException
      */
-    protected function runActionHandler($action, $node)
+    protected function runActionHandler($action, TreeNodeInterface $node)
     {
-        // REFACT: minimal PHP >= 7.0:
-        // return $action($node, ...$node->getChildren());
-        // REFACT: minimal PHP >= 5.6:
-        // return call_user_func($action, $node, ...$node->getChildren());
-        /** @var TreeNodeInterface[] $args */
-        $args = $node->getChildren();
-        array_unshift($args, $node);
+        $children = $node->getChildren();
         try {
-            return call_user_func_array($action, $args);
+            return $action($node, ...$children);
         } catch (AbortNodeException $e) {
-            throw new AbortParsingException($e->getMessage(), $args[$e->getNodeIndex()]->getOffset(), $e);
+            $child = $children[$e->getNodeIndex() - 1] ?? null;
+            throw new AbortParsingException($e->getMessage(), $child ? $child->getOffset() : null, $e);
         } catch (AbortParsingException $e) {
             if (null === $e->getOffset()) {
                 throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
             }
             throw $e;
-        } catch (ActionAbortException $e) {
-            throw new AbortParsingException($e->getMessage(), $node->getOffset(), $e);
-        } catch (\Exception $e) {
-            // REFACT: PHP >= 7.0: simplify
-            throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
         } catch (\Throwable $e) {
             throw new \RuntimeException("Action failure in `{$this::buildActionName($node)}`", 0, $e);
         }

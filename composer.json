@@ -1,42 +1,44 @@
 {
-    "name": "vovan-ve/lr0-parser",
-    "description": "LR(0) parser with state table generator for any LR(0) grammar",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Vovan-VE",
-            "email": "vovan-ve@yandex.ru"
-        }
-    ],
-    "minimum-stability": "stable",
-    "require": {
-        "php": ">=5.5",
-        "lib-pcre": "*"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "~4.8"
-    },
-    "bin": [
-        "bin/grammar-text-to-json"
-    ],
-    "scripts": {
-        "test": "vendor/bin/phpunit --verbose"
-    },
-    "archive": {
-        "exclude": [
-            "/tests/",
-            "/phpunit.xml.dist"
-        ]
-    },
-    "autoload": {
-        "psr-4": {
-            "VovanVE\\parser\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "VovanVE\\parser\\tests\\": "tests/"
-        }
+  "name": "vovan-ve/lr0-parser",
+  "description": "LR(0) parser with state table generator for any LR(0) grammar",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Vovan-VE",
+      "email": "vovan-ve@yandex.ru"
     }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": "^7.1",
+    "lib-pcre": "*",
+    "ext-json": "*",
+    "vovan-ve/array-dumper": "~1.0.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.0"
+  },
+  "bin": [
+    "bin/grammar-text-to-json"
+  ],
+  "scripts": {
+    "test": "vendor/bin/phpunit --verbose"
+  },
+  "archive": {
+    "exclude": [
+      "/tests/",
+      "/phpunit.xml.dist"
+    ]
+  },
+  "autoload": {
+    "psr-4": {
+      "VovanVE\\parser\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "VovanVE\\parser\\tests\\": "tests/"
+    }
+  }
 }

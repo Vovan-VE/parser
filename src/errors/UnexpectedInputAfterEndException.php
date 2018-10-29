@@ -13,7 +13,13 @@ class UnexpectedInputAfterEndException extends SyntaxException
     /** @var string */
     protected $token;
 
-    public function __construct($token, $offset, \Exception $previous = null)
+    /**
+     * UnexpectedInputAfterEndException constructor.
+     * @param string $token
+     * @param int $offset
+     * @param \Throwable|null $previous
+     */
+    public function __construct(string $token, int $offset, \Throwable $previous = null)
     {
         parent::__construct("Expected <EOF> but got $token", $offset, $previous);
         $this->token = $token;
@@ -22,7 +28,7 @@ class UnexpectedInputAfterEndException extends SyntaxException
     /**
      * @return string
      */
-    public function getToken()
+    public function getToken(): string
     {
         return $this->token;
     }

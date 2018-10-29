@@ -16,11 +16,9 @@ See also following example in [examples/](examples/).
 
 ```php
 use VovanVE\parser\actions\ActionsMadeMap;
-use VovanVE\parser\grammar\loaders\TextLoader;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
-$grammar = TextLoader::createGrammar(<<<'_END'
+$grammar = <<<'_END'
     Goal        : Sum $
     Sum(add)    : Sum "+" Product
     Sum(sub)    : Sum "-" Product
@@ -33,12 +31,12 @@ $grammar = TextLoader::createGrammar(<<<'_END'
     Value       : "(" Sum ")"
     Value       : int
     int         : /\d+/
-_END
-);
 
-$lexer = (new Lexer)
-    //->modifiers('i')
-    ->whitespaces(['\\s+']);
+    -ws         : /\s+/
+    -mod        : 'u'
+_END;
+
+$parser = new Parser($grammar);
 
 $actions = new ActionsMadeMap([
     'int' => function ($content) { return (int)$content; },
@@ -54,8 +52,6 @@ $actions = new ActionsMadeMap([
     'Sum(add)' => function ($a, $b) { return $a + $b; },
     'Sum(sub)' => function ($a, $b) { return $a - $b; },
 ]);
-
-$parser = new Parser($lexer, $grammar);
 
 $tree = $parser->parse('2 * (-10 + 33) - 4', $actions);
 
@@ -93,13 +89,15 @@ Description
 
 This package contains:
 
-*   Lexer to parse input string for tokens. Lexer is configurable by regexps.
-*   Parsing table generator to work with any LR(0) grammar. Input grammar can
-    be initialized from plain text.
+*   Lexer to parse input string into tokens. There is separate Lexer configurable
+    by regexps.
+*   Grammar object to describe a grammar of a language.
+*   Parsing table to let parser to switch states with respect to grammar.
 *   LR(0) parser itself. It parse input string for AST using the table.
 
-This package was made just to apply the theory in practice. It may easily be
-used for small grammars to parse small source codes.
+First this package was made just to apply the theory in practice. It may easily be
+used for small grammars to parse small source codes. But later I did apply it in my
+another package.
 
 Installation
 ------------
@@ -110,7 +108,7 @@ Install through [composer][]:
 
 or add to `require` section in your composer.json:
 
-    "vovan-ve/lr0-parser": "~1.7.0"
+    "vovan-ve/lr0-parser": "~2.0.0"
 
 Theory
 ------

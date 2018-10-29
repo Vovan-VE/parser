@@ -11,17 +11,63 @@ use VovanVE\parser\grammar\Grammar;
  */
 class Table extends BaseObject
 {
-    /** @var TableRow[] Rows in hte table. Keys are state indices. */
-    public $rows;
+    /** @var TableRow[] Rows in the table. Keys are state indices. */
+    private $rows;
     /** @var ItemSet[] All items sets for all states. Keys are state indices. */
-    public $states;
+    private $states;
 
     /**
      * @param Grammar $grammar Source grammar to work with
      */
-    public function __construct($grammar)
+    public function __construct(Grammar $grammar)
     {
         $this->prepareStates($grammar);
+    }
+
+    /**
+     * Rows in the table
+     *
+     * Keys are state indices.
+     * @return TableRow[]
+     * @since 2.0.0
+     */
+    public function getRows(): array
+    {
+        return $this->rows;
+    }
+
+    /**
+     * Get specific row of table
+     * @param int $index State index
+     * @return TableRow
+     * @since 2.0.0
+     */
+    public function getRow(int $index): TableRow
+    {
+        return $this->rows[$index];
+    }
+
+    /**
+     * All items sets for all states
+     *
+     * Keys are state indices.
+     * @return ItemSet[]
+     * @since 2.0.0
+     */
+    public function getStates(): array
+    {
+        return $this->states;
+    }
+
+    /**
+     * Get items sets for specific state
+     * @param int $index State index
+     * @return ItemSet
+     * @since 2.0.0
+     */
+    public function getState(int $index): ItemSet
+    {
+        return $this->states[$index];
     }
 
     /**
@@ -43,7 +89,7 @@ class Table extends BaseObject
      * Fulfill the table according to specified grammar
      * @param Grammar $grammar
      */
-    protected function prepareStates($grammar)
+    protected function prepareStates(Grammar $grammar): void
     {
         /** @var TableRow[] $rows */
         $rows = [];

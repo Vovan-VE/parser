@@ -7,35 +7,32 @@ namespace VovanVE\parser\common;
  */
 interface TreeNodeInterface
 {
-    /** @deprecated */
-    const DUMP_INDENT = '    ';
-
     /**
      * Name of the node according to grammar
      * @return string
      */
-    public function getNodeName();
+    public function getNodeName(): string;
 
     /**
      * Tag from corresponding grammar rule if one was defined
      * @return string|null
      * @since 1.3.0
      */
-    public function getNodeTag();
+    public function getNodeTag(): ?string;
 
     /**
      * Position of the node in the input text
-     * @return integer
+     * @return int|null
      * @since 1.7.0
      */
-    public function getOffset();
+    public function getOffset(): ?int;
 
     /**
      * Counts children nodes
-     * @return integer
+     * @return int
      * @since 1.1.0
      */
-    public function getChildrenCount();
+    public function getChildrenCount(): int;
 
     /**
      * Retrieves a child by index starting from 0
@@ -44,14 +41,14 @@ interface TreeNodeInterface
      * @throws \OutOfRangeException No child node with such index
      * @since 1.3.0
      */
-    public function getChild($index);
+    public function getChild(int $index): TreeNodeInterface;
 
     /**
      * Get all children nodes
      * @return TreeNodeInterface[]
      * @since 1.1.0
      */
-    public function getChildren();
+    public function getChildren(): array;
 
     /**
      * Check if children nodes'names match with given names
@@ -60,7 +57,7 @@ interface TreeNodeInterface
      * match given names in the order.
      * @since 1.2.0
      */
-    public function areChildrenMatch($nodeNames);
+    public function areChildrenMatch(array $nodeNames): bool;
 
     /**
      * Get string representation of a tree recursively for a debug purpose
@@ -69,7 +66,7 @@ interface TreeNodeInterface
      * @return string Text representation of the tree for debug purpose.
      * Text is mostly multiline.
      */
-    public function dumpAsString($indent = '', $last = true);
+    public function dumpAsString(string $indent = '', bool $last = true): string;
 
     /**
      * Store a value in the node to get it back later
@@ -83,7 +80,7 @@ interface TreeNodeInterface
      * @since 1.3.0
      * @see made()
      */
-    public function make($value);
+    public function make($value): void;
 
     /**
      * Get a value made previously
@@ -96,4 +93,13 @@ interface TreeNodeInterface
      * @see make()
      */
     public function made();
+
+    /**
+     * Cleanup children and content
+     *
+     * This method can be used after `make()` to free memory usage.
+     * @return void
+     * @since 2.0.0
+     */
+    public function prune(): void;
 }

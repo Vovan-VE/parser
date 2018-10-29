@@ -1,14 +1,11 @@
 <?php
-/* @formatter:off */
 
 use VovanVE\parser\actions\ActionsMadeMap;
-use VovanVE\parser\grammar\loaders\TextLoader;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$grammar = TextLoader::createGrammar(<<<'_END'
+$grammar = <<<'_END'
     Goal        : Sum $
     Sum(add)    : Sum "+" Product
     Sum(sub)    : Sum "-" Product
@@ -21,12 +18,12 @@ $grammar = TextLoader::createGrammar(<<<'_END'
     Value       : "(" Sum ")"
     Value       : int
     int         : /\d+/
-_END
-);
 
-$lexer = (new Lexer)
-    //->modifiers('i')
-    ->whitespaces(['\\s+']);
+    -ws         : /\s+/
+    -mod        : 'u'
+_END;
+
+$parser = new Parser($grammar);
 
 $actions = new ActionsMadeMap([
     'int' => function ($content) { return (int)$content; },
@@ -42,8 +39,6 @@ $actions = new ActionsMadeMap([
     'Sum(add)' => function ($a, $b) { return $a + $b; },
     'Sum(sub)' => function ($a, $b) { return $a - $b; },
 ]);
-
-$parser = new Parser($lexer, $grammar);
 
 $tree = $parser->parse('2 * (-10 + 33) - 4', $actions);
 

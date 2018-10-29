@@ -13,20 +13,19 @@ class SyntaxException extends \RuntimeException
     /**
      * @param string $message Message text
      * @param int $offset Error code
-     * @param \Exception|null $previous Previous exception
+     * @param \Throwable|null $previous Previous exception
      */
-    public function __construct($message, $offset, \Exception $previous = null)
+    public function __construct(string $message, int $offset, \Throwable $previous = null)
     {
-        // REFACT: minimal PHP >= 7.0: use \Throwable
         parent::__construct($message, 0, $previous);
-        $this->offset = (int)$offset;
+        $this->offset = $offset;
     }
 
     /**
      * Position of the error in the source text
      * @return int
      */
-    public function getOffset()
+    public function getOffset(): int
     {
         return $this->offset;
     }

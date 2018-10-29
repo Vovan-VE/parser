@@ -21,11 +21,10 @@ class BadStateException extends DevException
     /**
      * @param Item[] $items Items of state which cause the error
      * @param string $message Message
-     * @param \Exception $previous Previous exception
+     * @param \Throwable $previous Previous exception
      */
-    public function __construct($items, $message, \Exception $previous = null)
+    public function __construct(array $items, string $message, \Throwable $previous = null)
     {
-        // REFACT: minimal PHP >= 7.0: use \Throwable
         parent::__construct($message, 0, $previous);
         $this->items = $items;
     }
@@ -33,7 +32,7 @@ class BadStateException extends DevException
     /**
      * @return Item[] Items of state which cause the error
      */
-    public function getItems()
+    public function getItems(): array
     {
         return $this->items;
     }
@@ -41,7 +40,7 @@ class BadStateException extends DevException
     /**
      * @return Rule[] Rules reconstructed from state items
      */
-    public function getRules()
+    public function getRules(): array
     {
         if (null === $this->rules) {
             $rules = [];

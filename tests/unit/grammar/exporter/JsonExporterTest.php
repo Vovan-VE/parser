@@ -13,23 +13,23 @@ class JsonExporterTest extends BaseTestCase
      * @param array $expected
      * @dataProvider jsonDataProvider
      */
-    public function testExportGrammar($grammar, $expected)
+    public function testExportGrammar(Grammar $grammar, string $expected)
     {
         $exporter = new JsonExporter();
         $actual = $exporter->exportGrammar($grammar);
         $this->assertEquals($expected, $actual);
     }
 
-    public function jsonDataProvider()
+    public function jsonDataProvider(): array
     {
         return [
             [
-                TextLoader::createGrammar('G: a $'),
-                '{"rules":[{"name":"G","eof":true,"definition":["a"]}],"terminals":[{"name":"a"}]}'
+                TextLoader::createGrammar('G: a $; a: /a+/'),
+                '{"rules":[{"name":"G","eof":true,"definition":["a"]}],"terminals":[{"name":"a","match":"a+"}]}'
             ],
             [
-                TextLoader::createGrammar('G: A $ ; A (loop) : A a ; A: a; A: b; A: "x"; A: .c; a: "y"; b: /\\d+/'),
-                '{"rules":[{"name":"G","eof":true,"definition":["A"]},{"name":"A","tag":"loop","definition":["A","a"]},{"name":"A","definition":["a"]},{"name":"A","definition":["b"]},{"name":"A","definition":["x"]},{"name":"A","definition":[{"name":"c","hidden":true}]}],"terminals":[{"name":"a","match":"y","isText":true},{"name":"b","match":"\\\\d+"},{"name":"c"},"x"]}'
+                TextLoader::createGrammar('G: A $ ; A (loop) : A a ; A: a; A: b; A: "x"; A: .c; a: "y"; b: /\\d+/; c: /c+/'),
+                '{"rules":[{"name":"G","eof":true,"definition":["A"]},{"name":"A","tag":"loop","definition":["A","a"]},{"name":"A","definition":["a"]},{"name":"A","definition":["b"]},{"name":"A","definition":["x"]},{"name":"A","definition":[{"name":"c","hidden":true}]}],"terminals":[{"name":"a","match":"y","isText":true},{"name":"b","match":"\\\\d+"},{"name":"c","match":"c+"},"x"]}'
             ],
         ];
     }

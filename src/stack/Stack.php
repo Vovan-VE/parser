@@ -25,7 +25,7 @@ class Stack extends BaseObject
 
     /** @var StackItem[] Items in the stack. Last item in the array is topmost item. */
     private $items;
-    /** @var integer Current state index from states table */
+    /** @var int Current state index from states table */
     private $stateIndex;
     /** @var TableRow Current state row from states table */
     private $stateRow;
@@ -36,19 +36,19 @@ class Stack extends BaseObject
      * @param Table $table Parser states table
      * @param ActionsMap|null $actions [since 1.3.0] Actions map to apply to nodes
      */
-    public function __construct($table, $actions = null)
+    public function __construct(Table $table, ?ActionsMap $actions = null)
     {
         $this->table = $table;
         $this->stateIndex = 0;
-        $this->stateRow = $table->rows[0];
+        $this->stateRow = $table->getRow(0);
         $this->actions = $actions;
     }
 
     /**
      * Current state index from states table
-     * @return integer
+     * @return int
      */
-    public function getStateIndex()
+    public function getStateIndex(): int
     {
         return $this->stateIndex;
     }
@@ -57,7 +57,7 @@ class Stack extends BaseObject
      * Current state row from states table
      * @return TableRow
      */
-    public function getStateRow()
+    public function getStateRow(): TableRow
     {
         return $this->stateRow;
     }
@@ -65,18 +65,14 @@ class Stack extends BaseObject
     /**
      * Perform a Shift of a node into the stack
      * @param TreeNodeInterface $node Node to add into the stack
-     * @param integer $stateIndex Next state index to switch to
-     * @param bool $isHidden [since 1.4.0] Whether the node is hidden from the resulting tree
+     * @param int $stateIndex Next state index to switch to
      * @throws AbortParsingException
      */
-    public function shift($node, $stateIndex, $isHidden = false)
+    public function shift(TreeNodeInterface $node, int $stateIndex): void
     {
-        // REFACT: try to hide $stateIndex from public interface
-
         $item = new StackItem();
         $item->state = $stateIndex;
         $item->node = $node;
-        $item->isHidden = $isHidden;
 
         if ($this->actions) {
             $this->actions->applyToNode($node);
@@ -84,7 +80,7 @@ class Stack extends BaseObject
 
         $this->items[] = $item;
         $this->stateIndex = $stateIndex;
-        $this->stateRow = $this->table->rows[$stateIndex];
+        $this->stateRow = $this->table->getRow($stateIndex);
     }
 
     /**
@@ -93,7 +89,7 @@ class Stack extends BaseObject
      * @throws InternalException Internal package error
      * @throws AbortParsingException
      */
-    public function reduce()
+    public function reduce(): void
     {
         $rule = $this->stateRow->reduceRule;
         if (!$rule) {
@@ -112,9 +108,11 @@ class Stack extends BaseObject
             if ($item->node->getNodeName() !== $symbol->getName()) {
                 throw new InternalException('Unexpected stack content');
             }
-            if (!($symbol->isHidden() || $item->isHidden)) {
+
+            if (!$symbol->isHidden()) {
                 $nodes[] = $item->node;
             }
+
             if (null === $offset) {
                 $offset = $item->node->getOffset();
             }
@@ -123,7 +121,7 @@ class Stack extends BaseObject
         $base_state_index = ($total_count > $reduce_count)
             ? $this->items[$total_count - 1 - $reduce_count]->state
             : 0;
-        $base_state_row = $this->table->rows[$base_state_index];
+        $base_state_row = $this->table->getRow($base_state_index);
 
         $new_symbol_name = $rule->getSubject()->getName();
 
@@ -144,7 +142,7 @@ class Stack extends BaseObject
      * @return TreeNodeInterface
      * @throws InternalException Internal package error
      */
-    public function done()
+    public function done(): TreeNodeInterface
     {
         if (1 !== count($this->items)) {
             throw new InternalException('Unexpected stack content');

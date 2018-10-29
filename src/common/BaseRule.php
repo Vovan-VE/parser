@@ -31,7 +31,7 @@ class BaseRule extends BaseObject
      * and zero when tags are equal.
      * @since 1.3.0
      */
-    public static function compareTag($a, $b)
+    public static function compareTag(?string $a, ?string $b): int
     {
         if (null === $a) {
             return null === $b ? 0 : -1;
@@ -44,7 +44,7 @@ class BaseRule extends BaseObject
      * @param bool $eof Must EOF be found in the end of input text
      * @param string|null $tag [since 1.3.0] Optional tag name in addition to subject
      */
-    public function __construct($subject, $eof = false, $tag = null)
+    public function __construct(Symbol $subject, bool $eof = false, ?string $tag = null)
     {
         $this->subject = $subject;
         $this->eof = $eof;
@@ -60,7 +60,7 @@ class BaseRule extends BaseObject
      * Subject of the rule
      * @return Symbol
      */
-    public function getSubject()
+    public function getSubject(): Symbol
     {
         return $this->subject;
     }
@@ -70,26 +70,25 @@ class BaseRule extends BaseObject
      * @return string|null
      * @since 1.3.0
      */
-    public function getTag()
+    public function getTag(): ?string
     {
         return $this->tag;
     }
 
     /**
      * Whether EOF must be found in the end of input text
-     * @return boolean
+     * @return bool
      */
-    public function hasEofMark()
+    public function hasEofMark(): bool
     {
         return $this->eof;
     }
 
-    // REFACT: minimal PHP >= 7.1: protected const
-    const DUMP_SPACE = ' ';
-    const DUMP_KEY_OPEN = '(';
-    const DUMP_KEY_CLOSE = ')';
-    const DUMP_ARROW = '::=';
-    const DUMP_EOF = '<eof>';
+    protected const DUMP_SPACE = ' ';
+    protected const DUMP_KEY_OPEN = '(';
+    protected const DUMP_KEY_CLOSE = ')';
+    protected const DUMP_ARROW = '::=';
+    protected const DUMP_EOF = '<eof>';
 
     /**
      * @return string
@@ -114,7 +113,7 @@ class BaseRule extends BaseObject
      * Dump rule content as string for debug purpose
      * @return string
      */
-    protected function toStringContent()
+    protected function toStringContent(): string
     {
         return '';
     }

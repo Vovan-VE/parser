@@ -10,18 +10,12 @@ use VovanVE\parser\common\TreeNodeInterface;
  */
 class NonTerminal extends BaseObject implements TreeNodeInterface
 {
-    /**
-     * @var string Symbol name from the grammar
-     * @deprecated Don't use outside directly - use getter
-     */
-    public $name;
+    /** @var string Symbol name from the grammar */
+    private $name;
     /** @var string|null Tag from corresponding grammar rule if one was defined */
     private $tag;
-    /**
-     * @var TreeNodeInterface[] Children nodes
-     * @deprecated Don't use outside directly - use getter
-     */
-    public $children;
+    /** @var TreeNodeInterface[] Children nodes */
+    private $children;
     /** @var mixed Value evaluated with actions */
     private $made;
     /** @var int Offset in the source text */
@@ -31,10 +25,10 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @param string $name Symbol name from the grammar
      * @param TreeNodeInterface[] $children Children nodes
      * @param string|null $tag Tag from corresponding grammar rule if one was defined
-     * @param int $offset >= 1.7.0
+     * @param int|null $offset >= 1.7.0
      * @since 1.3.0
      */
-    public function __construct($name, $children, $tag = null, $offset = null)
+    public function __construct(string $name, array $children, ?string $tag = null, ?int $offset = null)
     {
         $this->name = $name;
         $this->children = $children;
@@ -50,7 +44,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
     /**
      * @inheritdoc
      */
-    public function getNodeName()
+    public function getNodeName(): string
     {
         return $this->name;
     }
@@ -59,17 +53,17 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.3.0
      */
-    public function getNodeTag()
+    public function getNodeTag(): ?string
     {
         return $this->tag;
     }
 
     /**
      * Position of the token in the input text
-     * @return integer
+     * @return int
      * @since 1.7.0
      */
-    public function getOffset()
+    public function getOffset(): ?int
     {
         return $this->offset;
     }
@@ -78,7 +72,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.1.0
      */
-    public function getChildrenCount()
+    public function getChildrenCount(): int
     {
         return count($this->children);
     }
@@ -87,7 +81,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.3.0
      */
-    public function getChild($index)
+    public function getChild(int $index): TreeNodeInterface
     {
         if ($index >= 0 && $index < count($this->children)) {
             return $this->children[$index];
@@ -99,7 +93,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.1.0
      */
-    public function getChildren()
+    public function getChildren(): array
     {
         return $this->children;
     }
@@ -108,7 +102,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.2.0
      */
-    public function areChildrenMatch($nodeNames)
+    public function areChildrenMatch(array $nodeNames): bool
     {
         if (count($nodeNames) !== $this->getChildrenCount()) {
             return false;
@@ -129,7 +123,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
     /**
      * @inheritdoc
      */
-    public function dumpAsString($indent = '', $last = true)
+    public function dumpAsString(string $indent = '', bool $last = true): string
     {
         $out = $indent . ' `- ' . $this->name;
 
@@ -150,7 +144,7 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
      * @inheritdoc
      * @since 1.3.0
      */
-    public function make($value)
+    public function make($value): void
     {
         $this->made = $value;
     }
@@ -162,5 +156,14 @@ class NonTerminal extends BaseObject implements TreeNodeInterface
     public function made()
     {
         return $this->made;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 2.0.0
+     */
+    public function prune(): void
+    {
+        $this->children = [];
     }
 }

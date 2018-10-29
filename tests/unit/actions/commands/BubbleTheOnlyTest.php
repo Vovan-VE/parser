@@ -4,14 +4,13 @@ namespace VovanVE\parser\tests\unit\actions\commands;
 use VovanVE\parser\actions\commands\BubbleTheOnly;
 use VovanVE\parser\common\Token;
 use VovanVE\parser\grammar\loaders\TextLoader;
-use VovanVE\parser\lexer\Lexer;
 use VovanVE\parser\Parser;
 use VovanVE\parser\tests\helpers\BaseTestCase;
 use VovanVE\parser\tree\NonTerminal;
 
 class BubbleTheOnlyTest extends BaseTestCase
 {
-    public function testRun()
+    public function testRun(): void
     {
         $token = new Token('t', '');
         $node = new NonTerminal('N', [$token]);
@@ -34,7 +33,7 @@ class BubbleTheOnlyTest extends BaseTestCase
         }
     }
 
-    public function testUsage()
+    public function testUsage(): void
     {
         $grammar = TextLoader::createGrammar('
             G: E $
@@ -42,10 +41,10 @@ class BubbleTheOnlyTest extends BaseTestCase
             E: "[" E "]"
             E: "{" E "}"
             E: name
+
+            name: /[a-z]++/
         ');
-        $lexer = (new Lexer)
-            ->terminals(['name' => '[a-z]++']);
-        $parser = new Parser($lexer, $grammar);
+        $parser = new Parser($grammar);
 
         $actions = [
             'name' => function (Token $name) {

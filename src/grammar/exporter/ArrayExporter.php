@@ -16,12 +16,12 @@ class ArrayExporter extends BaseObject
      * @param Grammar $grammar
      * @return array
      */
-    public function exportGrammar($grammar)
+    public function exportGrammar(Grammar $grammar)
     {
         $rules = [];
         $terminals = [];
 
-        $add_symbol = function (Symbol $symbol) use (&$terminals) {
+        $add_symbol = function (Symbol $symbol) use (&$terminals): void {
             $name = $symbol->getName();
 
             if ($symbol->isTerminal()) {
@@ -85,11 +85,11 @@ class ArrayExporter extends BaseObject
             ];
         }
 
+        ksort($terminals);
+
         foreach ($grammar->getRegExpMap() as $name => $regexp) {
             $terminals[$name]['match'] = $regexp;
         }
-
-        ksort($terminals);
 
         $result = [
             'rules' => $rules,
@@ -98,13 +98,11 @@ class ArrayExporter extends BaseObject
 
         $defines = $grammar->getDefines();
         if ($defines) {
-            ksort($defines);
             $result['defines'] = $defines;
         }
 
         $whitespaces = $grammar->getWhitespaces();
         if ($whitespaces) {
-            sort($whitespaces);
             $result['whitespaces'] = $whitespaces;
         }
 

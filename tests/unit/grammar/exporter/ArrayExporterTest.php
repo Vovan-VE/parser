@@ -13,18 +13,18 @@ class ArrayExporterTest extends BaseTestCase
      * @param array $expected
      * @dataProvider arrayDataProvider
      */
-    public function testExportGrammar($grammar, $expected)
+    public function testExportGrammar(Grammar $grammar, array $expected)
     {
         $exporter = new ArrayExporter();
         $actual = $exporter->exportGrammar($grammar);
         $this->assertEquals($expected, $actual);
     }
 
-    public function arrayDataProvider()
+    public function arrayDataProvider(): array
     {
         return [
             [
-                TextLoader::createGrammar('G: a $'),
+                TextLoader::createGrammar('G: a $; a: /a+/'),
                 [
                     'rules' => [
                         [
@@ -36,18 +36,43 @@ class ArrayExporterTest extends BaseTestCase
                     'terminals' => [
                         [
                             'name' => 'a',
+                            'match' => 'a+',
                         ],
                     ],
                 ]
             ],
             [
-                TextLoader::createGrammar('G: A $ ; A (loop) : A a ; A: a; A: b; A: "x"; A: .c; a: "y"; b: /\\d+/'),
+                TextLoader::createGrammar(<<<'_END'
+                    G      : A $
+                    A      : D
+                    A(loop): A a
+                    A      : a
+                    A      : b
+                    A      : "x"
+                    A      : .c
+                    a      : "y"
+                    b      : /(?&int)/
+                    c      : /c+/
+                    .D     : d
+                    .d     : /d+/
+                    &int   : /\d+/
+                    -ws    : /\s+/
+                    -ws    : /#.*/
+                    -mod   : 'iu'
+_END
+                ),
                 [
                     'rules' => [
                         [
                             'name' => 'G',
                             'eof' => true,
                             'definition' => ['A'],
+                        ],
+                        [
+                            'name' => 'A',
+                            'definition' => [
+                                ['name' => 'D', 'hidden' => true],
+                            ],
                         ],
                         [
                             'name' => 'A',
@@ -70,6 +95,10 @@ class ArrayExporterTest extends BaseTestCase
                             'name' => 'A',
                             'definition' => [['name' => 'c', 'hidden' => true]],
                         ],
+                        [
+                            'name' => 'D',
+                            'definition' => [['name' => 'd', 'hidden' => true]],
+                        ],
                     ],
                     'terminals' => [
                         [
@@ -79,13 +108,26 @@ class ArrayExporterTest extends BaseTestCase
                         ],
                         [
                             'name' => 'b',
-                            'match' => '\\d+',
+                            'match' => '(?&int)',
                         ],
                         [
                             'name' => 'c',
+                            'match' => 'c+',
+                        ],
+                        [
+                            'name' => 'd',
+                            'match' => 'd+',
                         ],
                         'x',
                     ],
+                    'defines' => [
+                        'int' => '\\d+'
+                    ],
+                    'whitespaces' => [
+                        '\\s+',
+                        '#.*',
+                    ],
+                    'modifiers' => 'iu',
                 ]
             ],
         ];

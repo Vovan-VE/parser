@@ -22,12 +22,12 @@ class TableRow extends BaseObject
     public $eofAction;
     /**
      * Terminal actions. Key is symbol name. Value is state index to shift to.
-     * @var integer[]
+     * @var int[]|array
      */
     public $terminalActions = [];
     /**
      * Goto switches. Key is symbol name. Value is state index to shift to.
-     * @var integer[]
+     * @var int[]|array
      */
     public $gotoSwitches = [];
     /** @var Rule|null Rule to reduce by if any */
@@ -38,7 +38,7 @@ class TableRow extends BaseObject
      * @return bool
      * @since 1.5.0
      */
-    public function isReduceOnly()
+    public function isReduceOnly(): bool
     {
         return !$this->eofAction
             && !$this->terminalActions

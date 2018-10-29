@@ -1,9 +1,9 @@
 <?php
 namespace VovanVE\parser\grammar;
 
-use VovanVE\parser\common\BaseObject;
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\loaders\TextLoader;
+use VovanVE\parser\lexer\BaseLexer;
 
 /**
  * Grammar to define input syntax
@@ -35,43 +35,11 @@ use VovanVE\parser\grammar\loaders\TextLoader;
  * @package VovanVE\parser
  * @link https://en.wikipedia.org/wiki/LR_parser
  */
-class Grammar extends BaseObject
+class Grammar extends BaseLexer
 {
-    /** @deprecated >= 1.7.0 */
-    const RE_RULE_LINE = TextLoader::RE_RULE_LINE;
-    /** @deprecated >= 1.7.0 */
-    const RE_INPUT_RULE = TextLoader::RE_INPUT_RULE;
-    /** @deprecated >= 1.7.0 */
-    const RE_RULE_DEF_ITEM = TextLoader::RE_RULE_DEF_REGEXP;
-
     /** @var Rule[] Rules in the grammar */
     private $rules;
-    /** @var string[] Strings list of defined inline tokens, unquoted */
-    private $inlines = [];
-    /** @var array Fixed tokens definition map */
-    private $fixed = [];
-    /** @var array RegExp tokens definition map */
-    private $regexpMap = [];
-    /**
-     * @var array Map of RegExp DEFINE's to reference from terminals and whitespaces.
-     * Key is name and value is a part of RegExp
-     */
-    private $defines;
-    /**
-     * @var array List of RegExp parts to define whitespaces to ignore in an input text.
-     * DEFINEs can be referred with `(?&name)` regexp recursion.
-     */
-    private $whitespaces = [];
-    /**
-     * @var string Modifiers to whole regexp.
-     *
-     * Same modifiers will be applied both to tokens and whitespaces regexps.
-     *
-     * Here only "global" modifiers like `u`, `x`, `D`, etc.
-     * should be used. Other modifiers like `i` should (but not required) be used locally
-     * in specific parts like `(?i)[a-z]` or `(?i:[a-z])`.
-     */
-    private $modifiers = '';
+
     /** @var Rule Reference to the mail rule */
     private $mainRule;
     /** @var Symbol[] Map of all Symbols from all rules. Key is a symbol name. */
@@ -80,20 +48,6 @@ class Grammar extends BaseObject
     private $terminals;
     /** @var Symbol[] Map of non-terminal Symbols from all rules. Key is a symbol name. */
     private $nonTerminals;
-
-    /**
-     * Create grammar object from a text
-     *
-     * See class description for details.
-     * @param string $text Grammar definition text
-     * @return static Grammar object
-     * @throws GrammarException Errors in grammar syntax or logic
-     * @deprecated >= 1.7.0: use `TextLoader::createGrammar()` instead
-     */
-    public static function create($text)
-    {
-        return TextLoader::createGrammar($text);
-    }
 
     /**
      * Constructor
@@ -118,8 +72,12 @@ class Grammar extends BaseObject
         array $regexpMap = [],
         array $whitespaces = [],
         array $defines = [],
-        $modifiers = ''
+        string $modifiers = ''
     ) {
+        if (!$rules) {
+            throw new GrammarException('No rules defined');
+        }
+
         $this->rules = array_values($rules);
         $this->inlines = array_values($inlines);
         $this->fixed = $fixed;
@@ -165,6 +123,20 @@ class Grammar extends BaseObject
         if (!$terminals) {
             throw new GrammarException('No terminals');
         }
+
+        $undefined = array_diff_key(
+            $terminals,
+            array_flip($this->inlines),
+            $this->fixed,
+            $this->regexpMap
+        );
+
+        if ($undefined) {
+            $undefined = array_keys($undefined);
+            sort($undefined);
+            throw new GrammarException('There are terminals without definitions: ' . join(', ', $undefined));
+        }
+
         $this->symbols = $symbols;
         $this->terminals = $terminals;
         $this->nonTerminals = $non_terminals;
@@ -175,7 +147,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.4.0
      */
-    public function getInlines()
+    public function getInlines(): array
     {
         return $this->inlines;
     }
@@ -185,7 +157,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.5.0
      */
-    public function getFixed()
+    public function getFixed(): array
     {
         return $this->fixed;
     }
@@ -195,7 +167,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.5.0
      */
-    public function getRegExpMap()
+    public function getRegExpMap(): array
     {
         return $this->regexpMap;
     }
@@ -205,7 +177,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.7.0
      */
-    public function getDefines()
+    public function getDefines(): array
     {
         return $this->defines;
     }
@@ -215,7 +187,7 @@ class Grammar extends BaseObject
      * @return string[]
      * @since 1.7.0
      */
-    public function getWhitespaces()
+    public function getWhitespaces(): array
     {
         return $this->whitespaces;
     }
@@ -225,7 +197,7 @@ class Grammar extends BaseObject
      * @return string
      * @since 1.7.0
      */
-    public function getModifiers()
+    public function getModifiers(): string
     {
         return $this->modifiers;
     }
@@ -234,7 +206,7 @@ class Grammar extends BaseObject
      * Rules in the grammar
      * @return Rule[]
      */
-    public function getRules()
+    public function getRules(): array
     {
         return $this->rules;
     }
@@ -243,7 +215,7 @@ class Grammar extends BaseObject
      * Reference to the mail rule
      * @return Rule
      */
-    public function getMainRule()
+    public function getMainRule(): Rule
     {
         return $this->mainRule;
     }
@@ -254,7 +226,7 @@ class Grammar extends BaseObject
      * Key is a symbol name.
      * @return Symbol[]
      */
-    public function getTerminals()
+    public function getTerminals(): array
     {
         return $this->terminals;
     }
@@ -265,7 +237,7 @@ class Grammar extends BaseObject
      * Key is a symbol name.
      * @return Symbol[]
      */
-    public function getNonTerminals()
+    public function getNonTerminals(): array
     {
         return $this->nonTerminals;
     }
@@ -275,9 +247,9 @@ class Grammar extends BaseObject
      * @param string $name Symbol name to search
      * @return Symbol|null
      */
-    public function getSymbol($name)
+    public function getSymbol(string $name): ?Symbol
     {
-        return isset($this->symbols[$name]) ? $this->symbols[$name] : null;
+        return $this->symbols[$name] ?? null;
     }
 
     /**
@@ -285,7 +257,7 @@ class Grammar extends BaseObject
      * @param Symbol $subject Symbol to search
      * @return Rule[]
      */
-    public function getRulesFor($subject)
+    public function getRulesFor(Symbol $subject): array
     {
         $rules = [];
         if (!$subject->isTerminal()) {
@@ -305,7 +277,4 @@ class Grammar extends BaseObject
     {
         return join(PHP_EOL, $this->rules);
     }
-
-    /** @deprecated >= 1.7.0 */
-    const RE_RULE_DEF_REGEXP = TextLoader::RE_RULE_DEF_REGEXP;
 }
