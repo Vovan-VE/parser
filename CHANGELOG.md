@@ -1,7 +1,7 @@
 LR(0) parser Change Log
 =======================
 
-2.0.0 (dev)
+2.0.0
 -----
 
 Text grammar now is for dev purpose by design. When your
