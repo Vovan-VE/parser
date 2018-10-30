@@ -29,7 +29,7 @@ class JsonExporterTest extends BaseTestCase
             ],
             [
                 TextLoader::createGrammar('G: A $ ; A (loop) : A a ; A: a; A: b; A: "x"; A: .c; a: "y"; b: /\\d+/; c: /c+/'),
-                '{"rules":[{"name":"G","eof":true,"definition":["A"]},{"name":"A","tag":"loop","definition":["A","a"]},{"name":"A","definition":["a"]},{"name":"A","definition":["b"]},{"name":"A","definition":["x"]},{"name":"A","definition":[{"name":"c","hidden":true}]}],"terminals":[{"name":"a","match":"y","isText":true},{"name":"b","match":"\\\\d+"},{"name":"c","match":"c+"},"x"]}'
+                '{"rules":[{"name":"G","eof":true,"definition":["A"]},{"name":"A","tag":"loop","definition":["A","a"]},{"name":"A","definition":["a"]},{"name":"A","definition":["b"]},{"name":"A","definition":["x"]},{"name":"A","definition":[{"name":"c","hidden":true}]}],"terminals":["x",{"name":"a","match":"y","isText":true},{"name":"b","match":"\\\\d+"},{"name":"c","match":"c+"}]}'
             ],
         ];
     }

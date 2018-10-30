@@ -76,6 +76,7 @@ class ArrayLoaderTest extends BaseTestCase
                         ],
                     ],
                     'terminals' => [
+                        'x',
                         [
                             'name' => 'a',
                             'match' => 'y',
@@ -89,7 +90,6 @@ class ArrayLoaderTest extends BaseTestCase
                             'name' => 'c',
                             'match' => 'z',
                         ],
-                        'x',
                     ],
                 ]
             ],

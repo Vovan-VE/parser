@@ -2,6 +2,7 @@
 namespace VovanVE\parser\grammar\exporter;
 
 use VovanVE\parser\common\BaseObject;
+use VovanVE\parser\common\InternalException;
 use VovanVE\parser\common\Symbol;
 use VovanVE\parser\grammar\Grammar;
 
@@ -19,14 +20,14 @@ class ArrayExporter extends BaseObject
     public function exportGrammar(Grammar $grammar)
     {
         $rules = [];
-        $terminals = [];
+        $mentioned_terminals = [];
 
-        $add_symbol = function (Symbol $symbol) use (&$terminals): void {
+        $add_symbol = function (Symbol $symbol) use (&$mentioned_terminals): void {
             $name = $symbol->getName();
 
             if ($symbol->isTerminal()) {
-                if (!isset($terminals[$name])) {
-                    $terminals[$name] = [
+                if (!isset($mentioned_terminals[$name])) {
+                    $mentioned_terminals[$name] = [
                         'name' => $name,
                     ];
                 }
@@ -76,24 +77,36 @@ class ArrayExporter extends BaseObject
             $rules[] = $rule_array;
         }
 
-        $terminals = $inlines_map + $terminals;
-
+        $fixed_map = [];
         foreach ($grammar->getFixed() as $name => $text) {
-            $terminals[$name] += [
+            $fixed_map[$name] = [
+                'name' => $name,
                 'match' => $text,
                 'isText' => true,
             ];
         }
 
-        ksort($terminals);
+        ksort($inlines_map, SORT_STRING);
+        ksort($fixed_map, SORT_STRING);
 
+        $regexp_map = [];
         foreach ($grammar->getRegExpMap() as $name => $regexp) {
-            $terminals[$name]['match'] = $regexp;
+            $regexp_map[$name] = [
+                'name' => $name,
+                'match' => $regexp,
+            ];
+        }
+
+        $defined_terminals = $inlines_map + $fixed_map + $regexp_map;
+
+        $missing = array_diff_key($mentioned_terminals, $defined_terminals);
+        if ($missing) {
+            throw new InternalException('Missing terminals: ' . join(', ', array_keys($missing)));
         }
 
         $result = [
             'rules' => $rules,
-            'terminals' => array_values($terminals),
+            'terminals' => array_values($defined_terminals),
         ];
 
         $defines = $grammar->getDefines();

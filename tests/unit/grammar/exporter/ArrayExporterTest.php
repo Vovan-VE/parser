@@ -42,6 +42,42 @@ class ArrayExporterTest extends BaseTestCase
                 ]
             ],
             [
+                TextLoader::createGrammar('
+                    G   : A $
+                    A   : Foo
+                    A   : Bar
+                    Foo : /\d+/
+                    Bar : /[a-z][a-z\d]*/
+                '),
+                [
+                    'rules' => [
+                        [
+                            'name' => 'G',
+                            'eof' => true,
+                            'definition' => ['A'],
+                        ],
+                        [
+                            'name' => 'A',
+                            'definition' => ['Foo'],
+                        ],
+                        [
+                            'name' => 'A',
+                            'definition' => ['Bar'],
+                        ],
+                    ],
+                    'terminals' => [
+                        [
+                            'name' => 'Foo',
+                            'match' => '\\d+',
+                        ],
+                        [
+                            'name' => 'Bar',
+                            'match' => '[a-z][a-z\\d]*',
+                        ],
+                    ],
+                ]
+            ],
+            [
                 TextLoader::createGrammar(<<<'_END'
                     G      : A $
                     A      : D
@@ -101,6 +137,7 @@ _END
                         ],
                     ],
                     'terminals' => [
+                        'x',
                         [
                             'name' => 'a',
                             'match' => 'y',
@@ -118,7 +155,6 @@ _END
                             'name' => 'd',
                             'match' => 'd+',
                         ],
-                        'x',
                     ],
                     'defines' => [
                         'int' => '\\d+'
