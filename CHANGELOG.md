@@ -4,6 +4,8 @@ LR(0) parser Change Log
 2.0.1
 -----
 
+*   Fix: Export Grammar to array/JSON does unwanted resort of RegExp
+    terminals, which would break grammar logic.
 *   Fix: Did not link `grammar-text-to-array` into `vendor/bin/`.
 
 2.0.0
